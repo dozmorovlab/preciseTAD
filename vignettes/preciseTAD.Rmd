@@ -1,0 +1,46 @@
+---
+title: "preciseTAD Vignette"
+author:
+- name: Spiro Stilianoudakis
+  affiliation:
+  - &1 Department of Biostatistics, Virginia Commonwealth University, Richmond, VA
+- name: Mikhail Dozmorov
+  affiliation:
+  - *1
+date: '`r format(Sys.Date(), "%B %e, %Y")`'
+abstract: >
+  Chromosome conformation capture combined with high-throughput 
+  sequencing experiments (Hi-C) have revealed that chromatin undergoes layers of
+  compaction through DNA looping and folding, forming dynamic 3D structures.
+  Among these are Topologically Associating Domains (TADs), which are known to
+  play critical roles in cell dynamics like gene regulation and cell 
+  differentiation. Precise TAD mapping remains difficult, as it is strongly 
+  reliant on Hi-C data resolution. Obtaining genome-wide chromatin interactions 
+  at high-resolution is costly resulting in variability in true TAD boundary 
+  location by TAD calling algorithms. To aid in the precise identification of 
+  TAD boundaries we developed a machine learning framework built upon a random 
+  forest classifier that leverages the spatial relationship of many high 
+  resolution ChIP-seq defined genomic elements. Our framework precisely predicts 
+  chromosome-specific TAD boundaries on multiple cell types. We show that known 
+  molecular drivers of 3D chromatin including CTCF, RAD21, and SMC3 are more 
+  enriched at our predicted TAD boundaries compared to the boundaries identified
+  by the popular ARROWHEAD TAD caller. Our results provide useful insights into
+  the 3D organization of the human genome.
+output:
+    BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{preciseTAD}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(preciseTAD)
+```

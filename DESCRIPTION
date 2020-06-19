@@ -1,0 +1,47 @@
+Package: preciseTAD
+Type: Package
+Title: preciseTAD: A machine learning framework for precise TAD boundary 
+    prediction
+Version: 0.99.0
+Date: 2020-06-16
+Author:
+    Spiro Stilianoudakis <stilianoudasc@vcu.edu>,
+    Mikhail Dozmorov <mikhail.dozmorov@vcuhealth.org>
+Maintainer: Spiro Stilianoudakis <stilianoudasc@mymail.vcu.edu>
+Description: preciseTAD is an R package that leverages high resolution 
+    functional genomic data in a random forest classification algorithm to 
+    more precisely predict the genomic coordinates of TAD boundaries at base
+    pair resolution. 
+License: MIT + file LICENSE
+Depends: R (>= 4.0.0)
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.0
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat,
+    BiocCheck,
+    BiocManager,
+    BiocStyle
+VignetteBuilder: knitr
+Imports: 
+    IRanges,
+    GenomicRanges,
+    randomForest,
+    ModelMetrics,
+    e1071,
+    PRROC,
+    pROC,
+    caret,
+    DMwR,
+    utils,
+    bigmemory,
+    cluster,
+    dbscan,
+    doSNOW,
+    foreach,
+    pbapply,
+    stats
+biocViews: Software, HiC, Sequencing, Clustering, 
+    Classification, FunctionalGenomics, FeatureExtraction

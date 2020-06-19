@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 # preciseTAD
 
 <!-- badges: start -->
+[![Travis build status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](https://travis-ci.com/stilianoudakis/preciseTAD)
 <!-- badges: end -->
 
 The goal of preciseTAD is to ...

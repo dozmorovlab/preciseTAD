@@ -5,6 +5,8 @@
 
 <!-- badges: start -->
 
+[![Travis build
+status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](https://travis-ci.com/stilianoudakis/preciseTAD)
 <!-- badges: end -->
 
 The goal of preciseTAD is to …
@@ -24,6 +26,9 @@ This is a basic example which shows you how to solve a common problem:
 
 ``` r
 library(preciseTAD)
+#> Registered S3 method overwritten by 'quantmod':
+#>   method            from
+#>   as.zoo.data.frame zoo
 ## basic example code
 ```
 

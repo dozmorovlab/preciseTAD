@@ -3,7 +3,7 @@
 \name{preciseTAD}
 \alias{preciseTAD}
 \title{Precise TAD boundary prediction at base pair resolution using density-based
-spatial clustering}
+spatial clustering and partitioning techniques}
 \usage{
 preciseTAD(
   bounds.GR,
@@ -30,85 +30,84 @@ preciseTAD(
 )
 }
 \arguments{
-\item{bounds.GR}{a GRanges object with chromosomal coordinates of TAD
-boundaries used to identify positive cases (can be obtained using
-\code{\link{extractBoundaries}})}
+\item{bounds.GR}{\code{GRanges} object with chromosomal coordinates
+of TAD boundaries used to identify positive cases in a binary classification.
+framework (can be obtained using \code{\link{extractBoundaries}})}
 
-\item{genomicElements.GR}{a GRangesList object containing GRanges objects
-for each ChIP-seq data to leverage in the random forest model (can be
-obtained using the \code{\link{bedToGRangesList}})}
+\item{genomicElements.GR}{\code{GRangesList} object containing GRanges from
+each ChIP-seq BED file that was used to train a predictive model (can be
+obtained using the \code{\link{bedToGRangesList}}).}
 
-\item{featureType}{Character, controls how the feature space is constructed
-(one of either "binary", "oc", "op", or "distance" (log2- transformed);
-default is "distance")}
+\item{featureType}{Controls how the feature space is constructed (one of
+either "binary", "oc", "op", or "distance" (log2- transformed). Default is
+"distance".}
 
-\item{CHR}{Character, which chromosome to predict boundaries on at base pair
-resolution}
+\item{CHR}{Controls which chromosome to predict boundaries on at base pair
+resolution.}
 
 \item{chromCoords}{List containing the starting bp coordinate and ending bp
 coordinate that defines the region of the linear genome to make predictions
 on. If chromCoords is not specified then predictions will be made on the
-entire chromosome (default is NULL)}
+entire chromosome. Default is NULL.}
 
-\item{tadModel}{train object, a predicitive model (examples include
-randomForest, glmnet, glm, etc) used to obtain predicted probabilities for
-each base pair in CHR of being a potential TAD boundary (for a random forest
-model, can be obtained using \code{\link{TADrandomForest}})}
+\item{tadModel}{Model object used to obtain predicted probabilities at base
+pair resolution (examples include \code{gbm}, \code{glmnet},
+\code{svm}, \code{glm}, etc). For a random forest model, can be obtained
+using \code{preciseTAD::randomForest}).}
 
-\item{threshold}{a numeric cutoff value used to dentote the base pairs that
-are potential TAD boundaries. Base pairs with predicted probabilities that
-are greater than or equal to this value are labeled as potential TAD
-boundaries}
+\item{threshold}{Base pairs with predicted probabilities that are greater
+than or equal to this value are labeled as potential TAD boundaries. Values
+in the range of .95-1.0 are suggested.}
 
-\item{flank}{Numeric, by hopw much to flank the final predicted TAD
-boundaries and the called TAD boundaries (default is NULL i.e. no flanking)}
+\item{flank}{Controls how much to flank the final predicted TAD boundaries
+(necessary for evaluating overlaps, etc.). Default is NULL, i.e. no flanking.}
 
-\item{verbose}{Logical, whether or not to print progress}
+\item{verbose}{Option to print progress.}
 
-\item{seed}{Numeric for reproducibility}
+\item{seed}{Numeric for reproducibility.}
 
-\item{parallel}{Logical for whether or not to parallelise the process for
-obtaining predicted probabilities}
+\item{parallel}{Option to parallelise the process for obtaining predicted
+probabilities. Default is FALSE.}
 
-\item{cores}{Numeric, number of cores to use in parallel}
+\item{cores}{Number of cores to use in parallel. Default is NULL.}
 
-\item{splits}{Numeric, number of splits of the test data to speed up
-prediction}
+\item{splits}{Number of splits of the test data to speed up prediction.
+Default is NULL.}
 
-\item{DBSCAN}{Logical for whether or not to use \code{\link{dbscan}} instead
-of agglomerative hierarchical clustering \code{\link{hclust}} when clustering
-pairwise genomic distance. Default is TRUE}
+\item{DBSCAN}{Whether or not to use \code{\link{dbscan}} instead of
+agglomerative hierarchical clustering (\code{\link{hclust}}) when clustering
+pairwise genomic distance. Default is TRUE.}
 
-\item{DBSCAN_params}{List, 1) eps and 2) MinPts values to be passed to the
-\code{\link{dbscan}} function}
+\item{DBSCAN_params}{Parameters passed to \code{\link{dbscan}} in list form
+containing 1) eps and 2) MinPts.}
 
-\item{method.Clust}{Characater, value passed to `hclust` function (default
-is NULL, indicating to use DBSCAN instead)}
+\item{method.Clust}{The agglomeration method to be passed to
+\code{\link{hclust}}. Default is NULL, indicating to use DBSCAN instead.}
 
-\item{PTBR}{Logical for whether or not to include PTBRs along with predicted
-boundaries}
+\item{PTBR}{Option to include PTBRs along with predicted boundaries. Default
+is TRUE.}
 
-\item{CLARA}{Logical for whether or not CLARA (\code{\link{clara}}) should
-be used instead of PAM (\code{\link{pam}}). Default is TRUE}
+\item{CLARA}{Option to use CLARA (\code{\link{clara}}) instead of PAM
+(\code{\link{pam}}). Default is TRUE.}
 
-\item{method.Dist}{Character, distance metric passed to \code{\link{clara}}
-or \code{\link{pam}} (if CLARA=FALSE). Default is "euclidean"}
+\item{method.Dist}{Distance metric passed to \code{\link{clara}} or
+\code{\link{pam}} (if CLARA=FALSE). Default is "euclidean".}
 
-\item{samples}{Numeric, number of subsamples to apply CLARA partitioning on
-Default is 100. Ignored if CLARA=FALSE}
+\item{samples}{Number of subsamples if applying CLARA. Default is 100.
+Ignored if CLARA=FALSE.}
 
-\item{juicer}{Logical indicating whether predicted boundaries should be
-returned in a format that allows for plotting in juicebox from Aiden Lab}
+\item{juicer}{Option to return predicted boundaries in a format that allows
+for plotting in juicebox from Aiden Lab.}
 }
 \value{
-A list object containing 3 components: 1) the genomic coordinates of
-PTBRs as a GRanges object, the genomic coordinates of preciseTAD predicted
-boundaries as a GRanges object, and 3) the genomic coordinates of the called
-boundaries used to make predictions as a GRanges object
+A list of at most 3 \code{GRanges} objects including: 1) the genomic
+coordinates of PTBRs (if PTBR=TRUE), the genomic coordinates of preciseTAD
+predicted boundaries, and 3) the genomic coordinates of the called boundaries
+used to make predictions.
 }
 \description{
 Precise TAD boundary prediction at base pair resolution using density-based
-spatial clustering
+spatial clustering and partitioning techniques
 }
 \examples{
 \dontrun{

@@ -79,7 +79,7 @@ The unique boundaries for CHR1 and CHR22 can be extracted by running the followi
 bounds <- extractBoundaries(domains.mat=arrowhead_gm12878_5kb, preprocess=FALSE, CHR=c("CHR1","CHR22"),resolution=5000)
 ```
 
-Next you will need to download cell line specific ChIP-seq data in the form of BED files from [ENCODE](https://www.encodeproject.org/chip-seq-matrix/?type=Experiment&replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&assay_title=TF%20ChIP-seq&status=released). Once, you have downloaded your preferred list of functional genomic annotations, store them in a specific file location. These files can then be converted into a GRangesList object and used for downstream modelling using the following command:
+Next you will need to download cell line specific ChIP-seq data in the form of BED files from [ENCODE](https://www.encodeproject.org/chip-seq-matrix/?type=Experiment&replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&assay_title=TF%20ChIP-seq&status=released). Once you have downloaded your preferred list of functional genomic annotations, store them in a specific file location. These files can then be converted into a GRangesList object and used for downstream modelling using the following command:
 
 ```
 path = "pathToBEDfiles"
@@ -102,7 +102,7 @@ tfbsList <- tfbsList[names(tfbsList) %in% c("Gm12878-Ctcf-Broad","Gm12878-Rad21-
 Now, using the "ground-truth" boundaries and the following TFBS, we can build the data matrix that will be used for predictive modelling. The following command creates the training data from CHR1 and reserves the testing data from CHR22. We specify 5kb sized genomic bins (to match the resolution used to call the original TADs), a distance-type feature space, and to apply random under-sampling (RUS) on the training data only.
 
 ```
-tadData <- createTADdata(bounds.GR=bounds.GR,
+tadData <- createTADdata(bounds.GR=bounds,
                          resolution=5000,
                          genomicElements.GR=tfbsList,
                          featureType="distance",
@@ -140,13 +140,13 @@ Lastly, we take our TAD-boundary region predictive model and use it to make pred
 
 ```
 #first make sure to restrict the called boundaries to the specific chromosome used to make predictions on
-bounds.GR <- extractBoundaries(domains.mat=arrowhead_gm12878_5kb,
+bounds <- extractBoundaries(domains.mat=arrowhead_gm12878_5kb,
                                preprocess=FALSE,
                                CHR="CHR22",
                                resolution=5000)
                                
 #run preciseTAD
-pt <- preciseTAD(bounds.GR=bounds.GR,
+pt <- preciseTAD(bounds.GR=bounds,
                  genomicElements.GR=tfbsList,
                  featureType="distance",
                  CHR="CHR22",

@@ -18,29 +18,134 @@ abstract: >
   reliant on Hi-C data resolution. Obtaining genome-wide chromatin interactions 
   at high-resolution is costly resulting in variability in true TAD boundary 
   location by TAD calling algorithms. To aid in the precise identification of 
-  TAD boundaries we developed a machine learning framework built upon a random 
-  forest classifier that leverages the spatial relationship of many high 
-  resolution ChIP-seq defined genomic elements. Our framework precisely predicts 
-  chromosome-specific TAD boundaries on multiple cell types. We show that known 
-  molecular drivers of 3D chromatin including CTCF, RAD21, and SMC3 are more 
-  enriched at our predicted TAD boundaries compared to the boundaries identified
-  by the popular ARROWHEAD TAD caller. Our results provide useful insights into
-  the 3D organization of the human genome.
+  TAD boundaries we developed a machine learning framework that leverages the 
+  spatial relationship of many high resolution ChIP-seq defined genomic 
+  elements, coupled with density-based clustering  and scalable partitioning 
+  techniques. Our framework precisely predicts chromosome-specific TAD 
+  boundaries on multiple cell types. We show that known molecular drivers of 3D 
+  chromatin including CTCF, RAD21, and SMC3 are more enriched at our predicted 
+  TAD boundaries compared to the boundaries identified by the popular ARROWHEAD 
+  TAD caller. Our results provide useful insights into the 3D organization of 
+  the human genome.
+package: preciseTAD
 output:
     BiocStyle::html_document
 vignette: >
   %\VignetteIndexEntry{preciseTAD}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+editor_options:
+    chunk_output_type: console
+bibliography: references.bib
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width = 400)
 ```
 
-```{r setup}
+# Introduction
+
+`preciseTAD` is an R package designed to transform TAD-calling into a supervised machine learning framework. The functionality of `preciseTAD` can be broken into 2 primary usages:
+
++ Model building, and
++ TAD boundary prediction
+
+`preciseTAD` offers full functionality in customizing the model building process to predict TAD boundary regions. At the center of this is the concept of *shifted binning*, a strategy for creating the dimensions of the data matrix used for modeling by segmenting the linear genome into nonoverlapping regions. To create the rowwise dimension of the data, chromosome-specific bins start at half of the resolution *r*, and continue in congruent intervals of length *r* until the end of the chromosome (*mod r* + *r/2*). The shifted genomic bins, are then defined as boundary regions (*Y = 1*) if they contain a called TAD boundary, and non-boundary regions (*Y = 0*) otherwise, thus establishing the binary response vector (**Y**) used for classification. Additionally, `preciseTAD` introduces a technique for establishing the feature space of the data matrix (columnwise dimension), referred to as *(log_2) distances*, which enumerates the genomic distance from the center of each genomic bin to the center of the nearest ChIP-seq peak region of interest (followed by a log_2 transformation).
+
+The second usage of `preciseTAD` allows users to leverage a TAD boundary region classifier in order to more precisely predict the genomic coordinates of chromosome specific TAD boundaries at base pair resolution. To do so, `preciseTAD` combines novel density-based clustering and scalable data partitioning techniques to narrow regions of high predictibility to single base pair coordinates. First, the probability vector, $p_{n_{i}}$, is extracted ($n_{i}$ representing the length of chromosome $i$). Next, *DBSCAN* (Density-based Spatial Clustering of Applications with Noise) [???ref] is applied to the matrix of pairwise genomic distances between base pairs with $p_{n_{i}} \ge t$, where $t$ is a threshold determined by the user. The resulting clusters of highly predictive base pairs identified by DBSCAN are termed *preciseTAD boundary regions* (PTBR). To precisely identify a single base pair among each PTBR, *preciseTAD* implements an extension of partitioning around medoids (PAM), known as CLARA (Clustering Large Applications) for better scaling and more computational efficiency [???ref]. The corresponding cluster medoid is defined as a *preciseTAD boundary point* (PTBP), making it the most representative and biologically meaningful base pair within each clustered PTBR.
+
+The following vignette illustrates a workflow for precisely predicting TAD boundaries using `preciseTAD`, introduced by [???insert our citation].
+
+# Getting Started
+
+## Installation
+
+```{r, eval = FALSE, message=FALSE}
+install.packages(c('pbapply', 
+                   'doSNOW', 
+                   'cluster',
+                   'foreach',
+                   'parallel',
+                   'bigmemory',
+                   'IRanges',
+                   'GenomicRanges',
+                   'dbscan'))
+
+# if (!requireNamespace("BiocManager", quietly=TRUE))
+#     install.packages("BiocManager")
+# BiocManager::install("preciseTAD")
+devtools::install_github("stilianoudakis/preciseTAD")
 library(preciseTAD)
 ```
+
+```{r, include=FALSE, message=FALSE, warning=FALSE}
+library(preciseTAD)
+```
+
+# Implementation
+
+## Model building
+
+### Construction the data matrix
+
+`preciseTAD` requires users to supply "ground-truth" TADs to establish the response vector (**Y**). As an example, we consider TADs derived from the popular *ARROWHEAD* TAD-caller, a part of the juicebox suite of tools developed by Aiden Lab [???ref]. *ARROWHEAD* was implemented on the autosomal chromosomes using 5 kb HiC data from Geo GSE63525 [???ref] for the GM12878. An example of the first 3 columns is shown below.
+
+```{r, warning = FALSE}
+data("arrowhead_gm12878_5kb")
+head(arrowhead_gm12878_5kb)
+```
+
+Users then need to transform this TAD data into a GRanges object of unique boundary coordinates for pre-specified chromosomes. This can be done using the `extractBoundaries` function. Here we only extract boundaries for CHR1 and CHR22. We specify `preprocess=FALSE` because we are only interested in boundaries and not in filtering TADs by length. Lastly, we specify `resolution=5000` to match with the resolution that was used by *ARROWHEAD* (although this argument is ignored given that `preprocess=FALSE`).
+
+```{r, warning = FALSE, message = FALSE}
+bounds <- extractBoundaries(domains.mat=arrowhead_gm12878_5kb, preprocess=FALSE, CHR=c("CHR1","CHR22"),resolution=5000)
+bounds
+```
+
+`preciseTAD` also requires ChIP-seq defined functional genomic annotations to establish the feature space (**X**). Cell line specific ChIP-seq data can be downloaded from [ENCODE](https://www.encodeproject.org/chip-seq-matrix/?type=Experiment&replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&assay_title=TF%20ChIP-seq&status=released). Once you have downloaded your preferred list of functional genomic annotations, store them in a specific file location (i.e. "./path/to/BEDfiles"). These files can then be converted into a GRangesList object and used for create the feature space. The `signal` argument refers to the column in the BED files containing peak signal strength values and is used to assign metadata to the corresponding GRanges.
+
+```{r, eval=FALSE}
+path = "./path/to/BEDfiles"
+tfbsList <- bedToGRangesList(filepath=path, pattern = "*.bed", signal=4)
+```
+
+As an example, we have already provided a GRangesList object with 26 transcription factor binding sites (TFBS) specific to the GM12878 cell line. Once you load it in, you can see the list of transcription factors using the following commands.
+
+```{r, warning = FALSE, message = FALSE}
+data("tfbsList")
+names(tfbsList)
+```
+
+Now, using the "ground-truth" TAD boundaries and the following TFBS, we can build the data matrix that will be used for predictive modelling. The following command creates the training data from CHR1 and reserves the testing data from CHR22. We specify 5kb sized genomic bins (to match the resolution used to call the original TADs), a (log_2) distance-type feature space, and to apply random under-sampling (RUS) on the training data only to balance classes of TAD-boundary vs nonTAD-boundary regions. We also specify a seed to ensure reproducibility when performing the resampling. The result is a list containing two data frames: (1) resampled (if specified) training data, and (2) testing data
+
+```{r, eval=FALSE}
+tadData <- createTADdata(bounds.GR=bounds,
+                         resolution=5000,
+                         genomicElements.GR=tfbsList,
+                         featureType="distance",
+                         resampling="rus",
+                         trainCHR="CHR1",
+                         predictCHR="CHR22",
+                         seed=123)
+
+#view subset of training data
+tadData[[1]][1:5,1:4]
+
+#view subset of testing data
+tadData[[2]][1:5,1:4]
+```
+
+We can now implement our machine learning algorithm of choice to predict TAD-boundary regions. Here, we opt for the random forest algorithm for binary classification. `preciseTAD` offers functionality for performing recursive feature elimination (RFE) as a form of feature reduction. An example is shown below. Here, we implement a random forest model on the best subset of features from 2 to the maximum number of features in the data by power of 2, using 5-fold cross-validation. We specify accuracy as the performance metric.
+
+```{r, eval=FALSE}
+rfe_res <- TADrfe(trainData=tadData[[1]],
+                 tuneParams=list(ntree=500,
+                                 nodesize=1),
+                 cvFolds=5,
+                 cvMetric="Accuracy",
+                 verbose=TRUE,
+                 seed=123)
+```
+
+
+## TAD boundary prediction

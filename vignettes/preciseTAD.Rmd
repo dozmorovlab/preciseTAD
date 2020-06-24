@@ -32,8 +32,8 @@ output:
     BiocStyle::html_document
 vignette: >
   %\VignetteIndexEntry{preciseTAD}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 editor_options:
     chunk_output_type: console
 bibliography: references.bib
@@ -48,7 +48,7 @@ options(width = 400)
 `preciseTAD` is an R package designed to transform TAD-calling into a supervised machine learning framework. The functionality of `preciseTAD` can be broken into 2 primary usages:
 
 + Model building, and
-+ TAD boundary prediction
++ Precise TAD boundary prediction
 
 `preciseTAD` offers full functionality in customizing the model building process to predict TAD boundary regions. At the center of this is the concept of *shifted binning*, a strategy for creating the dimensions of the data matrix used for modeling by segmenting the linear genome into nonoverlapping regions. To create the rowwise dimension of the data, chromosome-specific bins start at half of the resolution *r*, and continue in congruent intervals of length *r* until the end of the chromosome (*mod r* + *r/2*). The shifted genomic bins, are then defined as boundary regions (*Y = 1*) if they contain a called TAD boundary, and non-boundary regions (*Y = 0*) otherwise, thus establishing the binary response vector (**Y**) used for classification. Additionally, `preciseTAD` introduces a technique for establishing the feature space of the data matrix (columnwise dimension), referred to as *(log_2) distances*, which enumerates the genomic distance from the center of each genomic bin to the center of the nearest ChIP-seq peak region of interest (followed by a log_2 transformation).
 
@@ -69,7 +69,12 @@ install.packages(c('pbapply',
                    'bigmemory',
                    'IRanges',
                    'GenomicRanges',
-                   'dbscan'))
+                   'caret',
+                   'randomForest',
+                   'DMwR'
+                   'dbscan',
+                   'pROC',
+                   'e1071'))
 
 # if (!requireNamespace("BiocManager", quietly=TRUE))
 #     install.packages("BiocManager")
@@ -79,6 +84,20 @@ library(preciseTAD)
 ```
 
 ```{r, include=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+library(e1071)
+#library(pbapply)
+#library(caret)
+#library(randomForest)
+#library(GenomicRanges)
+#library(pROC)
+#library(cluster)
+#library(bigmemory)
+#library(parallel)
+#library(doSNOW)
+#library(foreach)
+#library(PRROC)
+#library(ModelMetrics)
 library(preciseTAD)
 ```
 
@@ -135,6 +154,8 @@ tadData[[1]][1:5,1:4]
 tadData[[2]][1:5,1:4]
 ```
 
+### Feature selection using recursive feature elimination
+
 We can now implement our machine learning algorithm of choice to predict TAD-boundary regions. Here, we opt for the random forest algorithm for binary classification. `preciseTAD` offers functionality for performing recursive feature elimination (RFE) as a form of feature reduction. An example is shown below. Here, we implement a random forest model on the best subset of features from 2 to the maximum number of features in the data by power of 2, using 5-fold cross-validation. We specify accuracy as the performance metric.
 
 ```{r, eval=FALSE}
@@ -145,7 +166,71 @@ rfe_res <- TADrfe(trainData=tadData[[1]],
                  cvMetric="Accuracy",
                  verbose=TRUE,
                  seed=123)
+
+#view RFE performances
+rfe_res_vignette[[1]]
+
+#view the variable importances among top n features across each CV fold
+head(rfe_res_vignette[[2]])
 ```
 
+Results from recursive feature elimination indicate that model accuracy begins to stabilize when only considering the top 4 transcription factors for build random forest predictive models (Figure 1A). We can aggregate the variable importances of the to 4 TFBS across each cross-fold by looking at the results in the list created by `preciseTAD::TADrfe`. Indeed the top 4 most important TFBS in each of the 5 folds are the SMC3, RAD21, CTCF, and ZNF143 (Figure 1B). These are known components of the loop-extrusion model that has been proposed as a mechanism for the 3D architecture of the human genome [???ref]. 
 
-## TAD boundary prediction
+
+![**Figure 1**](figures/fig1_vignette.png)
+
+
+### Implementing a random forest for TAD boundary region prediction
+
+Now that we have suitably reduced our feature space, we can implement a random forest algorithm built simply on the TFBS mentioned above (SMC3, RAD21, CTCF, and ZNF143). To do so, we can take advantage of the `preciseTAD::TADrandomForest` command shown below. This allows us flexibility in assigning tuning parameters and evaluating model performance.
+
+```{r, warning = FALSE, message = FALSE}
+#restrict the data matrix to include only SMC3, RAD21, CTCF, and ZNF143
+tfbsList <- tfbsList[names(tfbsList) %in% c("Gm12878-Ctcf-Broad", 
+                                            "Gm12878-Rad21-Haib",
+                                            "Gm12878-Smc3-Sydh",
+                                            "Gm12878-Znf143-Sydh")]
+tadData <- createTADdata(bounds.GR=bounds,
+                         resolution=5000,
+                         genomicElements.GR=tfbsList,
+                         featureType="distance",
+                         resampling="rus",
+                         trainCHR="CHR1",
+                         predictCHR="CHR22",
+                         seed=123)
+
+#run RF
+tadModel <- TADrandomForest(trainData=tadData[[1]],
+                            testData=tadData[[2]],
+                            tuneParams=list(mtry=2,
+                                            ntree=500,
+                                            nodesize=1),
+                            cvFolds=3,
+                            cvMetric="Accuracy",
+                            verbose=FALSE,
+                            seed=123,
+                            model=TRUE,
+                            importances=TRUE,
+                            impMeasure="MDA",
+                            performances=TRUE)
+```
+
+```{r, echo=FALSE, warning = FALSE, message = FALSE}
+#view model performances
+kable(tadModel[[3]], caption = "Table 1 caption")
+```
+
+It is important to note that there exist other machine learning binary classifiers that can be used to predict TAD boundary regions. For example, suppose we opt to implement a structural support vector machine (SVM). This is easy enough to accomplish given that we have access to the training and testing data from `preciseTAD::createTADdata`. We use the `e1071` package to run the SVM with a radial kernal, cost=1, and gamma=.5 using the example command below. We see that the accuracy from the SVM model is only 0.56, whereas the accuracy from our random forest was 0.69 (Table 1).
+
+```{r, warning = FALSE, message = FALSE}
+svmModel <- svm(y ~ ., data=tadData[[1]], kernel="radial", cost=1, gamma=0.5)
+
+svmPreds <- predict(svmModel,tadData[[2]][,-1], positive="Yes")
+
+#view confusion matrix
+table(svmPreds,tadData[[2]][,1])
+```
+
+## Precise TAD boundary prediction
+
+

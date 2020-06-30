@@ -269,7 +269,6 @@ TADrandomForest <- function(trainData,
                                         "Precision",
                                         "FPR",
                                         "FNR",
-                                        "FOR",
                                         "NPV",
                                         "MCC",
                                         "F1",
@@ -309,7 +308,6 @@ TADrandomForest <- function(trainData,
         rfperf[11,2] <- TP/(TP+FP)
         rfperf[12,2] <- FP/(FP+TN)
         rfperf[13,2] <- FN/(FN+TN)
-        rfperf[14,2] <- FN/(FN+TN)
         rfperf[15,2] <- TN/(TN+FN)
         rfperf[16,2] <- (TP*TN - FP*FN)/( sqrt( (TP+FP)*(TP+FN)*(TN+FP)*(TN+FN) ) )
         rfperf[17,2] <- (2*(TP/(TP+FN))*(TP/(TP+FP)))/((TP/(TP+FN)) + ((TP/(TP+FP))))

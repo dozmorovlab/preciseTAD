@@ -68,84 +68,73 @@
 #'
 #' @examples
 #' \dontrun{
-#' #Read in ARROWHEAD-called TADs at 5kb
+#' # Read in ARROWHEAD-called TADs at 5kb
 #' data(arrowhead_gm12878_5kb)
 #'
-#' #Extract unique boundaries
-#' bounds.GR <- extractBoundaries(domains.mat=arrowhead_gm12878_5kb,
-#'                                preprocess=FALSE,
-#'                                CHR=c("CHR21","CHR22"),
-#'                                resolution=5000)
+#' # Extract unique boundaries
+#' bounds.GR <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
+#'                                preprocess = FALSE,
+#'                                CHR = c("CHR21", "CHR22"),
+#'                                resolution = 5000)
 #'
-#' #Read in GRangesList of 26 TFBS
+#' # Read in GRangesList of 26 TFBS
 #' data(tfbsList)
 #'
-#' #Create the binned data matrix for CHR1 (training) and CHR22 (testing)
-#' #using:
-#' ##5 kb binning,
-#' ##distance-type predictors from 26 different TFBS from the GM12878 cell line,
-#' ##and random under-sampling
-#' tadData <- createTADdata(bounds.GR=bounds.GR,
-#'                          resolution=5000,
-#'                          genomicElements.GR=tfbsList,
-#'                          featureType="distance",
-#'                          resampling="rus",
-#'                          trainCHR="CHR21",
-#'                          predictCHR="CHR22",
-#'                          seed=123)
+#' # Create the binned data matrix for CHR1 (training) and CHR22 (testing)
+#' # using 5 kb binning, distance-type predictors from 26 different TFBS from
+#' the GM12878 cell line, and random under-sampling
+#' tadData <- createTADdata(bounds.GR = bounds.GR,
+#'                          resolution = 5000,
+#'                          genomicElements.GR = tfbsList,
+#'                          featureType = "distance",
+#'                          resampling = "rus",
+#'                          trainCHR = "CHR21",
+#'                          predictCHR = "CHR22",
+#'                          seed = 123)
 #'
-#' #Perform random forest using TADrandomForest by tuning mtry over 10 values
-#' using 3-fold CV
-#' tadModel <- TADrandomForest(trainData=tadData[[1]],
-#'                             testData=tadData[[2]],
-#'                             tuneParams=list(mtry=c(2,
-#'                                                    5,
-#'                                                    8,
-#'                                                    10,
-#'                                                    13,
-#'                                                    16,
-#'                                                    18,
-#'                                                    21,
-#'                                                    24,
-#'                                                    26),
-#'                                             ntree=500,
-#'                                             nodesize=1),
-#'                             cvFolds=3,
-#'                             cvMetric="Accuracy",
-#'                             verbose=TRUE,
-#'                             seed=123,
-#'                             model=TRUE,
-#'                             importances=TRUE,
-#'                             impMeasure="MDA",
-#'                             performances=TRUE)
+#' # Perform random forest using TADrandomForest by tuning mtry over 10 values
+#' # using 3-fold CV
+#' tadModel <- TADrandomForest(trainData = tadData[[1]],
+#'                             testData = tadData[[2]],
+#'                             tuneParams = list(mtry = c(2, 5, 8, 10, 13, 16, 18, 21, 24, 26),
+#'                                             ntree = 500,
+#'                                             nodesize = 1),
+#'                             cvFolds = 3,
+#'                             cvMetric = "Accuracy",
+#'                             verbose = TRUE,
+#'                             seed = 123,
+#'                             model = TRUE,
+#'                             importances = TRUE,
+#'                             impMeasure = "MDA",
+#'                             performances = TRUE)
 #'
-#' bounds.GR <- extractBoundaries(domains.mat=arrowhead_gm12878_5kb,
-#'                                preprocess=FALSE,
-#'                                CHR="CHR22",
-#'                                resolution=5000)
+#' bounds.GR <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
+#'                                preprocess = FALSE,
+#'                                CHR = "CHR22",
+#'                                resolution = 5000)
 #'
-#' #Apply preciseTAD on a specific 2mb section of CHR22:17000000-19000000
-#' pt <- preciseTAD(bounds.GR=bounds.GR,
-#'                  genomicElements.GR=tfbsList,
-#'                  featureType="distance",
-#'                  CHR="CHR22",
-#'                  chromCoords=list(17000000,19000000),
-#'                  tadModel=tadModel[[1]],
-#'                  threshold=1.0,
-#'                  flank=NULL,
-#'                  verbose=TRUE,
-#'                  seed=123,
-#'                  parallel=TRUE,
-#'                  cores=4,
-#'                  splits=4,
-#'                  DBSCAN=TRUE,
-#'                  DBSCAN_params=list(5000,3),
-#'                  method.Clust=NULL,
-#'                  PTBR=TRUE,
-#'                  CLARA=TRUE,
-#'                  method.Dist="euclidean",
-#'                  samples=100,
-#'                  juicer=FALSE)
+#' # Apply preciseTAD on a specific 2mb section of CHR22:17000000-19000000
+#' pt <- preciseTAD(bounds.GR = bounds.GR,
+#'                  genomicElements.GR = tfbsList,
+#'                  featureType = "distance",
+#'                  CHR = "CHR22",
+#'                  chromCoords = list(17000000, 19000000),
+#'                  tadModel = tadModel[[1]],
+#'                  threshold = 1.0,
+#'                  flank = NULL,
+#'                  verbose = TRUE,
+#'                  seed = 123,
+#'                  parallel = TRUE,
+#'                  cores = 4,
+#'                  splits = 4,
+#'                  DBSCAN = TRUE,
+#'                  DBSCAN_params = list(5000, 3),
+#'                  method.Clust = NULL,
+#'                  PTBR = TRUE,
+#'                  CLARA = TRUE,
+#'                  method.Dist = "euclidean",
+#'                  samples = 100,
+#'                  juicer = FALSE)
 #' }
 preciseTAD = function(bounds.GR,
                       genomicElements.GR,

@@ -10,12 +10,16 @@
 #' for each ChIP-seq data to leverage in the random forest model (can be
 #' obtained using the \code{\link{bedToGRangesList}})
 #' @param featureType Character, controls how the feature space is constructed
-#' (one of either "binary", "oc", "op", or "distance" (log2-transformed);
-#' default is "distance")
+#' (one of either "binary" (overlap yes/no), "oc" (overlap counts, the number
+#' of overlaps), "op" (overlap percent, the percent of bin width covered by the
+#' genomic annotation), or "distance" (log2-transformed distance from the center
+#' of the nearest genomic annotation to the center of the bin); default is
+#' "distance")
 #' @param resampling Character, controls if and how the data should be
-#' resampled to create balanced classes of boundary vs nonboundary regions (one
-#' of either "none"-no re-sampling, "ros"-Random Over-Sampling, "rus"-Random
-#' Under-Sampling, or "smote"-Synthetic Minority Over-sampling TEchnique)
+#' resampled to create balanced classes of boundary vs. nonboundary regions (one
+#' of either "none" - no re-sampling, "ros" - Random Over-Sampling, "rus" -
+#' Random Under-Sampling, or "smote" - Synthetic Minority Over-sampling
+#' TEchnique)
 #' @param trainCHR Character vector of chromosomes to use to build the binned
 #' data matrix for training
 #' @param predictCHR Character vector of chromosomes to use to build the binned
@@ -24,7 +28,10 @@
 #' @param seed Numeric for reproducibility of resampling
 #'
 #' @return A list object containing two data.frames: 1) the training data, 2)
-#' the test data (only if predictCHR is not NULL, otherwise it is NA)
+#' the test data (only if predictCHR is not NULL, otherwise it is NA). "y" is
+#' an indicator whether the corresponding bin is a TAD boundary, and the
+#' subsequent columns have the association measures between bins and the
+#' genomic annotations
 #' @export
 #'
 #
@@ -32,30 +39,30 @@
 #'
 #' @examples
 #' \dontrun{
-#' #Create training data for CHR21 and testing data for CHR22 with
-#' #5 kb binning, oc-type predictors from 26 different transcription factor
-#' #binding sites from the GM12878 cell line, and random under-sampling
+#' # Create training data for CHR21 and testing data for CHR22 with
+#' # 5 kb binning, oc-type predictors from 26 different transcription factor
+#' # binding sites from the GM12878 cell line, and random under-sampling
 #'
-#' #Read in ARROWHEAD-called TADs at 5kb
+#' # Read in ARROWHEAD-called TADs at 5kb
 #' data(arrowhead_gm12878_5kb)
 #'
 #' #Extract unique boundaries
-#' bounds.GR <- extractBoundaries(domains.mat=arrowhead_gm12878_5kb,
-#'                                preprocess=FALSE,
-#'                                CHR=c("CHR21","CHR22"),
-#'                                resolution=5000)
+#' bounds.GR <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
+#'                                preprocess = FALSE,
+#'                                CHR = c("CHR21", "CHR22"),
+#'                                resolution = 5000)
 #'
-#' #Read in GRangesList of 26 TFBS
+#' # Read in GRangesList of 26 TFBS
 #' data(tfbsList)
 #'
-#' tadData <- createTADdata(bounds.GR=bounds.GR,
-#'                          resolution=5000,
-#'                          genomicElements.GR=tfbsList,
-#'                          featureType="oc",
-#'                          resampling="rus",
-#'                          trainCHR="CHR21",
-#'                          predictCHR="CHR22",
-#'                          seed=123)
+#' tadData <- createTADdata(bounds.GR = bounds.GR,
+#'                          resolution = 5000,
+#'                          genomicElements.GR = tfbsList,
+#'                          featureType = "oc",
+#'                          resampling = "rus",
+#'                          trainCHR = "CHR21",
+#'                          predictCHR = "CHR22",
+#'                          seed = 123)
 #' }
 createTADdata <- function(bounds.GR,
                           resolution,

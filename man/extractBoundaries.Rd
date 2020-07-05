@@ -13,7 +13,7 @@ and third columns are the start and end coordinates of domains, respectively.}
 
 \item{preprocess}{logical, indicating whether or not domains exceeding 2mb
 in width or smaller than 2*(the specified resolution) should be filtered out
- (default is FALSE, given that prediction is boundary-specific)}
+ (default is FALSE, all boundaries will be used)}
 
 \item{CHR}{character, specifying which chromosome(s) to extract domain
 boundaries on (ex: "CHR22")}

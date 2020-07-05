@@ -32,15 +32,15 @@ case no performances are evaluated.}
 
 \item{tuneParams}{List, providing \code{mtry}, \code{ntree}, and
 \code{nodesize} parameters to feed into \code{\link{randomForest}}. Default
-is list(mtry=ceiling(sqrt(ncol(trainData)-1)), ntree=500, nodesize=1). If
-multiple values are provided then a grid search is performed to tune the
+is list(mtry = ceiling(sqrt(ncol(trainData) - 1)), ntree = 500, nodesize = 1).
+If multiple values are provided, then a grid search is performed to tune the
 model.}
 
 \item{cvFolds}{Numeric, number of k-fold cross-validation to perform in
 order to tune the hyperparameters}
 
 \item{cvMetric}{Character, performance metric to use to choose optimal
-tuning parameters (one of either "Kappa", "Accuracy", "MCC","ROC","Sens",
+tuning parameters (one of either "Kappa", "Accuracy", "MCC", "ROC", "Sens",
 "Spec", "Pos Pred Value", "Neg Pred Value"). Default is "Accuracy"}
 
 \item{verbose}{Logical, controls whether or not details regarding modelling
@@ -49,18 +49,18 @@ should be printed out (default in TRUE)}
 \item{seed}{Numeric, controls randomization incurred during data splitting
 from cross-validation (default is 123)}
 
-\item{model}{Logical, whether to keep the model object}
+\item{model}{Logical, whether to keep the model object. Default is TRUE}
 
 \item{importances}{Logical, whether to extract variable importances. Default
 is TRUE}
 
 \item{impMeasure}{Character, indicates the variable importance measure to
 use (one of either "MDA" (mean decrease in accuracy) or "MDG" (mean decrease
-in gini)). Ignored if importances=FALSE}
+in gini)). Ignored if importances = FALSE}
 
 \item{performances}{Logical, indicates whether various performance metrics
 should be extracted when validating the model on the test data. Ignored if
-testData=NULL}
+testData = NULL}
 }
 \value{
 A list containg: 1) a train object from \code{caret} with model
@@ -74,55 +74,44 @@ data from \code{\link{createTADdata}}.
 }
 \examples{
 \dontrun{
-#Read in ARROWHEAD-called TADs at 5kb
+# Read in ARROWHEAD-called TADs at 5kb
 data(arrowhead_gm12878_5kb)
 
-#Extract unique boundaries
-bounds.GR <- extractBoundaries(domains.mat=arrowhead_gm12878_5kb,
-                               preprocess=FALSE,
-                               CHR=c("CHR21","CHR22"),
-                               resolution=5000)
+# Extract unique boundaries
+bounds.GR <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
+                               preprocess = FALSE,
+                               CHR = c("CHR21", "CHR22"),
+                               resolution = 5000)
 
-#Read in GRangesList of 26 TFBS
+# Read in GRangesList of 26 TFBS
 data(tfbsList)
 
-#Create the binned data matrix for CHR1 (training) and CHR22 (testing)
-#using:
-##5 kb binning,
-##distance-type predictors from 26 different TFBS from the GM12878 cell line,
-##and random under-sampling
-tadData <- createTADdata(bounds.GR=bounds.GR,
-                         resolution=5000,
-                         genomicElements.GR=tfbsList,
-                         featureType="distance",
-                         resampling="rus",
-                         trainCHR="CHR21",
-                         predictCHR="CHR22",
-                         seed=123)
+# Create the binned data matrix for CHR1 (training) and CHR22 (testing)
+#using 5 kb binning, distance-type predictors from 26 different TFBS from
+the GM12878 cell line, and random under-sampling
+tadData <- createTADdata(bounds.GR = bounds.GR,
+                         resolution = 5000,
+                         genomicElements.GR = tfbsList,
+                         featureType = "distance",
+                         resampling = "rus",
+                         trainCHR = "CHR21",
+                         predictCHR = "CHR22",
+                         seed = 123)
 
-#Perform random forest using TADrandomForest by tuning mtry over 10 values
+# Perform random forest using TADrandomForest by tuning mtry over 10 values
 using 3-fold CV
-tadModel <- TADrandomForest(trainData=tadData[[1]],
-                            testData=tadData[[2]],
-                            tuneParams=list(mtry=c(2,
-                                                   5,
-                                                   8,
-                                                   10,
-                                                   13,
-                                                   16,
-                                                   18,
-                                                   21,
-                                                   24,
-                                                   26),
-                                            ntree=500,
-                                            nodesize=1),
-                            cvFolds=3,
-                            cvMetric="Accuracy",
-                            verbose=TRUE,
-                            seed=123,
-                            model=TRUE,
-                            importances=TRUE,
-                            impMeasure="MDA",
-                            performances=TRUE)
+tadModel <- TADrandomForest(trainData = tadData[[1]],
+                            testData = tadData[[2]],
+                            tuneParams = list(mtry = c(2,5,8,10,13,16,18,21,24,26),
+                                            ntree = 500,
+                                            nodesize = 1),
+                            cvFolds = 3,
+                            cvMetric = "Accuracy",
+                            verbose = TRUE,
+                            seed = 123,
+                            model = TRUE,
+                            importances = TRUE,
+                            impMeasure = "MDA",
+                            performances = TRUE)
 }
 }

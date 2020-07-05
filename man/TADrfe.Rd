@@ -48,39 +48,38 @@ random forests. Backwards elimination is performed from 2 to p, by powers of
 }
 \examples{
 \dontrun{
-#Read in ARROWHEAD-called TADs at 5kb
+# Read in ARROWHEAD-called TADs at 5kb
 data(arrowhead_gm12878_5kb)
 
 #Extract unique boundaries
-bounds.GR <- extractBoundaries(domains.mat=arrowhead_gm12878_5kb,
-                               preprocess=FALSE,
-                               CHR="CHR22",
-                               resolution=5000)
+bounds.GR <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
+                               preprocess = FALSE,
+                               CHR = "CHR22",
+                               resolution = 5000)
 
-#Read in GRangesList of 26 TFBS
+# Read in GRangesList of 26 TFBS
 data(tfbsList)
 
-#Create the binned data matrix for CHR22 using:
-##5 kb binning,
-##oc-type predictors from 26 different TFBS from the GM12878 cell line, and
-##random under-sampling
-tadData <- createTADdata(bounds.GR=bounds.GR,
-                         resolution=5000,
-                         genomicElements.GR=tfbsList,
-                         featureType="oc",
-                         resampling="rus",
-                         trainCHR="CHR22",
-                         predictCHR=NULL,
+# Create the binned data matrix for CHR22 using:
+# 5 kb binning,
+# oc-type predictors from 26 different TFBS from the GM12878 cell line, and
+# random under-sampling
+tadData <- createTADdata(bounds.GR = bounds.GR,
+                         resolution = 5000,
+                         genomicElements.GR = tfbsList,
+                         featureType = "oc",
+                         resampling = "rus",
+                         trainCHR = "CHR22",
+                         predictCHR = NULL,
                          seed=123)
 
-#Perform RFE for fully grown random forests with 100 trees using 5-fold CV
-#Evaluate performances using accuracy
-TADrfe <- TADrfe(trainData=tadData[[1]],
-                 tuneParams=list(ntree=100,
-                                 nodesize=1),
-                 cvFolds=5,
-                 cvMetric="Accuracy",
-                 verbose=TRUE,
-                 seed=123)
+# Perform RFE for fully grown random forests with 100 trees using 5-fold CV
+# Evaluate performances using accuracy
+TADrfe <- TADrfe(trainData = tadData[[1]],
+                 tuneParams = list(ntree = 100, nodesize = 1),
+                 cvFolds = 5,
+                 cvMetric = "Accuracy",
+                 verbose = TRUE,
+                 seed = 123)
 }
 }

@@ -1,15 +1,16 @@
 #' Function to create a GRangesList object from functional genomic annotation
-#' data derived from ChIP-Seq experiments and in the form of .BED files
+#' data derived from ChIP-Seq experiments and in the form of BED files
 #'
 #' @param filepath Character describing the path to the folder containing the
-#' .BED files of functional genomic annotations
+#' BED files of functional genomic annotations
 #' @param pattern Character describing the pattern of the files for the
 #' functional genomic annotations. Default is "*.bed"
-#' @param signal Numeric refering to the column in the .BED files that denotes
-#' the coverage strength. Must be the same for all files.
+#' @param signal Numeric refering to the column in the BED files that denotes
+#' the coverage strength. Must be the same for all files. Default is 5 (fifth
+#' column), as is the case with most BED files
 #'
 #' @return A \code{GRangesList} object where each entry is a \code{GRanges}
-#' object specific to each .BED file in the path provided
+#' object specific to each BED file in the path provided
 #' @export
 #'
 #' @importFrom utils read.table
@@ -18,12 +19,12 @@
 #' @examples
 #' #set path
 #' path = system.file("extdata", package = "preciseTAD")
-#' #contains 2 .BED files representing YY1 and NFYA
+#' #contains 2 BED files representing YY1 and NFYA
 #' #transcription factor binding sites for GM12878
 #' tfbsList <- bedToGRangesList(filepath=path, pattern = "*.bed", signal=4)
 bedToGRangesList <- function(filepath,
                              pattern = "*.bed",
-                             signal){
+                             signal=5){
 
     #############
     #STOP CHECKS#

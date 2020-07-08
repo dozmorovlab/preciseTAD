@@ -42,18 +42,6 @@ The main functions (in order of implementation) are:
 
 ## Installation
 
-First make sure you have all dependencies installed in R.
-
-    install.packages(c('pbapply', 
-                       'doSNOW', 
-                       'cluster',
-                       'foreach',
-                       'parallel',
-                       'bigmemory',
-                       'IRanges',
-                       'GenomicRanges',
-                       'dbscan'))
-
 The latest version of `preciseTAD` can be directly installed from
 Github:
 

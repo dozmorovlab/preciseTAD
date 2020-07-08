@@ -251,6 +251,6 @@ From the results above we see that *ARROWHEAD* yielded 18 called TAD boundary po
 
 ### Using preciseTAD with Juicebox
 
-Juicebox is an interface provided by Aiden Lab that allows for superimposing TAD boundary coordinates onto Hi-C contact maps. You must first select a Hi-C map. As an example, you can import the contact matrix for GM12878 derived by Rao et al. 2014 by choosing `File -> Open... -> Rao and Huntley et al. -> GM12878 -> in situ Mbol -> primary`. To format `preciseTAD` results to use in juicebox, set `juicer=FALSE`. The resulting PTBPs then need to be saved as a BED file and can be imported into juicebox using `Show Annotation Panel -> 2D Annotations -> Add Local -> myPTBPs.bed`.
+Juicebox is an interface provided by Aiden Lab that allows for superimposing TAD boundary coordinates onto Hi-C contact maps. You must first select a Hi-C map. As an example, you can import the contact matrix for GM12878 derived by Rao et al. 2014 by choosing `File -> Open... -> Rao and Huntley et al. -> GM12878 -> in situ Mbol -> primary`. To format `preciseTAD` results to use in juicebox, you must make sure to set `juicer=FALSE` in the function, as seen above. Otherwise, the resulting PTBPs (`pt[[2]]`) will be a `GRanges` object. You will then need to save the PTBPs as a txt file using `write.table` and import them into juicebox using `Show Annotation Panel -> 2D Annotations -> Add Local -> myPTBPs.txt`.
 
 # References

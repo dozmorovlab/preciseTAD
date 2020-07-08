@@ -100,10 +100,12 @@ Ignored if CLARA=FALSE.}
 for plotting in juicebox from Aiden Lab.}
 }
 \value{
-A list of at most 3 \code{GRanges} objects including: 1) the genomic
-coordinates of PTBRs (if PTBR=TRUE), the genomic coordinates of preciseTAD
-predicted boundaries, and 3) the genomic coordinates of the called boundaries
-used to make predictions.
+A list object containing at most 3 \code{GRanges} elements including:
+1) the genomic coordinates of preciseTAD predicted regions (PTBRs)if
+PTBR=TRUE (else NA), 2) the genomic coordinates of preciseTAD predicted
+boundaries (PTBP) (if `juicer=TRUE`, this will be a data.frame that can be
+saved and imported into juicer as a txt file), and 3) the genomic coordinates
+of the called TAD boundaries (CTBP) used to make predictions.
 }
 \description{
 Precise TAD boundary prediction at base pair resolution using density-based

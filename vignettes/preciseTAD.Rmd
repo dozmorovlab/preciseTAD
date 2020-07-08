@@ -247,10 +247,10 @@ pt <- preciseTAD(bounds.GR = bounds,
 pt
 ```
 
-From the results above we see that *ARROWHEAD* yielded 18 called TAD boundary points (CTBP). However, `preciseTAD` yielded 13 precise TAD boundary points (PTBP). The corresponding predicted TAD boundary regions (PTBR) that flank each PTBP are also provided. 
+The output of `preciseTAD::preciseTAD` are contained in a list object with 3 elements. In order of the output the results include: 1) the called TAD boundary points (CTBP) for the specified CHR (within the given region if `chromCoord` is specified), 2) the predicted TAD boundary points (PTBP) made by preciseTAD, and 3) the predicted TAD boundary regions (PTBR) made by preciseTAD (if `PTBR=TRUE`). From the results above we see that there were 18 called TAD boundary points by *ARROWHEAD* in the given section of CHR22. However, `preciseTAD` yielded 13 predicted TAD boundary points.
 
 ### Using preciseTAD with Juicebox
 
-Juicebox is an interface provided by Aiden Lab that allows for superimposing TAD boundary coordinates onto Hi-C contact maps. You must first select a Hi-C map. As an example, you can import the contact matrix for GM12878 derived by Rao et al. 2014 by choosing `File -> Open... -> Rao and Huntley et al. -> GM12878 -> in situ Mbol -> primary`. To format `preciseTAD` results to use in juicebox, you must make sure to set `juicer=FALSE` in the function, as seen above. Otherwise, the resulting PTBPs (`pt[[2]]`) will be a `GRanges` object. You will then need to save the PTBPs as a txt file using `write.table` and import them into juicebox using `Show Annotation Panel -> 2D Annotations -> Add Local -> myPTBPs.txt`.
+Juicebox is an interface provided by Aiden Lab that allows for superimposing TAD boundary coordinates onto Hi-C contact maps. You must first select a Hi-C map. As an example, you can import the contact matrix for GM12878 derived by Rao et al. 2014 by choosing `File -> Open... -> Rao and Huntley et al. -> GM12878 -> in situ Mbol -> primary`. To format `preciseTAD` results to use in juicebox, you must make sure to set `juicer=TRUE` in the function, as seen above. Otherwise, the resulting PTBPs (`pt[[2]]`) will be a `GRanges` object. You will then need to save the PTBPs as a txt file using `write.table` and import them into juicebox using `Show Annotation Panel -> 2D Annotations -> Add Local -> myPTBPs.txt`.
 
 # References

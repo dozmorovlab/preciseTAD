@@ -51,11 +51,11 @@
 #' for plotting in juicebox from Aiden Lab.
 #'
 #' @return A list object containing at most 3 \code{GRanges} elements including:
-#' 1) the genomic coordinates of preciseTAD predicted regions (PTBRs)if
-#' PTBR=TRUE (else NA), 2) the genomic coordinates of preciseTAD predicted
+#' 1) the genomic coordinates of the called TAD boundaries (CTBP) used to make
+#' predictions, 2) the genomic coordinates of preciseTAD predicted
 #' boundaries (PTBP) (if `juicer=TRUE`, this will be a data.frame that can be
-#' saved and imported into juicer as a txt file), and 3) the genomic coordinates
-#' of the called TAD boundaries (CTBP) used to make predictions.
+#' saved and imported into juicer as a txt file), and 2) the genomic coordinates
+#' of preciseTAD predicted regions (PTBRs)if PTBR=TRUE (else NULL)
 #' @export
 #'
 #' @importFrom pROC roc
@@ -557,23 +557,23 @@ preciseTAD = function(bounds.GR,
         gr <- unlist(grlist)
 
         if(juicer==TRUE){
-            bp_results <- list(PTBR=gr,
+            bp_results <- list(CTBP=trueBound_gr,
                                PTBP=juicer_func(predBound_gr),
-                               CTBP=trueBound_gr)
+                               PTBR=gr)
         }else{
-            bp_results <- list(PTBR=gr,
+            bp_results <- list(CTBP=trueBound_gr,
                                PTBP=predBound_gr,
-                               CTBP=trueBound_gr)
+                               PTBR=gr)
         }
     }else{
         if(juicer==TRUE){
-            bp_results <- list(PTBR=NULL,
+            bp_results <- list(CTBP=trueBound_gr,
                                PTBP=juicer_func(predBound_gr),
-                               CTBP=trueBound_gr)
+                               PTBR=NULL)
         }else{
-            bp_results <- list(PTBR=NULL,
+            bp_results <- list(CTBP=trueBound_gr,
                                PTBP=predBound_gr,
-                               CTBP=trueBound_gr)
+                               PTBR=NULL)
         }
     }
 

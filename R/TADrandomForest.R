@@ -297,12 +297,12 @@ TADrandomForest <- function(trainData,
         rfperf[11,2] <- TP/(TP+FP)
         rfperf[12,2] <- FP/(FP+TN)
         rfperf[13,2] <- FN/(FN+TN)
-        rfperf[15,2] <- TN/(TN+FN)
-        rfperf[16,2] <- (TP*TN - FP*FN)/( sqrt( (TP+FP)*(TP+FN)*(TN+FP)*(TN+FN) ) )
-        rfperf[17,2] <- (2*(TP/(TP+FN))*(TP/(TP+FP)))/((TP/(TP+FN)) + ((TP/(TP+FP))))
-        rfperf[18,2] <- pROC::auc(pROC::roc(testData$y, pred.tadModel, quiet = TRUE))
-        rfperf[19,2] <- (TP/(TP + FN)) + (TN/(TN + FP)) - 1
-        rfperf[20,2] <- pr$auc.integral
+        rfperf[14,2] <- TN/(TN+FN)
+        rfperf[15,2] <- (TP*TN - FP*FN)/( sqrt( (TP+FP)*(TP+FN)*(TN+FP)*(TN+FN) ) )
+        rfperf[16,2] <- (2*(TP/(TP+FN))*(TP/(TP+FP)))/((TP/(TP+FN)) + ((TP/(TP+FP))))
+        rfperf[17,2] <- pROC::auc(pROC::roc(testData$y, pred.tadModel, quiet = TRUE))
+        rfperf[18,2] <- (TP/(TP + FN)) + (TN/(TN + FP)) - 1
+        rfperf[19,2] <- pr$auc.integral
     }
 
     results_list <- list()

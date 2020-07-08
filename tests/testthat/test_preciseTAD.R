@@ -63,9 +63,9 @@ test_that("Whether preciseTAD gives us the same output", {
                      samples=100,
                      juicer=FALSE)
 
-    expect_equal(length(pt[[2]]), 6)
+    expect_equal(length(pt[[1]]), 12)
 
-    expect_equal(length(pt[[3]]), 12)
+    expect_equal(length(pt[[2]]), 6)
 
     expect_equal(IRanges::start(pt[[2]])[1], 17403339)
 })

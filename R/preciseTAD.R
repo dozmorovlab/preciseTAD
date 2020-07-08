@@ -50,10 +50,12 @@
 #' @param juicer Option to return predicted boundaries in a format that allows
 #' for plotting in juicebox from Aiden Lab.
 #'
-#' @return A list of at most 3 \code{GRanges} objects including: 1) the genomic
-#' coordinates of PTBRs (if PTBR=TRUE), the genomic coordinates of preciseTAD
-#' predicted boundaries, and 3) the genomic coordinates of the called boundaries
-#' used to make predictions.
+#' @return A list object containing at most 3 \code{GRanges} elements including:
+#' 1) the genomic coordinates of preciseTAD predicted regions (PTBRs)if
+#' PTBR=TRUE (else NA), 2) the genomic coordinates of preciseTAD predicted
+#' boundaries (PTBP) (if `juicer=TRUE`, this will be a data.frame that can be
+#' saved and imported into juicer as a txt file), and 3) the genomic coordinates
+#' of the called TAD boundaries (CTBP) used to make predictions.
 #' @export
 #'
 #' @importFrom pROC roc
@@ -82,7 +84,7 @@
 #'
 #' # Create the binned data matrix for CHR1 (training) and CHR22 (testing)
 #' # using 5 kb binning, distance-type predictors from 26 different TFBS from
-#' the GM12878 cell line, and random under-sampling
+#' # the GM12878 cell line, and random under-sampling
 #' tadData <- createTADdata(bounds.GR = bounds.GR,
 #'                          resolution = 5000,
 #'                          genomicElements.GR = tfbsList,
@@ -120,7 +122,7 @@
 #'                  CHR = "CHR22",
 #'                  chromCoords = list(17000000, 19000000),
 #'                  tadModel = tadModel[[1]],
-#'                  threshold = 1.0,
+#'                  threshold = .95,
 #'                  flank = NULL,
 #'                  verbose = TRUE,
 #'                  seed = 123,
@@ -386,7 +388,7 @@ preciseTAD = function(bounds.GR,
 
     if(threshold=="roc"){
         test_data_Y <- ifelse(seqDataTest %in% start(bounds.GR), 1, 0)
-        t <- pROC::coords(pROC::roc(test_data_Y, predictions, quiet=TRUE),
+        t <- pROC::coords(pROC::roc(test_data_Y, predictions[,1], quiet=TRUE),
                           "best",
                           ret="threshold",
                           transpose = FALSE,

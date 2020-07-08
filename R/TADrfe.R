@@ -1,7 +1,7 @@
 #' A wrapper function passed to \code{caret::rfe} to apply recursive feature
 #' elemination (RFE) on binned domain data as a feature reduction technique for
-#' random forests. Backwards elimination is performed from 2 to p, by powers of
-#' 2, where p is the number of features in the data.
+#' random forests. Backwards elimination is performed from p down to 2, by
+#' powers of 2, where p is the number of features in the data.
 #'
 #' @param trainData Data frame, the binned data matrix to built random forest
 #' classifiers (can be obtained using \code{\link{createTADdata}})
@@ -18,7 +18,14 @@
 #'
 #' @return A list containing: 1) the performances extracted at each of the k
 #' folds and, 2) Variable importances among the top features at each step of
-#' RFE
+#' RFE. For 1) `Variables` - the best subset of features to consider at each
+#' iteration, `MCC` (Matthews Correlation Coefficient), `ROC` (Area under the
+#' receiver operating characteristic curve), `Sens` (Sensitivity), `Spec`
+#' (Specificity), `Pos Pred Value` (Positive predictive value), `Neg Pred Value`
+#' (Negative predictive value), `Accuracy`, and the corresponding standard
+#' deviations across the cross-folds. For 2) `Overall` - the variable
+#' importance, `var` - the feature name, `Variables` - the number of features
+#' that were considered at each cross-fold, and `Resample` - the cross-fold
 #' @export
 #'
 #' @importFrom ModelMetrics mcc
@@ -53,12 +60,12 @@
 #'
 #' # Perform RFE for fully grown random forests with 100 trees using 5-fold CV
 #' # Evaluate performances using accuracy
-#' TADrfe <- TADrfe(trainData = tadData[[1]],
-#'                  tuneParams = list(ntree = 100, nodesize = 1),
-#'                  cvFolds = 5,
-#'                  cvMetric = "Accuracy",
-#'                  verbose = TRUE,
-#'                  seed = 123)
+#' rfe_res <- TADrfe(trainData = tadData[[1]],
+#'                   tuneParams = list(ntree = 100, nodesize = 1),
+#'                   cvFolds = 5,
+#'                   cvMetric = "Accuracy",
+#'                   verbose = TRUE,
+#'                   seed = 123)
 #' }
 TADrfe <- function(trainData,
                    tuneParams=list(ntree=500, nodesize=1),
@@ -154,7 +161,7 @@ TADrfe <- function(trainData,
                     sizes=z,
                     rfeControl=control)
 
-    rfeModelResultsList <- list(tadModel$results, tadModel$variables)
+    rfeModelResultsList <- list(tadModel$results, tadModel$variables[,-c(1,2)])
     names(rfeModelResultsList) <- c("CVPerformances", "Importances")
 
     return(rfeModelResultsList)

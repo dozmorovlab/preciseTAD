@@ -125,7 +125,7 @@ data(tfbsList)
 
 # Create the binned data matrix for CHR1 (training) and CHR22 (testing)
 # using 5 kb binning, distance-type predictors from 26 different TFBS from
-the GM12878 cell line, and random under-sampling
+# the GM12878 cell line, and random under-sampling
 tadData <- createTADdata(bounds.GR = bounds.GR,
                          resolution = 5000,
                          genomicElements.GR = tfbsList,
@@ -163,7 +163,7 @@ pt <- preciseTAD(bounds.GR = bounds.GR,
                  CHR = "CHR22",
                  chromCoords = list(17000000, 19000000),
                  tadModel = tadModel[[1]],
-                 threshold = 1.0,
+                 threshold = .95,
                  flank = NULL,
                  verbose = TRUE,
                  seed = 123,

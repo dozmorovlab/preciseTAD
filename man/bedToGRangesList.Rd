@@ -3,32 +3,33 @@
 \name{bedToGRangesList}
 \alias{bedToGRangesList}
 \title{Function to create a GRangesList object from functional genomic annotation
-data derived from ChIP-Seq experiments and in the form of .BED files}
+data derived from ChIP-Seq experiments and in the form of BED files}
 \usage{
-bedToGRangesList(filepath, pattern = "*.bed", signal)
+bedToGRangesList(filepath, pattern = "*.bed", signal = 5)
 }
 \arguments{
 \item{filepath}{Character describing the path to the folder containing the
-.BED files of functional genomic annotations}
+BED files of functional genomic annotations}
 
 \item{pattern}{Character describing the pattern of the files for the
 functional genomic annotations. Default is "*.bed"}
 
-\item{signal}{Numeric refering to the column in the .BED files that denotes
-the coverage strength. Must be the same for all files.}
+\item{signal}{Numeric refering to the column in the BED files that denotes
+the coverage strength. Must be the same for all files. Default is 5 (fifth
+column), as is the case with most BED files}
 }
 \value{
 A \code{GRangesList} object where each entry is a \code{GRanges}
-object specific to each .BED file in the path provided
+object specific to each BED file in the path provided
 }
 \description{
 Function to create a GRangesList object from functional genomic annotation
-data derived from ChIP-Seq experiments and in the form of .BED files
+data derived from ChIP-Seq experiments and in the form of BED files
 }
 \examples{
 #set path
 path = system.file("extdata", package = "preciseTAD")
-#contains 2 .BED files representing YY1 and NFYA
+#contains 2 BED files representing YY1 and NFYA
 #transcription factor binding sites for GM12878
 tfbsList <- bedToGRangesList(filepath=path, pattern = "*.bed", signal=4)
 }

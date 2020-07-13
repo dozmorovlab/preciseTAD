@@ -22,12 +22,12 @@ TADrandomForest(
 )
 }
 \arguments{
-\item{trainData}{Data frame, the binned data matrix to built random forest
+\item{trainData}{Data frame, the binned data matrix to built a random forest
 classifiers (can be obtained using \code{\link{createTADdata}})}
 
 \item{testData}{Data frame, the binned data matrix to test random forest
 classifiers (can be obtained using \code{\link{createTADdata}}). The first
-column must be a factor with postitive class "Yes". Default in NULL in which
+column must be a factor with positive class "Yes". Default is NULL in which
 case no performances are evaluated.}
 
 \item{tuneParams}{List, providing \code{mtry}, \code{ntree}, and
@@ -43,8 +43,8 @@ order to tune the hyperparameters}
 tuning parameters (one of either "Kappa", "Accuracy", "MCC", "ROC", "Sens",
 "Spec", "Pos Pred Value", "Neg Pred Value"). Default is "Accuracy"}
 
-\item{verbose}{Logical, controls whether or not details regarding modelling
-should be printed out (default in TRUE)}
+\item{verbose}{Logical, controls whether or not details regarding modeling
+should be printed out (default is TRUE)}
 
 \item{seed}{Numeric, controls randomization incurred during data splitting
 from cross-validation (default is 123)}
@@ -64,7 +64,7 @@ testData = NULL}
 }
 \value{
 A list containg: 1) a train object from \code{caret} with model
-information, 2) a data.frame of variable importances for each feature
+information, 2) a data.frame of variable importance for each feature
 included in the model, and 3) a data.frame of various performance metrics
 }
 \description{

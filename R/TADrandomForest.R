@@ -2,11 +2,11 @@
 #' classification algorithm built and tested on user-defined binned domain
 #' data from \code{\link{createTADdata}}.
 #'
-#' @param trainData Data frame, the binned data matrix to built random forest
+#' @param trainData Data frame, the binned data matrix to built a random forest
 #' classifiers (can be obtained using \code{\link{createTADdata}})
 #' @param testData Data frame, the binned data matrix to test random forest
 #' classifiers (can be obtained using \code{\link{createTADdata}}). The first
-#' column must be a factor with postitive class "Yes". Default in NULL in which
+#' column must be a factor with positive class "Yes". Default is NULL in which
 #' case no performances are evaluated.
 #' @param tuneParams List, providing \code{mtry}, \code{ntree}, and
 #' \code{nodesize} parameters to feed into \code{\link{randomForest}}. Default
@@ -18,8 +18,8 @@
 #' @param cvMetric Character, performance metric to use to choose optimal
 #' tuning parameters (one of either "Kappa", "Accuracy", "MCC", "ROC", "Sens",
 #' "Spec", "Pos Pred Value", "Neg Pred Value"). Default is "Accuracy"
-#' @param verbose Logical, controls whether or not details regarding modelling
-#' should be printed out (default in TRUE)
+#' @param verbose Logical, controls whether or not details regarding modeling
+#' should be printed out (default is TRUE)
 #' @param seed Numeric, controls randomization incurred during data splitting
 #' from cross-validation (default is 123)
 #' @param model Logical, whether to keep the model object. Default is TRUE
@@ -33,7 +33,7 @@
 #' testData = NULL
 #'
 #' @return A list containg: 1) a train object from \code{caret} with model
-#' information, 2) a data.frame of variable importances for each feature
+#' information, 2) a data.frame of variable importance for each feature
 #' included in the model, and 3) a data.frame of various performance metrics
 #' @export
 #'

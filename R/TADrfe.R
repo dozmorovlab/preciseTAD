@@ -1,9 +1,9 @@
 #' A wrapper function passed to \code{caret::rfe} to apply recursive feature
-#' elemination (RFE) on binned domain data as a feature reduction technique for
-#' random forests. Backwards elimination is performed from p down to 2, by
+#' elimination (RFE) on binned domain data as a feature reduction technique for
+#' random forests. Backward elimination is performed from p down to 2, by
 #' powers of 2, where p is the number of features in the data.
 #'
-#' @param trainData Data frame, the binned data matrix to built random forest
+#' @param trainData Data frame, the binned data matrix to built a random forest
 #' classifiers (can be obtained using \code{\link{createTADdata}})
 #' @param tuneParams List, providing \code{ntree} and \code{nodesize}
 #' parameters to feed into \code{\link{randomForest}}
@@ -11,8 +11,8 @@
 #' @param cvMetric Character, performance metric to use to choose optimal
 #' tuning parameters (one of either "Kappa", "Accuracy", "MCC","ROC","Sens",
 #' "Spec", "Pos Pred Value", "Neg Pred Value"). Default is "Accuracy"
-#' @param verbose Logical, controls whether or not details regarding modelling
-#' should be printed out (default in TRUE)
+#' @param verbose Logical, controls whether or not details regarding modeling
+#' should be printed out (default is TRUE)
 #' @param seed Numeric, controls randomization incurred during data splitting
 #' from cross-validation (default is 123)
 #'

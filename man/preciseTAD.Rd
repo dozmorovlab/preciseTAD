@@ -2,7 +2,7 @@
 % Please edit documentation in R/preciseTAD.R
 \name{preciseTAD}
 \alias{preciseTAD}
-\title{Precise TAD boundary prediction at base pair resolution using density-based
+\title{Precise TAD boundary prediction at base-level resolution using density-based
 spatial clustering and partitioning techniques}
 \usage{
 preciseTAD(
@@ -31,7 +31,7 @@ preciseTAD(
 }
 \arguments{
 \item{bounds.GR}{\code{GRanges} object with chromosomal coordinates
-of TAD boundaries used to identify positive cases in a binary classification.
+of TAD boundaries used to identify positive cases in binary classification.
 framework (can be obtained using \code{\link{extractBoundaries}})}
 
 \item{genomicElements.GR}{\code{GRangesList} object containing GRanges from
@@ -42,36 +42,36 @@ obtained using the \code{\link{bedToGRangesList}}).}
 either "binary", "oc", "op", or "distance" (log2- transformed). Default is
 "distance".}
 
-\item{CHR}{Controls which chromosome to predict boundaries on at base pair
+\item{CHR}{Controls which chromosome to predict boundaries on at base-level
 resolution.}
 
 \item{chromCoords}{List containing the starting bp coordinate and ending bp
 coordinate that defines the region of the linear genome to make predictions
-on. If chromCoords is not specified then predictions will be made on the
+on. If chromCoords is not specified, then predictions will be made on the
 entire chromosome. Default is NULL.}
 
-\item{tadModel}{Model object used to obtain predicted probabilities at base
-pair resolution (examples include \code{gbm}, \code{glmnet},
+\item{tadModel}{Model object used to obtain predicted probabilities at base-level
+resolution (examples include \code{gbm}, \code{glmnet},
 \code{svm}, \code{glm}, etc). For a random forest model, can be obtained
 using \code{preciseTAD::randomForest}).}
 
-\item{threshold}{Base pairs with predicted probabilities that are greater
+\item{threshold}{Bases with predicted probabilities that are greater
 than or equal to this value are labeled as potential TAD boundaries. Values
 in the range of .95-1.0 are suggested.}
 
 \item{flank}{Controls how much to flank the final predicted TAD boundaries
-(necessary for evaluating overlaps, etc.). Default is NULL, i.e. no flanking.}
+(necessary for evaluating overlaps, etc.). Default is NULL, i.e., no flanking.}
 
 \item{verbose}{Option to print progress.}
 
 \item{seed}{Numeric for reproducibility.}
 
-\item{parallel}{Option to parallelise the process for obtaining predicted
+\item{parallel}{Option to parallelize the process for obtaining predicted
 probabilities. Default is FALSE.}
 
 \item{cores}{Number of cores to use in parallel. Default is NULL.}
 
-\item{splits}{Number of splits of the test data to speed up prediction.
+\item{splits}{Number of splits of the test data to speed up the prediction.
 Default is NULL.}
 
 \item{DBSCAN}{Whether or not to use \code{\link{dbscan}} instead of
@@ -97,18 +97,18 @@ is TRUE.}
 Ignored if CLARA=FALSE.}
 
 \item{juicer}{Option to return predicted boundaries in a format that allows
-for plotting in juicebox from Aiden Lab.}
+for plotting in Juicebox from Aiden Lab.}
 }
 \value{
 A list object containing at most 3 \code{GRanges} elements including:
 1) the genomic coordinates of the called TAD boundaries (CTBP) used to make
 predictions, 2) the genomic coordinates of preciseTAD predicted
 boundaries (PTBP) (if `juicer=TRUE`, this will be a data.frame that can be
-saved and imported into juicer as a txt file), and 2) the genomic coordinates
+saved and imported into Juicer as a BED file), and 2) the genomic coordinates
 of preciseTAD predicted regions (PTBRs)if PTBR=TRUE (else NULL)
 }
 \description{
-Precise TAD boundary prediction at base pair resolution using density-based
+Precise TAD boundary prediction at base-level resolution using density-based
 spatial clustering and partitioning techniques
 }
 \examples{

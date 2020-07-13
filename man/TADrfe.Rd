@@ -3,8 +3,8 @@
 \name{TADrfe}
 \alias{TADrfe}
 \title{A wrapper function passed to \code{caret::rfe} to apply recursive feature
-elemination (RFE) on binned domain data as a feature reduction technique for
-random forests. Backwards elimination is performed from p down to 2, by
+elimination (RFE) on binned domain data as a feature reduction technique for
+random forests. Backward elimination is performed from p down to 2, by
 powers of 2, where p is the number of features in the data.}
 \usage{
 TADrfe(
@@ -17,7 +17,7 @@ TADrfe(
 )
 }
 \arguments{
-\item{trainData}{Data frame, the binned data matrix to built random forest
+\item{trainData}{Data frame, the binned data matrix to built a random forest
 classifiers (can be obtained using \code{\link{createTADdata}})}
 
 \item{tuneParams}{List, providing \code{ntree} and \code{nodesize}
@@ -29,8 +29,8 @@ parameters to feed into \code{\link{randomForest}}}
 tuning parameters (one of either "Kappa", "Accuracy", "MCC","ROC","Sens",
 "Spec", "Pos Pred Value", "Neg Pred Value"). Default is "Accuracy"}
 
-\item{verbose}{Logical, controls whether or not details regarding modelling
-should be printed out (default in TRUE)}
+\item{verbose}{Logical, controls whether or not details regarding modeling
+should be printed out (default is TRUE)}
 
 \item{seed}{Numeric, controls randomization incurred during data splitting
 from cross-validation (default is 123)}
@@ -49,8 +49,8 @@ that were considered at each cross-fold, and `Resample` - the cross-fold
 }
 \description{
 A wrapper function passed to \code{caret::rfe} to apply recursive feature
-elemination (RFE) on binned domain data as a feature reduction technique for
-random forests. Backwards elimination is performed from p down to 2, by
+elimination (RFE) on binned domain data as a feature reduction technique for
+random forests. Backward elimination is performed from p down to 2, by
 powers of 2, where p is the number of features in the data.
 }
 \examples{

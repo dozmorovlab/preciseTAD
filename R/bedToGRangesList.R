@@ -5,8 +5,8 @@
 #' BED files of functional genomic annotations
 #' @param pattern Character describing the pattern of the files for the
 #' functional genomic annotations. Default is "*.bed"
-#' @param signal Numeric refering to the column in the BED files that denotes
-#' the coverage strength. Must be the same for all files. Default is 5 (fifth
+#' @param signal Numeric referring to the column in the BED files that denotes
+#' coverage strength. Must be the same for all files. Default is 5 (fifth
 #' column), as is the case with most BED files
 #'
 #' @return A \code{GRangesList} object where each entry is a \code{GRanges}

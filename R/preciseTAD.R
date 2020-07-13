@@ -1,8 +1,8 @@
-#' Precise TAD boundary prediction at base pair resolution using density-based
+#' Precise TAD boundary prediction at base-level resolution using density-based
 #' spatial clustering and partitioning techniques
 #'
 #' @param bounds.GR \code{GRanges} object with chromosomal coordinates
-#' of TAD boundaries used to identify positive cases in a binary classification.
+#' of TAD boundaries used to identify positive cases in binary classification.
 #' framework (can be obtained using \code{\link{extractBoundaries}})
 #' @param genomicElements.GR \code{GRangesList} object containing GRanges from
 #' each ChIP-seq BED file that was used to train a predictive model (can be
@@ -10,27 +10,27 @@
 #' @param featureType Controls how the feature space is constructed (one of
 #' either "binary", "oc", "op", or "distance" (log2- transformed). Default is
 #' "distance".
-#' @param CHR Controls which chromosome to predict boundaries on at base pair
+#' @param CHR Controls which chromosome to predict boundaries on at base-level
 #' resolution.
 #' @param chromCoords List containing the starting bp coordinate and ending bp
 #' coordinate that defines the region of the linear genome to make predictions
-#' on. If chromCoords is not specified then predictions will be made on the
+#' on. If chromCoords is not specified, then predictions will be made on the
 #' entire chromosome. Default is NULL.
-#' @param tadModel Model object used to obtain predicted probabilities at base
-#' pair resolution (examples include \code{gbm}, \code{glmnet},
+#' @param tadModel Model object used to obtain predicted probabilities at base-level
+#' resolution (examples include \code{gbm}, \code{glmnet},
 #' \code{svm}, \code{glm}, etc). For a random forest model, can be obtained
 #' using \code{preciseTAD::randomForest}).
-#' @param threshold Base pairs with predicted probabilities that are greater
+#' @param threshold Bases with predicted probabilities that are greater
 #' than or equal to this value are labeled as potential TAD boundaries. Values
 #' in the range of .95-1.0 are suggested.
 #' @param flank Controls how much to flank the final predicted TAD boundaries
-#' (necessary for evaluating overlaps, etc.). Default is NULL, i.e. no flanking.
+#' (necessary for evaluating overlaps, etc.). Default is NULL, i.e., no flanking.
 #' @param verbose Option to print progress.
 #' @param seed Numeric for reproducibility.
-#' @param parallel Option to parallelise the process for obtaining predicted
+#' @param parallel Option to parallelize the process for obtaining predicted
 #' probabilities. Default is FALSE.
 #' @param cores Number of cores to use in parallel. Default is NULL.
-#' @param splits Number of splits of the test data to speed up prediction.
+#' @param splits Number of splits of the test data to speed up the prediction.
 #' Default is NULL.
 #' @param DBSCAN Whether or not to use \code{\link{dbscan}} instead of
 #' agglomerative hierarchical clustering (\code{\link{hclust}}) when clustering
@@ -48,13 +48,13 @@
 #' @param samples Number of subsamples if applying CLARA. Default is 100.
 #' Ignored if CLARA=FALSE.
 #' @param juicer Option to return predicted boundaries in a format that allows
-#' for plotting in juicebox from Aiden Lab.
+#' for plotting in Juicebox from Aiden Lab.
 #'
 #' @return A list object containing at most 3 \code{GRanges} elements including:
 #' 1) the genomic coordinates of the called TAD boundaries (CTBP) used to make
 #' predictions, 2) the genomic coordinates of preciseTAD predicted
 #' boundaries (PTBP) (if `juicer=TRUE`, this will be a data.frame that can be
-#' saved and imported into juicer as a txt file), and 2) the genomic coordinates
+#' saved and imported into Juicer as a BED file), and 2) the genomic coordinates
 #' of preciseTAD predicted regions (PTBRs)if PTBR=TRUE (else NULL)
 #' @export
 #'

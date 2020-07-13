@@ -67,56 +67,70 @@
 #'                   verbose = TRUE,
 #'                   seed = 123)
 #' }
-TADrfe <- function(trainData,
-                   tuneParams=list(ntree=500, nodesize=1),
-                   cvFolds=5,
-                   cvMetric="Accuracy",
-                   verbose=FALSE,
-                   seed=123){
+TADrfe <- function(trainData, tuneParams = list(ntree = 500, nodesize = 1),
+                   cvFolds = 5, cvMetric = "Accuracy", verbose = FALSE, seed = 123) {
 
-    ##########################
     #CHECKING FUNCTION INPUTS#
-    ##########################
 
-    if(class(trainData)!="data.frame"){print("trainData is not a data.frame object!"); return(0)}
-    for(i in 1:2){
-        if(lapply(tuneParams,class)[[i]]!="numeric"){print("at least 1 component of tuneParams is not a numeric object!"); return(0)}
+    if (class(trainData) != "data.frame") {
+        print("trainData is not a data.frame object!")
+        return(0)
     }
-    if(class(cvFolds)!="numeric"){print("cvFolds is not a numeric object!"); return(0)}
-    if(class(cvMetric)!="character"){print("cvMetric is not a character object!"); return(0)}
-    if(!(cvMetric %in% c("Kappa","Accuracy","MCC","ROC","Sens","Spec","Neg Pred Value"))){print("cvMetric must be one of either 'Kappa', 'Accuracy', 'MCC','ROC','Sens','Spec','Pos Pred Value','Neg Pred Value'!"); return(0)}
-    if(class(verbose)!="logical"){print("verbose is not a logical object"); return(0)}
-    if(class(seed)!="numeric"){print("seed is not a numeric object!"); return(0)}
+    for (i in 1:2) {
+        if (lapply(tuneParams, class)[[i]] != "numeric") {
+            print("at least 1 component of tuneParams is not a numeric object!")
+            return(0)
+        }
+    }
+    if (class(cvFolds) != "numeric") {
+        print("cvFolds is not a numeric object!")
+        return(0)
+    }
+    if (class(cvMetric) != "character") {
+        print("cvMetric is not a character object!")
+        return(0)
+    }
+    if (!(cvMetric %in% c("Kappa", "Accuracy", "MCC", "ROC", "Sens", "Spec",
+                          "Neg Pred Value"))) {
+        print("cvMetric must be one of either 'Kappa', 'Accuracy', 'MCC','ROC','Sens','Spec','Pos Pred Value','Neg Pred Value'!")
+        return(0)
+    }
+    if (class(verbose) != "logical") {
+        print("verbose is not a logical object")
+        return(0)
+    }
+    if (class(seed) != "numeric") {
+        print("seed is not a numeric object!")
+        return(0)
+    }
 
-    ########################################################################
-    #Establishing summary function to evaluate cross validation performance#
-    ########################################################################
+    #Establishing summary function#
 
-    predictiveValues <- function (data, lev = NULL, model = NULL,...){
+    predictiveValues <- function(data, lev = NULL, model = NULL, ...) {
         PPVobj <- posPredValue(data[, "pred"], data[, "obs"])
         NPVobj <- negPredValue(data[, "pred"], data[, "obs"])
         out <- c(PPVobj, NPVobj)
-        #out <- c(NPVobj)
+        # out <- c(NPVobj)
         names(out) <- c("Pos Pred Value", "Neg Pred Value")
-        #names(out) <- c("Neg Pred Value")
-        out}
+        # names(out) <- c('Neg Pred Value')
+        out
+    }
 
-    allSummary <- function(data, lev = NULL, model = NULL){
+    allSummary <- function(data, lev = NULL, model = NULL) {
         lvls <- levels(data$obs)
 
-        #mcc
-        mcc <- mcc(ifelse(data$obs == lev[2], 0, 1), data[, lvls[1]], cutoff = .5)
+        # mcc
+        mcc <- mcc(ifelse(data$obs == lev[2], 0, 1), data[, lvls[1]], cutoff = 0.5)
 
-        #roc
+        # roc
         b1 <- twoClassSummary(data, lev, model)
 
-        #auprc & f1
-        #c1 <- prSummary(data, lev, model)
+        # auprc & f1 c1 <- prSummary(data, lev, model)
 
-        #ppv & npv
+        # ppv & npv
         d1 <- predictiveValues(data, lev, model)
 
-        #accuracy & kappa
+        # accuracy & kappa
         e1 <- defaultSummary(data, lev, model)
 
         out <- c(mcc, b1, d1, e1)
@@ -124,44 +138,35 @@ TADrfe <- function(trainData,
         out
     }
 
-    #################################
-    #PERFORMING RFE                 #
-    #################################
+    #PERFORMING RFE#
 
     rfectrl <- rfFuncs
     rfectrl$summary <- allSummary
-    rfFuncs$fit <- function (x, y, param, first, last, ...) {
-        randomForest::randomForest(x,
-                                   y,
-                                   ntree=tuneParams[[1]],
-                                   nodesize = tuneParams[[2]],
-                                   importance=TRUE,
-                                   ...)
+    rfFuncs$fit <- function(x, y, param, first, last, ...) {
+        randomForest::randomForest(x, y, ntree = tuneParams[[1]], nodesize = tuneParams[[2]],
+                                   importance = TRUE, ...)
     }
-    control <- rfeControl(functions=rfectrl,
-                          method="cv",
-                          number=cvFolds,
-                          verbose=ifelse(verbose==TRUE, TRUE, FALSE),
-                          allowParallel = FALSE)
+    control <- rfeControl(functions = rfectrl, method = "cv", number = cvFolds,
+                          verbose = ifelse(verbose == TRUE, TRUE, FALSE), allowParallel = FALSE)
     control$returnResamp <- "final"
 
-    n=dim(trainData)[2]-1
+    n = dim(trainData)[2] - 1
     z <- numeric()
-    x=0
-    i=1
-    while(x < n){
-        x = 2^(i);i=i+1;z <- c(z,x)
+    x = 0
+    i = 1
+    while (x < n) {
+        x = 2^(i)
+        i = i + 1
+        z <- c(z, x)
     }
     z[length(z)] <- n
 
     set.seed(seed)
-    tadModel <- rfe(trainData[,-1],
-                    trainData[,1],
-                    metric = cvMetric,
-                    sizes=z,
-                    rfeControl=control)
+    tadModel <- rfe(trainData[, -1], trainData[, 1], metric = cvMetric,
+                    sizes = z, rfeControl = control)
 
-    rfeModelResultsList <- list(tadModel$results, tadModel$variables[,-c(1,2)])
+    rfeModelResultsList <- list(tadModel$results, tadModel$variables[,
+                                                                     -c(1, 2)])
     names(rfeModelResultsList) <- c("CVPerformances", "Importances")
 
     return(rfeModelResultsList)

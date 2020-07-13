@@ -60,7 +60,7 @@ The customized training/testing data formation offered by `preciseTAD` allows us
 
 The second usage of `preciseTAD` allows users to leverage a TAD boundary region classifier in order to more precisely predict the genomic coordinates of chromosome-specific TAD boundaries at base resolution (see section 3.2.1). To do so, `preciseTAD` combines novel density-based clustering and scalable data partitioning techniques to narrow regions of high predictibility to single base coordinates, enriched for known molecular drivers of 3D chromatin. First, the probability vector, $p_{n_{i}}$, is extracted ($n_{i}$ representing the length of chromosome $i$). Next, *DBSCAN* (Density-based Spatial Clustering of Applications with Noise) [@ester1996density; @hahsler2019dbscan] is applied to the matrix of pairwise genomic distances between bases with $p_{n_{i}} \ge t$, where $t$ is a threshold determined by the user. The resulting clusters of highly predictive bases identified by DBSCAN are termed *preciseTAD boundary regions* (PTBR). To precisely identify a single base among each PTBR, *preciseTAD* implements an extension of partitioning around medoids (PAM), known as CLARA (Clustering Large Applications) for better scaling and more computational efficiency [@rousseeuw1990finding]. The corresponding cluster medoid is defined as a *preciseTAD boundary point* (PTBP), making it the most representative and biologically meaningful base within each clustered PTBR. `preciseTAD` offers users the flexibility in predicting boundaries on entire chromosomes, or on specific subsections of chromosomes. In either case, the primary inputs are the model used to predict boundary regions and the threshold for determining PTBRs. The subsequent output includes each of the CTBPs, PTBPs, and PTBRs in a list format for direct comparison between `preciseTAD` and the corresponding called boundaries.
 
-The following vignette illustrates a workflow for precisely predicting TAD boundaries using `preciseTAD`, introduced in [???insert our citation].
+The following vignette illustrates a workflow for precisely predicting TAD boundaries using `preciseTAD`.
 
 # Getting Started
 
@@ -70,7 +70,7 @@ The following vignette illustrates a workflow for precisely predicting TAD bound
 # if (!requireNamespace("BiocManager", quietly=TRUE))
 #     install.packages("BiocManager")
 # BiocManager::install("preciseTAD")
-devtools::install_github("stilianoudakis/preciseTAD")
+devtools::install_github("dozmorovlab/preciseTAD")
 library(preciseTAD)
 ```
 

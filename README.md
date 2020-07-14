@@ -45,7 +45,7 @@ The main functions (in order of implementation) are:
 The latest version of `preciseTAD` can be directly installed from
 Github:
 
-    devtools::install_github('stilianoudakis/preciseTAD', build_vignettes = TRUE)
+    devtools::install_github('dozmorovlad/preciseTAD', build_vignettes = TRUE)
     library(preciseTAD)
 
 Alternatively, the package can be installed from Bioconductor (to be

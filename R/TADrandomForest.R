@@ -45,7 +45,6 @@
 #' @import randomForest caret e1071
 #'
 #' @examples
-#' \dontrun{
 #' # Read in ARROWHEAD-called TADs at 5kb
 #' data(arrowhead_gm12878_5kb)
 #'
@@ -85,20 +84,19 @@
 #'                             importances = TRUE,
 #'                             impMeasure = "MDA",
 #'                             performances = TRUE)
-#' }
 TADrandomForest <- function(trainData,
-                            testData=NULL,
-                            tuneParams=list(mtry=ceiling(sqrt(ncol(trainData)-1)),
-                                            ntree=500,
-                                            nodesize=1),
-                            cvFolds=5,
-                            cvMetric="Accuracy",
-                            verbose=FALSE,
-                            seed=123,
-                            model=TRUE,
-                            importances=TRUE,
-                            impMeasure="MDA",
-                            performances=FALSE){
+                            testData = NULL,
+                            tuneParams = list(mtry = ceiling(sqrt(ncol(trainData)-1)),
+                                              ntree = 500,
+                                              nodesize = 1),
+                            cvFolds = 3,
+                            cvMetric = "Accuracy",
+                            verbose = FALSE,
+                            seed = 123,
+                            model = TRUE,
+                            importances = TRUE,
+                            impMeasure = "MDA",
+                            performances = FALSE){
 
     ##########################
     #CHECKING FUNCTION INPUTS#
@@ -186,9 +184,9 @@ TADrandomForest <- function(trainData,
     #Establishing tuning grid#
     ##########################
 
-    tunegrid <- expand.grid(mtry=tuneParams[[1]],
-                            ntree=tuneParams[[2]],
-                            nodesize=tuneParams[[3]])
+    tunegrid <- expand.grid(mtry = tuneParams[[1]],
+                            ntree = tuneParams[[2]],
+                            nodesize = tuneParams[[3]])
 
     ###############################
     #Establishing control function#
@@ -196,18 +194,18 @@ TADrandomForest <- function(trainData,
 
     set.seed(seed)
     seeds <- vector(mode = "list", length = (cvFolds+1))
-    for(i in 1:cvFolds){
+    for(i in 1:cvFolds) {
         #set.seed(seed)
-        seeds[[i]]<- sample.int(n=100000, nrow(tunegrid))
+        seeds[[i]] <- sample.int(n=100000, nrow(tunegrid))
     }
     #for the last model
     set.seed(seed)
-    seeds[[cvFolds+1]]<-sample.int(100000, 1)
+    seeds[[cvFolds+1]] <- sample.int(100000, 1)
 
     control <- trainControl(seeds = seeds,
                             method = "cv",
                             number = cvFolds,
-                            verboseIter = ifelse(verbose==TRUE, TRUE, FALSE),
+                            verboseIter = ifelse(verbose == TRUE, TRUE, FALSE),
                             ## Estimate class probabilities
                             classProbs = TRUE,
                             ## Evaluate performance using
@@ -218,25 +216,25 @@ TADrandomForest <- function(trainData,
 
     set.seed(seed)
     tadModel <- train(y~.,
-                      data=trainData,
-                      method=customRF$rf,
-                      metric=cvMetric,
-                      tuneGrid=tunegrid,
-                      trControl=control)
+                      data = trainData,
+                      method = customRF$rf,
+                      metric = cvMetric,
+                      tuneGrid = tunegrid,
+                      trControl = control)
 
     #####################################
     #EXTRACTING IMPORTANCES/COEFFICIENTS#
     #####################################
 
-    if(impMeasure=="MDA"){
-        rfimpvars <- data.frame(Feature=rownames(randomForest::importance(tadModel$finalModel, scale=TRUE)),
-                                Importance=as.vector(randomForest::importance(tadModel$finalModel, scale=TRUE)[,3]))
-        rfimpvars <- rfimpvars[order(rfimpvars$Importance, decreasing=TRUE),]
-    }else if(impMeasure=="MDG"){
-        rfimpvars <- data.frame(Feature=rownames(randomForest::importance(tadModel$finalModel, scale=TRUE)),
-                                Importance=as.vector(randomForest::importance(tadModel$finalModel, scale=TRUE)[,4]))
-        rfimpvars <- rfimpvars[order(rfimpvars$Importance, decreasing=TRUE),]
-    }else{
+    if(impMeasure == "MDA") {
+        rfimpvars <- data.frame(Feature=rownames(randomForest::importance(tadModel$finalModel, scale = TRUE)),
+                                Importance=as.vector(randomForest::importance(tadModel$finalModel, scale = TRUE)[,3]))
+        rfimpvars <- rfimpvars[order(rfimpvars$Importance, decreasing = TRUE),]
+    }else if(impMeasure == "MDG") {
+        rfimpvars <- data.frame(Feature=rownames(randomForest::importance(tadModel$finalModel, scale = TRUE)),
+                                Importance = as.vector(randomForest::importance(tadModel$finalModel, scale = TRUE)[,4]))
+        rfimpvars <- rfimpvars[order(rfimpvars$Importance, decreasing = TRUE),]
+    }else {
         rfimpvars <- NA
     }
 
@@ -244,7 +242,7 @@ TADrandomForest <- function(trainData,
     #EVALUATING PERFORMANCES        #
     #################################
 
-    if(!(is.null(testData)) & performances==TRUE){
+    if(!(is.null(testData)) & performances == TRUE){
         rfperf <- data.frame(Metric = c("TN",
                                         "FN",
                                         "FP",
@@ -264,19 +262,19 @@ TADrandomForest <- function(trainData,
                                         "AUC",
                                         "Youden",
                                         "AUPRC"),
-                             Performance=NA)
+                             Performance = NA)
 
         pred.tadModel <- as.vector(predict(tadModel,
                                            newdata=testData[,-1],
-                                           type="prob")[,"Yes"])
+                                           type = "prob")[,"Yes"])
 
         fg <- pred.tadModel[testData$y == "Yes"]
         bg <- pred.tadModel[testData$y == "No"]
-        pr <- pr.curve(scores.class0 = fg, scores.class1 = bg, curve = T)
+        pr <- pr.curve(scores.class0 = fg, scores.class1 = bg, curve = TRUE)
 
         pred.tadModel2 <- predict(tadModel,
-                                  newdata=testData[,-1],
-                                  type="raw")
+                                  newdata = testData[,-1],
+                                  type = "raw")
 
 
         confMat <- confusionMatrix(data=pred.tadModel2, testData[,1], positive="Yes")
@@ -307,9 +305,9 @@ TADrandomForest <- function(trainData,
 
     results_list <- list()
 
-    if(model==TRUE){results_list[[1]] = tadModel}else{results_list[[1]] = NA}
-    if(importances==TRUE){results_list[[2]] = rfimpvars}else{results_list[[2]] = NA}
-    if(!(is.null(testData)) & performances==TRUE){results_list[[3]] = rfperf}else{results_list[[3]] = NA}
+    if(model == TRUE){results_list[[1]] = tadModel}else{results_list[[1]] = NA}
+    if(importances == TRUE){results_list[[2]] = rfimpvars}else{results_list[[2]] = NA}
+    if(!(is.null(testData)) & performances == TRUE){results_list[[3]] = rfperf}else{results_list[[3]] = NA}
 
     return(results_list)
 }

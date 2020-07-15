@@ -38,7 +38,6 @@
 #' @import IRanges GenomicRanges DMwR
 #'
 #' @examples
-#' \dontrun{
 #' # Create training data for CHR21 and testing data for CHR22 with
 #' # 5 kb binning, oc-type predictors from 26 different transcription factor
 #' # binding sites from the GM12878 cell line, and random under-sampling
@@ -63,7 +62,6 @@
 #'                          trainCHR = "CHR21",
 #'                          predictCHR = "CHR22",
 #'                          seed = 123)
-#' }
 createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType = "distance",
                           resampling, trainCHR, predictCHR = NULL, seed = 123) {
 

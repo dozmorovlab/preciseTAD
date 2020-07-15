@@ -32,7 +32,6 @@
 #' @import randomForest caret e1071
 #'
 #' @examples
-#' \dontrun{
 #' # Read in ARROWHEAD-called TADs at 5kb
 #' data(arrowhead_gm12878_5kb)
 #'
@@ -66,7 +65,6 @@
 #'                   cvMetric = "Accuracy",
 #'                   verbose = TRUE,
 #'                   seed = 123)
-#' }
 TADrfe <- function(trainData, tuneParams = list(ntree = 500, nodesize = 1),
                    cvFolds = 5, cvMetric = "Accuracy", verbose = FALSE, seed = 123) {
 

@@ -2,7 +2,7 @@ Package: preciseTAD
 Type: Package
 Title: preciseTAD: A machine learning framework for precise TAD boundary 
     prediction
-Version: 0.99.0
+Version: 0.99.1
 Date: 2020-06-16
 Authors@R: c(person("Spiro", "Stilianoudakis", email = "stilianoudasc@vcu.edu", 
     role = c("aut", "cre")), 

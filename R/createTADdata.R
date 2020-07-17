@@ -148,34 +148,6 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
     hg19 <- preciseTAD:::hg19
 
-    seqLength <- hg19$length[hg19$chrom %in% trainCHR]
-    seqDataList <- list()
-    for (i in 1:length(seqLength)) {
-        seqData <- c(0:seqLength[i])
-        centromereStart <- hg19$centromerStart[hg19$chrom == trainCHR[i]]
-        centromereEnd <- hg19$centromerEnd[hg19$chrom == trainCHR[i]]
-        seqDataList[[i]] <- seqData[-which(seqData %in% c(centromereStart:centromereEnd))]
-    }
-    names(seqDataList) <- trainCHR
-
-    if (!(is.null(predictCHR))) {
-        if (isTRUE(all.equal(trainCHR, predictCHR))) {
-            seqDataListpred <- seqDataList
-        } else {
-            seqLengthpred <- hg19$length[hg19$chrom %in% predictCHR]
-            seqDataListpred <- list()
-            for (i in 1:length(seqLengthpred)) {
-                seqData <- c(0:seqLengthpred[i])
-                centromereStart <- hg19$centromerStart[hg19$chrom == predictCHR[i]]
-                centromereEnd <- hg19$centromerEnd[hg19$chrom == predictCHR[i]]
-                seqDataListpred[[i]] <- seqData[-which(seqData %in% c(centromereStart:centromereEnd))]
-            }
-            names(seqDataListpred) <- predictCHR
-        }
-    }
-
-    rm("seqData")
-
     #FUNCTIONS FOR DIFFERENT FEATURE TYPES#
 
     #BINARY OVERLAPS#
@@ -234,6 +206,40 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
         return(count_percent)
     }
 
+    #SIGNAL#
+    signal_func <- function(binned_data_gr, annot_data_gr){
+
+        if(names(mcols(annot_data_gr))!="coverage"){print("metadata missing coverage column! use annots_to_granges_func function and specify signal parameter!"); return(0)}
+        if(class(mcols(annot_data_gr)$coverage)!="numeric"){print("metadata coverage column is not numeric!")}
+
+        count_signal <- numeric(length(binned_data_gr))
+
+        #Finding the total number of overlaps between genomic bins and the specific genomic annotation
+        c <- countOverlaps(binned_data_gr, annot_data_gr)
+
+        #places where c=0 denotes no overlap
+        #places where c>0 denotes some type of overlap, could be partial or within
+
+        #for c=0 assign signal as 0
+        count_signal[which(c==0)] <- 0
+
+        #for c=1:
+        count_signal[which(c==1)] <- mcols(annot_data_gr[queryHits(findOverlaps(annot_data_gr,binned_data_gr[which(c==1)]))])$coverage
+
+        #for c>1:
+        #iterate through all bins with multiple overlaps with the annotation of interest
+        #find how many and which annotations overlap within each iterate
+        #calculate the width of each overlap
+        #sum the total widths and divide by bin width
+        #bins with some type of overlap
+        mo <- which(c>1)
+        count_signal[mo] <- unlist(lapply(mo, function(x){
+            sum(mcols(pintersect(findOverlapPairs(annot_data_gr,binned_data_gr[x])))$coverage)/c[x]
+        }))
+
+        return(count_signal)
+    }
+
     #DISTANCE#
     distance_func <- function(binned_data_center_gr, annot_data_center_gr) {
 
@@ -258,14 +264,17 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
         for (i in 1:length(trainCHR)) {
             start = (resolution/2)
-            end = seqDataList[[i]][length(seqDataList[[i]])] - (seqDataList[[i]][length(seqDataList[[i]])]%%resolution) +
-                (resolution/2)
+            chrLength = hg19$length[hg19$chrom %in% trainCHR][i]
+            centromereStart <- as.integer(hg19$centromerStart[hg19$chrom==trainCHR[i]])
+            centromereEnd <- as.integer(hg19$centromerEnd[hg19$chrom==trainCHR[i]])
+            end = chrLength - (chrLength %% resolution) + resolution/2
 
-            data_mat_list[[i]] <- matrix(nrow = length(seqDataList[[i]][seqDataList[[i]] %in%
-                                                                            seq(start, end, resolution)]), ncol = length(genomicElements.GR))
+            data_mat_list[[i]] <- matrix(nrow=length(seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))]),
+                                         ncol=length(genomicElements.GR))
 
-            dat_mat_gr <- GRanges(seqnames = tolower(trainCHR[i]), IRanges(start = seqDataList[[i]][seqDataList[[i]] %in%
-                                                                                                        seq(start, end, resolution)], width = resolution))
+            dat_mat_gr <- GRanges(seqnames = tolower(trainCHR[i]),
+                                  IRanges(start = seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))],
+                                          width=resolution))
 
             if (featureType == "distance") {
                 # for use of distance type features
@@ -293,11 +302,14 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
                     cp <- percent_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- cp
                 }
+            } else {
+                cs <- signal_func(dat_mat_gr, genomicElements.GR[[k]])
+                data_mat_list[[i]][, k] <- cs
             }
 
             outcome_list[[i]] <- countOverlaps(GRanges(seqnames = tolower(trainCHR[i]),
-                                                       IRanges(start = seqDataList[[i]][seqDataList[[i]] %in% seq(start,
-                                                                                                                  end, resolution)], width = resolution)), bounds.GR.flank)
+                                                       IRanges(start = seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))],
+                                                               width = resolution)), bounds.GR.flank)
             outcome_list[[i]] <- ifelse(outcome_list[[i]] >= 1, 1, 0)
 
             train_list[[i]] <- cbind.data.frame(outcome_list[[i]], as.matrix(data_mat_list[[i]]))
@@ -365,14 +377,17 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
         for (i in 1:length(trainCHR)) {
             start = (resolution/2)
-            end = seqDataList[[i]][length(seqDataList[[i]])] - (seqDataList[[i]][length(seqDataList[[i]])]%%resolution) +
-                (resolution/2)
+            chrLength = hg19$length[hg19$chrom %in% trainCHR][i]
+            centromereStart <- as.integer(hg19$centromerStart[hg19$chrom==trainCHR[i]])
+            centromereEnd <- as.integer(hg19$centromerEnd[hg19$chrom==trainCHR[i]])
+            end = chrLength - (chrLength %% resolution) + resolution/2
 
-            data_mat_list[[i]] <- matrix(nrow = length(seqDataList[[i]][seqDataList[[i]] %in%
-                                                                            seq(start, end, resolution)]), ncol = length(genomicElements.GR))
+            data_mat_list[[i]] <- matrix(nrow=length(seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))]),
+                                         ncol=length(genomicElements.GR))
 
-            dat_mat_gr <- GRanges(seqnames = tolower(trainCHR[i]), IRanges(start = seqDataList[[i]][seqDataList[[i]] %in%
-                                                                                                        seq(start, end, resolution)], width = resolution))
+            dat_mat_gr <- GRanges(seqnames = tolower(trainCHR[i]),
+                                  IRanges(start = seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))],
+                                          width=resolution))
 
             if (featureType == "distance") {
                 # for use of distance type features
@@ -403,8 +418,8 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
             }
 
             outcome_list[[i]] <- countOverlaps(GRanges(seqnames = tolower(trainCHR[i]),
-                                                       IRanges(start = seqDataList[[i]][seqDataList[[i]] %in% seq(start,
-                                                                                                                  end, resolution)], width = resolution)), bounds.GR.flank)
+                                                       IRanges(start = seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))],
+                                                               width = resolution)), bounds.GR.flank)
             outcome_list[[i]] <- ifelse(outcome_list[[i]] >= 1, 1, 0)
 
             full_list[[i]] <- cbind.data.frame(outcome_list[[i]], as.matrix(data_mat_list[[i]]))
@@ -478,14 +493,17 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
         for (i in 1:length(trainCHR)) {
             start = (resolution/2)
-            end = seqDataList[[i]][length(seqDataList[[i]])] - (seqDataList[[i]][length(seqDataList[[i]])]%%resolution) +
-                (resolution/2)
+            chrLength = hg19$length[hg19$chrom %in% trainCHR][i]
+            centromereStart <- as.integer(hg19$centromerStart[hg19$chrom==trainCHR[i]])
+            centromereEnd <- as.integer(hg19$centromerEnd[hg19$chrom==trainCHR[i]])
+            end = chrLength - (chrLength %% resolution) + resolution/2
 
-            data_mat_list[[i]] <- matrix(nrow = length(seqDataList[[i]][seqDataList[[i]] %in%
-                                                                            seq(start, end, resolution)]), ncol = length(genomicElements.GR))
+            data_mat_list[[i]] <- matrix(nrow=length(seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))]),
+                                         ncol=length(genomicElements.GR))
 
-            dat_mat_gr <- GRanges(seqnames = tolower(trainCHR[i]), IRanges(start = seqDataList[[i]][seqDataList[[i]] %in%
-                                                                                                        seq(start, end, resolution)], width = resolution))
+            dat_mat_gr <- GRanges(seqnames = tolower(trainCHR[i]),
+                                  IRanges(start = seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))],
+                                          width=resolution))
 
             if (featureType == "distance") {
                 # for use of distance type features
@@ -516,8 +534,8 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
             }
 
             outcome_list[[i]] <- countOverlaps(GRanges(seqnames = tolower(trainCHR[i]),
-                                                       IRanges(start = seqDataList[[i]][seqDataList[[i]] %in% seq(start,
-                                                                                                                  end, resolution)], width = resolution)), bounds.GR.flank)
+                                                       IRanges(start = seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))],
+                                                               width = resolution)), bounds.GR.flank)
 
             outcome_list[[i]] <- ifelse(outcome_list[[i]] >= 1, 1, 0)
 
@@ -581,14 +599,17 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
         for (i in 1:length(predictCHR)) {
             start = (resolution/2)
-            end = seqDataListpred[[i]][length(seqDataListpred[[i]])] - (seqDataListpred[[i]][length(seqDataListpred[[i]])]%%resolution) +
-                (resolution/2)
+            chrLength = hg19$length[hg19$chrom %in% predictCHR][i]
+            centromereStart <- as.integer(hg19$centromerStart[hg19$chrom==predictCHR[i]])
+            centromereEnd <- as.integer(hg19$centromerEnd[hg19$chrom==predictCHR[i]])
+            end = chrLength - (chrLength %% resolution) + resolution/2
 
-            data_mat_list[[i]] <- matrix(nrow = length(seqDataListpred[[i]][seqDataListpred[[i]] %in%
-                                                                                seq(start, end, resolution)]), ncol = length(genomicElements.GR))
+            data_mat_list[[i]] <- matrix(nrow=length(seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))]),
+                                         ncol=length(genomicElements.GR))
 
-            dat_mat_gr <- GRanges(seqnames = tolower(predictCHR[i]), IRanges(start = seqDataListpred[[i]][seqDataListpred[[i]] %in%
-                                                                                                              seq(start, end, resolution)], width = resolution))
+            dat_mat_gr <- GRanges(seqnames = tolower(predictCHR[i]),
+                                  IRanges(start = seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))],
+                                          width=resolution))
 
             if (featureType == "distance") {
                 # for use of distance type features
@@ -619,8 +640,8 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
             }
 
             outcome_list[[i]] <- countOverlaps(GRanges(seqnames = tolower(predictCHR[i]),
-                                                       IRanges(start = seqDataListpred[[i]][seqDataListpred[[i]] %in% seq(start,
-                                                                                                                          end, resolution)], width = resolution)), bounds.GR.flank.pred)
+                                                       IRanges(start = seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))],
+                                                               width = resolution)), bounds.GR.flank.pred)
             outcome_list[[i]] <- ifelse(outcome_list[[i]] >= 1, 1, 0)
 
             test_list[[i]] <- cbind.data.frame(outcome_list[[i]], as.matrix(data_mat_list[[i]]))
@@ -633,8 +654,6 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
         test_list <- do.call("rbind.data.frame", test_list)
 
     }
-
-    rm("data_mat_list", "outcome_list", "dat_mat_gr", "seqDataList")
 
     if (is.null(predictCHR)) {
         TADdataList <- list(train_list, NA)

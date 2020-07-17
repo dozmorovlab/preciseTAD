@@ -8,8 +8,8 @@
 #' each ChIP-seq BED file that was used to train a predictive model (can be
 #' obtained using the \code{\link{bedToGRangesList}}).
 #' @param featureType Controls how the feature space is constructed (one of
-#' either "binary", "oc", "op", or "distance" (log2- transformed). Default is
-#' "distance".
+#' either "binary", "oc", "op", "signal, or "distance" (log2- transformed).
+#' Default is "distance".
 #' @param CHR Controls which chromosome to predict boundaries on at base-level
 #' resolution.
 #' @param chromCoords List containing the starting bp coordinate and ending bp
@@ -27,7 +27,7 @@
 #' (necessary for evaluating overlaps, etc.). Default is NULL, i.e., no flanking.
 #' @param verbose Option to print progress.
 #' @param seed Numeric for reproducibility.
-#' @param parallel Option to parallelize the process for obtaining predicted
+#' @param parallel Option to parallelise the process for obtaining predicted
 #' probabilities. Default is FALSE.
 #' @param cores Number of cores to use in parallel. Default is NULL.
 #' @param splits Number of splits of the test data to speed up the prediction.
@@ -280,27 +280,24 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
 
     hg19 <- preciseTAD:::hg19
 
-    if (class(chromCoords) == "list") {
+    if(class(chromCoords)=="list") {
         seqDataTest <- c(chromCoords[[1]]:chromCoords[[2]])
-
-        if ("TRUE" %in% table(seqDataTest %in% c(hg19$centromerStart[hg19$chrom ==
-                                                                     CHR]:hg19$centromerEnd[hg19$chrom == CHR]))) {
-            centromereTestStart <- hg19$centromerStart[hg19$chrom == CHR]
-            centromereTestEnd <- hg19$centromerEnd[hg19$chrom == CHR]
+        if("TRUE" %in% table(seqDataTest %in% c(hg19$centromerStart[hg19$chrom == CHR]:hg19$centromerEnd[hg19$chrom == CHR]))) {
+            centromereTestStart <- hg19$centromerStart[hg19$chrom==CHR]
+            centromereTestEnd <- hg19$centromerEnd[hg19$chrom==CHR]
             seqDataTest <- seqDataTest[-which(seqDataTest %in% c(centromereTestStart:centromereTestEnd))]
         }
-    } else {
+    }else {
         seqLengthTest <- hg19$length[hg19$chrom == CHR]
-
-        seqDataTest <- as.big.matrix(c(0:seqLengthTest))
+        seqDataTest <- seq_along(0:seqLengthTest)
         centromereTestStart <- hg19$centromerStart[hg19$chrom == CHR]
         centromereTestEnd <- hg19$centromerEnd[hg19$chrom == CHR]
-        seqDataTest <- seqDataTest[, 1][-which(seqDataTest[, 1] %in% c(centromereTestStart:centromereTestEnd))]
+        seqDataTest <- seqDataTest[-which(seqDataTest %in% c(centromereTestStart:centromereTestEnd))]
     }
 
     #FUNCTIONS FOR DIFFERENT FEATURE TYPES#
 
-    #### calculating binary overlaps
+    #BINARY OVERLAPS#
     binary_func <- function(binned_data_gr, annot_data_gr) {
 
         # Finding the total number of overlaps between genomic bins and the specific
@@ -313,7 +310,7 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
         return(count_binary)
     }
 
-    #### calculating count overlaps
+    #COUNT OVERLAPS#
     count_func <- function(binned_data_gr, annot_data_gr) {
 
         # Finding the total number of overlaps between genomic bins and the specific
@@ -323,7 +320,7 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
         return(count_total)
     }
 
-    #### calculating percent overlaps
+    #PERCENT OVERLAPS#
     percent_func <- function(binned_data_gr, annot_data_gr) {
 
         count_percent <- numeric(length(binned_data_gr))
@@ -356,7 +353,41 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
         return(count_percent)
     }
 
-    #### calculating distance
+    #SIGNAL#
+    signal_func <- function(binned_data_gr, annot_data_gr){
+
+        if(names(mcols(annot_data_gr))!="coverage"){print("metadata missing coverage column! use annots_to_granges_func function and specify signal parameter!"); return(0)}
+        if(class(mcols(annot_data_gr)$coverage)!="numeric"){print("metadata coverage column is not numeric!")}
+
+        count_signal <- numeric(length(binned_data_gr))
+
+        #Finding the total number of overlaps between genomic bins and the specific genomic annotation
+        c <- countOverlaps(binned_data_gr, annot_data_gr)
+
+        #places where c=0 denotes no overlap
+        #places where c>0 denotes some type of overlap, could be partial or within
+
+        #for c=0 assign signal as 0
+        count_signal[which(c==0)] <- 0
+
+        #for c=1:
+        count_signal[which(c==1)] <- mcols(annot_data_gr[queryHits(findOverlaps(annot_data_gr,binned_data_gr[which(c==1)]))])$coverage
+
+        #for c>1:
+        #iterate through all bins with multiple overlaps with the annotation of interest
+        #find how many and which annotations overlap within each iterate
+        #calculate the width of each overlap
+        #sum the total widths and divide by bin width
+        #bins with some type of overlap
+        mo <- which(c>1)
+        count_signal[mo] <- unlist(lapply(mo, function(x){
+            sum(mcols(pintersect(findOverlapPairs(annot_data_gr,binned_data_gr[x])))$coverage)/c[x]
+        }))
+
+        return(count_signal)
+    }
+
+    #DISTANCE#
     distance_func <- function(binned_data_center_gr, annot_data_center_gr) {
 
         # distance from center of genomic bin to nearest genomic region of interest
@@ -367,81 +398,61 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
 
     #CREATING BP RESOLUTION TEST DATA#
 
-    if (verbose == TRUE) {
-        print(paste0("Establishing bp resolution test data using a ", featureType,
-                     " type feature space"))
-        if (featureType == "distance") {
-            p <- pblapply(genomicElements.GR, function(x) {
-                as.big.matrix(log(distance_func(GRanges(seqnames = tolower(CHR),
-                                                        IRanges(start = seqDataTest, end = seqDataTest)), x) + 1, base = 2))
-            })
-        } else if (featureType == "binary") {
-            p <- pblapply(genomicElements.GR, function(x) {
-                as.big.matrix(binary_func(GRanges(seqnames = tolower(CHR), IRanges(start = seqDataTest,
-                                                                                   end = seqDataTest)), x))
-            })
-        } else if (featureType == "oc") {
-            p <- pblapply(genomicElements.GR, function(x) {
-                as.big.matrix(count_func(GRanges(seqnames = tolower(CHR), IRanges(start = seqDataTest,
-                                                                                  end = seqDataTest)), x))
-            })
-        } else if (featureType == "op") {
-            p <- pblapply(genomicElements.GR, function(x) {
-                as.big.matrix(percent_func(GRanges(seqnames = tolower(CHR), IRanges(start = seqDataTest,
-                                                                                    end = seqDataTest)), x))
-            })
+    test_data <- matrix(nrow = length(seqDataTest),
+                        ncol = length(genomicElements.GR),
+                        dimnames = list(NULL,
+                                        gsub(paste0(c("K562", "Gm12878", "-", "Broad", "Haib", "Sydh", "Uta", "Uw", "Uchicago"), collapse = "|"),"",names(genomicElements.GR))))
+
+    g <- split(GRanges(seqnames=tolower(CHR),IRanges(start=seqDataTest,end=seqDataTest)),
+               ceiling(seq_along(GRanges(seqnames=tolower(CHR),IRanges(start=seqDataTest,end=seqDataTest)))/10000000))
+
+    if(verbose==TRUE){print(paste0("Establishing bp resolution test data using a ", featureType, " type feature space"))}
+    for(j in 1:length(genomicElements.GR)){
+        p <-list()
+        for(i in 1:length(g)){
+            if(featureType=="distance"){
+                p[[i]] <- log(distance_func(g[[i]],genomicElements.GR[[j]]) + 1, base = 2)
+            }else if(featureType=="binary"){
+                p[[i]] <- binary_func(g[[i]],genomicElements.GR[[j]])
+            }else if(featureType=="oc"){
+                p[[i]] <- count_func(g[[i]],genomicElements.GR[[j]])
+            }else{
+                p[[i]] <- percent_func(g[[i]],genomicElements.GR[[j]])
+            }
         }
-    } else {
-        if (featureType == "distance") {
-            p <- lapply(genomicElements.GR, function(x) {
-                as.big.matrix(log(distance_func(GRanges(seqnames = tolower(CHR),
-                                                        IRanges(start = seqDataTest, end = seqDataTest)), x) + 1, base = 2))
-            })
-        } else if (featureType == "binary") {
-            p <- lapply(genomicElements.GR, function(x) {
-                as.big.matrix(binary_func(GRanges(seqnames = tolower(CHR), IRanges(start = seqDataTest,
-                                                                                   end = seqDataTest)), x))
-            })
-        } else if (featureType == "oc") {
-            p <- lapply(genomicElements.GR, function(x) {
-                as.big.matrix(count_func(GRanges(seqnames = tolower(CHR), IRanges(start = seqDataTest,
-                                                                                  end = seqDataTest)), x))
-            })
-        } else if (featureType == "op") {
-            p <- lapply(genomicElements.GR, function(x) {
-                as.big.matrix(percent_func(GRanges(seqnames = tolower(CHR), IRanges(start = seqDataTest,
-                                                                                    end = seqDataTest)), x))
-            })
-        }
-    }
-    test_data <- big.matrix(nrow = length(seqDataTest), ncol = length(genomicElements.GR),
-                            dimnames = list(NULL, names(genomicElements.GR)))
-    for (i in 1:ncol(test_data)) {
-        test_data[, i] <- p[[i]][, 1]
+        p <- unlist(p)
+        test_data[,j] <- p
     }
 
-    rm("p")
+    rm("p", "g")
 
     #PREDICTING AT BP RESOLUTION #
 
-    if (parallel == TRUE) {
-        parallel_predictions <- function(fit, testing, c, n) {
-            cl <- makeCluster(c)
+    if(parallel==TRUE){
+        parallel_predictions<-function(fit,testing,c,n){
+            cl<-makeCluster(c)
             registerDoSNOW(cl)
-            split_testing <- sort(rank(1:nrow(testing))%%n)
-            predictions <- foreach(i = unique(split_testing), .combine = c, .packages = c("caret")) %dopar%
-                {
-                    as.numeric(predict(fit, newdata = testing[split_testing == i, ],
-                                       type = "prob")[, "Yes"])
-                }
+            split_testing<-sort(rank(1:nrow(testing)) %% n)
+            predictions<-foreach(i=unique(split_testing),
+                                 .combine=c,
+                                 .packages=c("caret")) %dopar% {
+                                     as.numeric(predict(fit,newdata=testing[split_testing==i,],type="prob")[,"Yes"])
+                                 }
             stopCluster(cl)
             predictions
         }
-        predictions <- as.big.matrix(parallel_predictions(fit = tadModel, testing = as.matrix(test_data),
-                                                          c = cores, n = splits))
-    } else {
-        predictions <- as.big.matrix(predict(tadModel, newdata = as.matrix(test_data),
-                                             type = "prob")[, "Yes"])
+    }else{
+        array_split <- function(data, number_of_chunks){
+            rowIdx <- seq_len(nrow(data))
+            lapply(split(rowIdx, cut(rowIdx, pretty(rowIdx, number_of_chunks))), function(x) data[x, ])
+        }
+        split_ind <- as.integer(nrow(test_data)/10000000) + 1
+        test_data <- array_split(test_data, split_ind)
+        predictions <- list()
+        for(i in 1:length(test_data)){
+            predictions[[i]] <- predict(tadModel,newdata=test_data[[i]],type="prob")[,"Yes"]
+        }
+        predictions <- unlist(predictions)
     }
 
     if (threshold == "roc") {

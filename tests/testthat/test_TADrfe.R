@@ -28,8 +28,8 @@ test_that("Whether TADrfe gives us the same output", {
                      verbose=TRUE,
                      seed=123)
 
-    expect_equal(round(max(RFEres[[1]]$Accuracy),3), 0.641)
+    expect_equal(round(max(RFEres[[1]]$Accuracy),3), 0.647)
 
-    expect_equal(round(mean(RFEres[[2]]$Overall),3), 5.067)
+    expect_equal(round(mean(RFEres[[2]]$Overall),3), 5.008)
 
 })

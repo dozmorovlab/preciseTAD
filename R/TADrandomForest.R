@@ -58,8 +58,8 @@
 #' data(tfbsList)
 #'
 #' # Create the binned data matrix for CHR1 (training) and CHR22 (testing)
-#' #using 5 kb binning, distance-type predictors from 26 different TFBS from
-#' the GM12878 cell line, and random under-sampling
+#' # using 5 kb binning, distance-type predictors from 26 different TFBS from
+#' # the GM12878 cell line, and random under-sampling
 #' tadData <- createTADdata(bounds.GR = bounds.GR,
 #'                          resolution = 5000,
 #'                          genomicElements.GR = tfbsList,
@@ -70,7 +70,7 @@
 #'                          seed = 123)
 #'
 #' # Perform random forest using TADrandomForest by tuning mtry over 10 values
-#' using 3-fold CV
+#' # using 3-fold CV
 #' tadModel <- TADrandomForest(trainData = tadData[[1]],
 #'                             testData = tadData[[2]],
 #'                             tuneParams = list(mtry = c(2,5,8,10,13,16,18,21,24,26),

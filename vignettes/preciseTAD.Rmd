@@ -164,13 +164,13 @@ Now that we have suitably reduced our feature space, we can implement a random f
 
 ```{r, warning = FALSE, message = FALSE}
 # Restrict the data matrix to include only SMC3, RAD21, CTCF, and ZNF143
-tfbsList <- tfbsList[names(tfbsList) %in% c("Gm12878-Ctcf-Broad", 
+tfbsList_filt <- tfbsList[names(tfbsList) %in% c("Gm12878-Ctcf-Broad", 
                                             "Gm12878-Rad21-Haib",
                                             "Gm12878-Smc3-Sydh",
                                             "Gm12878-Znf143-Sydh")]
 tadData <- createTADdata(bounds.GR = bounds,
                          resolution = 5000,
-                         genomicElements.GR = tfbsList,
+                         genomicElements.GR = tfbsList_filt,
                          featureType = "distance",
                          resampling = "rus",
                          trainCHR = "CHR1",
@@ -198,7 +198,7 @@ tadModel <- TADrandomForest(trainData = tadData[[1]],
 kable(tadModel[[3]], caption = "List of model performances when validating an RF built on CHR1 on CHR22 test data.")
 ```
 
-As you may know, there exist other machine learning binary classifiers that can be used in this setting. For example, suppose we opt to implement a support vector machine (SVM). This is easy enough to accomplish given that `preciseTAD::createTADdata` conveniently sets up the training and testing data sets. We use the `e1071` package to run the SVM with a radial kernel, cost = 1, and gamma = 0.5 using the example command below. We see that the accuracy from the SVM model is only 0.56, whereas the accuracy from our random forest was 0.69 (Table 1).
+As you may know, there exist other machine learning binary classifiers that can be used in this setting. For example, suppose we opt to implement a support vector machine (SVM). This is easy enough to accomplish given that `preciseTAD::createTADdata` conveniently sets up the training and testing data sets. We use the `e1071` package to run the SVM with a radial kernel, cost = 1, and gamma = 0.5 using the example command below. We see that the accuracy from the SVM model is only 0.67, whereas the accuracy from our random forest was 0.69 (Table 1).
 
 ```{r, warning = FALSE, message = FALSE}
 svmModel <- svm(y ~ ., data = tadData[[1]], kernel = "radial", cost = 1, gamma = 0.5)
@@ -226,7 +226,7 @@ bounds <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
 
 # Run preciseTAD
 pt <- preciseTAD(bounds.GR = bounds,
-                genomicElements.GR = tfbsList,
+                genomicElements.GR = tfbsList_filt,
                 featureType = "distance",
                 CHR = "CHR22",
                 chromCoords = list(25500000, 27500000),

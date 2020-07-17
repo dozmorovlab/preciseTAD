@@ -39,8 +39,8 @@ each ChIP-seq BED file that was used to train a predictive model (can be
 obtained using the \code{\link{bedToGRangesList}}).}
 
 \item{featureType}{Controls how the feature space is constructed (one of
-either "binary", "oc", "op", or "distance" (log2- transformed). Default is
-"distance".}
+either "binary", "oc", "op", "signal, or "distance" (log2- transformed).
+Default is "distance".}
 
 \item{CHR}{Controls which chromosome to predict boundaries on at base-level
 resolution.}
@@ -66,7 +66,7 @@ in the range of .95-1.0 are suggested.}
 
 \item{seed}{Numeric for reproducibility.}
 
-\item{parallel}{Option to parallelize the process for obtaining predicted
+\item{parallel}{Option to parallelise the process for obtaining predicted
 probabilities. Default is FALSE.}
 
 \item{cores}{Number of cores to use in parallel. Default is NULL.}
@@ -112,7 +112,6 @@ Precise TAD boundary prediction at base-level resolution using density-based
 spatial clustering and partitioning techniques
 }
 \examples{
-\dontrun{
 # Read in ARROWHEAD-called TADs at 5kb
 data(arrowhead_gm12878_5kb)
 
@@ -170,8 +169,8 @@ pt <- preciseTAD(bounds.GR = bounds.GR,
                  verbose = TRUE,
                  seed = 123,
                  parallel = TRUE,
-                 cores = 4,
-                 splits = 4,
+                 cores = 2,
+                 splits = 2,
                  DBSCAN = TRUE,
                  DBSCAN_params = list(5000, 3),
                  method.Clust = NULL,
@@ -180,5 +179,4 @@ pt <- preciseTAD(bounds.GR = bounds.GR,
                  method.Dist = "euclidean",
                  samples = 100,
                  juicer = FALSE)
-}
 }

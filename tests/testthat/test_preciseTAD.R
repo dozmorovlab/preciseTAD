@@ -11,11 +11,11 @@ test_that("Whether preciseTAD gives us the same output", {
 
     data(tfbsList)
 
-    tfbsList <- tfbsList[which(names(tfbsList) %in% c("Gm12878-Ctcf-Broad", "Gm12878-Rad21-Haib", "Gm12878-Smc3-Sydh", "Gm12878-Znf143-Sydh"))]
+    tfbsList_filt <- tfbsList[which(names(tfbsList) %in% c("Gm12878-Ctcf-Broad", "Gm12878-Rad21-Haib", "Gm12878-Smc3-Sydh", "Gm12878-Znf143-Sydh"))]
 
     tadData <- createTADdata(bounds.GR=bounds.GR,
                              resolution=5000,
-                             genomicElements.GR=tfbsList,
+                             genomicElements.GR=tfbsList_filt,
                              featureType="distance",
                              resampling="rus",
                              trainCHR="CHR21",
@@ -42,7 +42,7 @@ test_that("Whether preciseTAD gives us the same output", {
                                    resolution=5000)
 
     pt <- preciseTAD(bounds.GR=bounds.GR,
-                     genomicElements.GR=tfbsList,
+                     genomicElements.GR=tfbsList_filt,
                      featureType="distance",
                      CHR="CHR22",
                      chromCoords=list(17000000,19000000),
@@ -65,7 +65,7 @@ test_that("Whether preciseTAD gives us the same output", {
 
     expect_equal(length(pt[[1]]), 12)
 
-    expect_equal(length(pt[[2]]), 6)
+    expect_equal(length(pt[[2]]), 7)
 
-    expect_equal(IRanges::start(pt[[2]])[1], 17403339)
+    expect_equal(IRanges::start(pt[[2]])[1], 17403327)
 })

@@ -65,11 +65,10 @@
 #' @importFrom stats cutree
 #' @importFrom stats dist
 #' @importFrom dbscan dbscan
-#' @import pbapply parallel doSNOW foreach cluster bigmemory IRanges
+#' @import pbapply parallel doSNOW foreach cluster IRanges
 #' GenomicRanges
 #'
 #' @examples
-#' \dontrun{
 #' # Read in ARROWHEAD-called TADs at 5kb
 #' data(arrowhead_gm12878_5kb)
 #'
@@ -127,8 +126,8 @@
 #'                  verbose = TRUE,
 #'                  seed = 123,
 #'                  parallel = TRUE,
-#'                  cores = 4,
-#'                  splits = 4,
+#'                  cores = 2,
+#'                  splits = 2,
 #'                  DBSCAN = TRUE,
 #'                  DBSCAN_params = list(5000, 3),
 #'                  method.Clust = NULL,
@@ -137,7 +136,6 @@
 #'                  method.Dist = "euclidean",
 #'                  samples = 100,
 #'                  juicer = FALSE)
-#' }
 preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", CHR,
                       chromCoords = NULL, tadModel, threshold, flank = NULL, verbose = TRUE, seed = 123,
                       parallel = FALSE, cores = NULL, splits = NULL, DBSCAN = TRUE, DBSCAN_params,
@@ -400,8 +398,7 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
 
     test_data <- matrix(nrow = length(seqDataTest),
                         ncol = length(genomicElements.GR),
-                        dimnames = list(NULL,
-                                        gsub(paste0(c("K562", "Gm12878", "-", "Broad", "Haib", "Sydh", "Uta", "Uw", "Uchicago"), collapse = "|"),"",names(genomicElements.GR))))
+                        dimnames = list(NULL,names(genomicElements.GR)))
 
     g <- split(GRanges(seqnames=tolower(CHR),IRanges(start=seqDataTest,end=seqDataTest)),
                ceiling(seq_along(GRanges(seqnames=tolower(CHR),IRanges(start=seqDataTest,end=seqDataTest)))/10000000))
@@ -428,7 +425,7 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
 
     #PREDICTING AT BP RESOLUTION #
 
-    if(parallel==TRUE){
+    if(parallel == TRUE){
         parallel_predictions<-function(fit,testing,c,n){
             cl<-makeCluster(c)
             registerDoSNOW(cl)
@@ -441,35 +438,39 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
             stopCluster(cl)
             predictions
         }
+        predictions <- parallel_predictions(fit=tadModel,testing=test_data,c=cores,n=splits)
     }else{
-        array_split <- function(data, number_of_chunks){
-            rowIdx <- seq_len(nrow(data))
-            lapply(split(rowIdx, cut(rowIdx, pretty(rowIdx, number_of_chunks))), function(x) data[x, ])
+        if(class(chromCoords) != "list"){
+            array_split <- function(data, number_of_chunks){
+                rowIdx <- seq_len(nrow(data))
+                lapply(split(rowIdx, cut(rowIdx, pretty(rowIdx, number_of_chunks))), function(x) data[x, ])
+            }
+            split_ind <- as.integer(nrow(test_data)/10000000) + 1
+            test_data <- array_split(test_data, split_ind)
+            predictions <- list()
+            for(i in 1:length(test_data)){
+                predictions[[i]] <- predict(tadModel,newdata=test_data[[i]],type="prob")[,"Yes"]
+            }
+            predictions <- unlist(predictions)
+        }else{
+            predictions <- predict(tadModel,newdata=test_data,type="prob")[,"Yes"]
         }
-        split_ind <- as.integer(nrow(test_data)/10000000) + 1
-        test_data <- array_split(test_data, split_ind)
-        predictions <- list()
-        for(i in 1:length(test_data)){
-            predictions[[i]] <- predict(tadModel,newdata=test_data[[i]],type="prob")[,"Yes"]
-        }
-        predictions <- unlist(predictions)
     }
 
     if (threshold == "roc") {
         test_data_Y <- ifelse(seqDataTest %in% start(bounds.GR), 1, 0)
-        t <- pROC::coords(pROC::roc(test_data_Y, predictions[, 1], quiet = TRUE),
+        t <- pROC::coords(pROC::roc(test_data_Y, predictions, quiet = TRUE),
                           "best", ret = "threshold", transpose = FALSE, best.method = "closest.topleft")
     } else {
         t <- threshold
     }
 
     if (verbose == TRUE) {
-        print(paste0("preciseTAD identified a total of ", length(diff(seqDataTest[which(predictions[,
-                                                                                                    1] >= t)])), " base pairs whose predictive probability was equal to or exceeded a threshold of ",
+        print(paste0("preciseTAD identified a total of ", length(diff(seqDataTest[which(predictions >= t)])), " base pairs whose predictive probability was equal to or exceeded a threshold of ",
                      t))
     }
 
-    retain <- c(1, cumsum(ifelse(diff(seqDataTest[which(predictions[, 1] >= t)]) !=
+    retain <- c(1, cumsum(ifelse(diff(seqDataTest[which(predictions >= t)]) !=
                                      1, 1, 0)) + 1)
 
     if (verbose == TRUE) {
@@ -477,7 +478,7 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
         print("Establishing PTBRs")
     }
 
-    mid <- tapply(seqDataTest[which(predictions[, 1] >= t)], retain, function(x) {
+    mid <- tapply(seqDataTest[which(predictions >= t)], retain, function(x) {
         return(ceiling((x[1] + x[length(x)])/2))
     })
 

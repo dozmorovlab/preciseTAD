@@ -318,7 +318,7 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
             levels(train_list[[i]]$y) <- c("No", "Yes")
 
             if (resampling == "ros") {
-                # assign sample indeces
+                # assign sample indices
                 set.seed(seed)
                 sampids.train <- sample(x = which(train_list[[i]]$y == "Yes"), size = length(which(train_list[[i]]$y ==
                                                                                                        "No")), replace = TRUE)
@@ -435,7 +435,7 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
             test_list[[i]] <- full_list[[i]][-inTrainingSet, ]
 
             if (resampling == "ros") {
-                # assign sample indeces
+                # assign sample indices
                 set.seed(seed)
                 sampids.train <- sample(x = which(train_list[[i]]$y == "Yes"), size = length(which(train_list[[i]]$y ==
                                                                                                        "No")), replace = TRUE)
@@ -545,7 +545,7 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
             levels(train_list[[i]]$y) <- c("No", "Yes")
 
             if (resampling == "ros") {
-                # assign sample indeces
+                # assign sample indices
                 set.seed(seed)
                 sampids.train <- sample(x = which(train_list[[i]]$y == "Yes"), size = length(which(train_list[[i]]$y ==
                                                                                                        "No")), replace = TRUE)

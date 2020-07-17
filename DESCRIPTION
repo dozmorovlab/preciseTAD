@@ -6,7 +6,7 @@ Version: 0.99.1
 Date: 2020-06-16
 Authors@R: c(person("Spiro", "Stilianoudakis", email = "stilianoudasc@vcu.edu", 
     role = c("aut", "cre")), 
-    person("Mikhail", "Dozmorov", email = "mikhail.dozmorov@vcuhealth.org",
+    person("Mikhail", "Dozmorov", email = "mikhail.dozmorov@gmail.com",
     role = c("aut")))
 Description: preciseTAD is an R package that leverages high resolution 
     functional genomic data in a random forest classification algorithm to 
@@ -41,6 +41,7 @@ Imports:
     doSNOW,
     foreach,
     pbapply,
-    stats
+    stats,
+    parallel
 biocViews: Software, HiC, Sequencing, Clustering, 
     Classification, FunctionalGenomics, FeatureExtraction

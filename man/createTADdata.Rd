@@ -62,7 +62,6 @@ Function to create a data matrix used for building a predictive model to
 classify boundary regions from functional genomic elements
 }
 \examples{
-\dontrun{
 # Create training data for CHR21 and testing data for CHR22 with
 # 5 kb binning, oc-type predictors from 26 different transcription factor
 # binding sites from the GM12878 cell line, and random under-sampling
@@ -87,5 +86,4 @@ tadData <- createTADdata(bounds.GR = bounds.GR,
                          trainCHR = "CHR21",
                          predictCHR = "CHR22",
                          seed = 123)
-}
 }

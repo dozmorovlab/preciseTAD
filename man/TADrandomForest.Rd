@@ -11,7 +11,7 @@ TADrandomForest(
   testData = NULL,
   tuneParams = list(mtry = ceiling(sqrt(ncol(trainData) - 1)), ntree = 500, nodesize =
     1),
-  cvFolds = 5,
+  cvFolds = 3,
   cvMetric = "Accuracy",
   verbose = FALSE,
   seed = 123,
@@ -73,7 +73,6 @@ classification algorithm built and tested on user-defined binned domain
 data from \code{\link{createTADdata}}.
 }
 \examples{
-\dontrun{
 # Read in ARROWHEAD-called TADs at 5kb
 data(arrowhead_gm12878_5kb)
 
@@ -87,8 +86,8 @@ bounds.GR <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
 data(tfbsList)
 
 # Create the binned data matrix for CHR1 (training) and CHR22 (testing)
-#using 5 kb binning, distance-type predictors from 26 different TFBS from
-the GM12878 cell line, and random under-sampling
+# using 5 kb binning, distance-type predictors from 26 different TFBS from
+# the GM12878 cell line, and random under-sampling
 tadData <- createTADdata(bounds.GR = bounds.GR,
                          resolution = 5000,
                          genomicElements.GR = tfbsList,
@@ -99,7 +98,7 @@ tadData <- createTADdata(bounds.GR = bounds.GR,
                          seed = 123)
 
 # Perform random forest using TADrandomForest by tuning mtry over 10 values
-using 3-fold CV
+# using 3-fold CV
 tadModel <- TADrandomForest(trainData = tadData[[1]],
                             testData = tadData[[2]],
                             tuneParams = list(mtry = c(2,5,8,10,13,16,18,21,24,26),
@@ -113,5 +112,4 @@ tadModel <- TADrandomForest(trainData = tadData[[1]],
                             importances = TRUE,
                             impMeasure = "MDA",
                             performances = TRUE)
-}
 }

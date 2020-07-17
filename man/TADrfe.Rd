@@ -54,7 +54,6 @@ random forests. Backward elimination is performed from p down to 2, by
 powers of 2, where p is the number of features in the data.
 }
 \examples{
-\dontrun{
 # Read in ARROWHEAD-called TADs at 5kb
 data(arrowhead_gm12878_5kb)
 
@@ -88,5 +87,4 @@ rfe_res <- TADrfe(trainData = tadData[[1]],
                   cvMetric = "Accuracy",
                   verbose = TRUE,
                   seed = 123)
-}
 }

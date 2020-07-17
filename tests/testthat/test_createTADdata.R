@@ -21,6 +21,6 @@ test_that("Whether createTADdata gives us the same output", {
 
     expect_equal(nrow(tadData[[1]]), 370)
 
-    expect_equal(nrow(tadData[[2]]), 9661)
+    expect_equal(nrow(tadData[[2]]), 9660)
 
 })

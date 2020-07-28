@@ -65,8 +65,6 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
     resolution = as.integer(resolution)
 
-    set.seed(123)
-
     #ESTABLISHING CHROMOSOME-SPECIFIC SEQINFO#
 
     #LOADING CHROMOSOME LENGTHS#
@@ -133,9 +131,6 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
     #SIGNAL#
     signal_func <- function(binned_data_gr, annot_data_gr){
-
-        if(names(mcols(annot_data_gr))!="coverage"){print("metadata missing coverage column! use annots_to_granges_func function and specify signal parameter!"); return(0)}
-        if(class(mcols(annot_data_gr)$coverage)!="numeric"){print("metadata coverage column is not numeric!")}
 
         count_signal <- numeric(length(binned_data_gr))
 

@@ -64,8 +64,6 @@
 TADrfe <- function(trainData, tuneParams = list(ntree = 500, nodesize = 1),
                    cvFolds = 5, cvMetric = "Accuracy", verbose = FALSE) {
 
-    set.seed(123)
-
     #Establishing summary function#
 
     predictiveValues <- function(data, lev = NULL, model = NULL, ...) {

@@ -138,15 +138,13 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
                       method.Clust = NULL, PTBR = TRUE, CLARA = TRUE, method.Dist = "euclidean", samples = 100,
                       juicer = FALSE) {
 
-    set.seed(123)
-
     #ESTABLISHING CHROMOSOME-SPECIFIC SEQINFO#
 
     #LOADING CHROMOSOME LENGTHS#
 
     hg19 <- preciseTAD:::hg19
 
-    if(class(chromCoords)=="list") {
+    if(is.list(chromCoords)) {
         seqDataTest <- c(chromCoords[[1]]:chromCoords[[2]])
         if("TRUE" %in% table(seqDataTest %in% c(hg19$centromerStart[hg19$chrom == CHR]:hg19$centromerEnd[hg19$chrom == CHR]))) {
             centromereTestStart <- hg19$centromerStart[hg19$chrom==CHR]
@@ -221,9 +219,6 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
 
     #SIGNAL#
     signal_func <- function(binned_data_gr, annot_data_gr){
-
-        if(names(mcols(annot_data_gr))!="coverage"){print("metadata missing coverage column! use annots_to_granges_func function and specify signal parameter!"); return(0)}
-        if(class(mcols(annot_data_gr)$coverage)!="numeric"){print("metadata coverage column is not numeric!")}
 
         count_signal <- numeric(length(binned_data_gr))
 
@@ -308,7 +303,7 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
         }
         predictions <- parallel_predictions(fit=tadModel,testing=test_data,c=cores,n=splits)
     }else{
-        if(class(chromCoords) != "list"){
+        if(!is.list(chromCoords)){
             array_split <- function(data, number_of_chunks){
                 rowIdx <- seq_len(nrow(data))
                 lapply(split(rowIdx, cut(rowIdx, pretty(rowIdx, number_of_chunks))), function(x) data[x, ])

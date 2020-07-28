@@ -93,8 +93,6 @@ TADrandomForest <- function(trainData,
                             impMeasure = "MDA",
                             performances = FALSE){
 
-    set.seed(123)
-
     #################################
     #PREDICTING TAD BOUNDARY REGIONS#
     #################################

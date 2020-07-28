@@ -15,7 +15,6 @@ preciseTAD(
   threshold,
   flank = NULL,
   verbose = TRUE,
-  seed = 123,
   parallel = FALSE,
   cores = NULL,
   splits = NULL,
@@ -63,8 +62,6 @@ in the range of .95-1.0 are suggested.}
 (necessary for evaluating overlaps, etc.). Default is NULL, i.e., no flanking.}
 
 \item{verbose}{Option to print progress.}
-
-\item{seed}{Numeric for reproducibility.}
 
 \item{parallel}{Option to parallelise the process for obtaining predicted
 probabilities. Default is FALSE.}
@@ -133,8 +130,7 @@ tadData <- createTADdata(bounds.GR = bounds.GR,
                          featureType = "distance",
                          resampling = "rus",
                          trainCHR = "CHR21",
-                         predictCHR = "CHR22",
-                         seed = 123)
+                         predictCHR = "CHR22")
 
 # Perform random forest using TADrandomForest by tuning mtry over 10 values
 # using 3-fold CV
@@ -146,7 +142,6 @@ tadModel <- TADrandomForest(trainData = tadData[[1]],
                             cvFolds = 3,
                             cvMetric = "Accuracy",
                             verbose = TRUE,
-                            seed = 123,
                             model = TRUE,
                             importances = TRUE,
                             impMeasure = "MDA",
@@ -167,7 +162,6 @@ pt <- preciseTAD(bounds.GR = bounds.GR,
                  threshold = .95,
                  flank = NULL,
                  verbose = TRUE,
-                 seed = 123,
                  parallel = TRUE,
                  cores = 2,
                  splits = 2,

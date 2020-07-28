@@ -118,7 +118,7 @@
 #'                  CHR = "CHR22",
 #'                  chromCoords = list(17000000, 19000000),
 #'                  tadModel = tadModel[[1]],
-#'                  threshold = .95,
+#'                  threshold = .75,
 #'                  flank = NULL,
 #'                  verbose = TRUE,
 #'                  parallel = TRUE,

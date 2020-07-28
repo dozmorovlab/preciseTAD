@@ -14,7 +14,6 @@ TADrandomForest(
   cvFolds = 3,
   cvMetric = "Accuracy",
   verbose = FALSE,
-  seed = 123,
   model = TRUE,
   importances = TRUE,
   impMeasure = "MDA",
@@ -45,9 +44,6 @@ tuning parameters (one of either "Kappa", "Accuracy", "MCC", "ROC", "Sens",
 
 \item{verbose}{Logical, controls whether or not details regarding modeling
 should be printed out (default is TRUE)}
-
-\item{seed}{Numeric, controls randomization incurred during data splitting
-from cross-validation (default is 123)}
 
 \item{model}{Logical, whether to keep the model object. Default is TRUE}
 
@@ -94,8 +90,7 @@ tadData <- createTADdata(bounds.GR = bounds.GR,
                          featureType = "distance",
                          resampling = "rus",
                          trainCHR = "CHR21",
-                         predictCHR = "CHR22",
-                         seed = 123)
+                         predictCHR = "CHR22")
 
 # Perform random forest using TADrandomForest by tuning mtry over 10 values
 # using 3-fold CV
@@ -107,7 +102,6 @@ tadModel <- TADrandomForest(trainData = tadData[[1]],
                             cvFolds = 3,
                             cvMetric = "Accuracy",
                             verbose = TRUE,
-                            seed = 123,
                             model = TRUE,
                             importances = TRUE,
                             impMeasure = "MDA",

@@ -12,8 +12,7 @@ createTADdata(
   featureType = "distance",
   resampling,
   trainCHR,
-  predictCHR = NULL,
-  seed = 123
+  predictCHR = NULL
 )
 }
 \arguments{
@@ -47,8 +46,6 @@ data matrix for training}
 \item{predictCHR}{Character vector of chromosomes to use to build the binned
 data matrix for testing. Default in NULL, indicating no test data is created.
  If trainCHR=predictCHR then a 7:3 split is created}
-
-\item{seed}{Numeric for reproducibility of resampling}
 }
 \value{
 A list object containing two data.frames: 1) the training data, 2)
@@ -84,6 +81,5 @@ tadData <- createTADdata(bounds.GR = bounds.GR,
                          featureType = "oc",
                          resampling = "rus",
                          trainCHR = "CHR21",
-                         predictCHR = "CHR22",
-                         seed = 123)
+                         predictCHR = "CHR22")
 }

@@ -12,8 +12,7 @@ TADrfe(
   tuneParams = list(ntree = 500, nodesize = 1),
   cvFolds = 5,
   cvMetric = "Accuracy",
-  verbose = FALSE,
-  seed = 123
+  verbose = FALSE
 )
 }
 \arguments{
@@ -31,9 +30,6 @@ tuning parameters (one of either "Kappa", "Accuracy", "MCC","ROC","Sens",
 
 \item{verbose}{Logical, controls whether or not details regarding modeling
 should be printed out (default is TRUE)}
-
-\item{seed}{Numeric, controls randomization incurred during data splitting
-from cross-validation (default is 123)}
 }
 \value{
 A list containing: 1) the performances extracted at each of the k
@@ -76,8 +72,7 @@ tadData <- createTADdata(bounds.GR = bounds.GR,
                          featureType = "oc",
                          resampling = "rus",
                          trainCHR = "CHR22",
-                         predictCHR = NULL,
-                         seed=123)
+                         predictCHR = NULL)
 
 # Perform RFE for fully grown random forests with 100 trees using 5-fold CV
 # Evaluate performances using accuracy
@@ -85,6 +80,5 @@ rfe_res <- TADrfe(trainData = tadData[[1]],
                   tuneParams = list(ntree = 100, nodesize = 1),
                   cvFolds = 5,
                   cvMetric = "Accuracy",
-                  verbose = TRUE,
-                  seed = 123)
+                  verbose = TRUE)
 }

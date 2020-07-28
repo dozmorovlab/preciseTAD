@@ -26,7 +26,6 @@
 #' @param flank Controls how much to flank the final predicted TAD boundaries
 #' (necessary for evaluating overlaps, etc.). Default is NULL, i.e., no flanking.
 #' @param verbose Option to print progress.
-#' @param seed Numeric for reproducibility.
 #' @param parallel Option to parallelise the process for obtaining predicted
 #' probabilities. Default is FALSE.
 #' @param cores Number of cores to use in parallel. Default is NULL.
@@ -90,8 +89,7 @@
 #'                          featureType = "distance",
 #'                          resampling = "rus",
 #'                          trainCHR = "CHR21",
-#'                          predictCHR = "CHR22",
-#'                          seed = 123)
+#'                          predictCHR = "CHR22")
 #'
 #' # Perform random forest using TADrandomForest by tuning mtry over 10 values
 #' # using 3-fold CV
@@ -103,7 +101,6 @@
 #'                             cvFolds = 3,
 #'                             cvMetric = "Accuracy",
 #'                             verbose = TRUE,
-#'                             seed = 123,
 #'                             model = TRUE,
 #'                             importances = TRUE,
 #'                             impMeasure = "MDA",
@@ -124,7 +121,6 @@
 #'                  threshold = .95,
 #'                  flank = NULL,
 #'                  verbose = TRUE,
-#'                  seed = 123,
 #'                  parallel = TRUE,
 #'                  cores = 2,
 #'                  splits = 2,
@@ -137,140 +133,12 @@
 #'                  samples = 100,
 #'                  juicer = FALSE)
 preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", CHR,
-                      chromCoords = NULL, tadModel, threshold, flank = NULL, verbose = TRUE, seed = 123,
+                      chromCoords = NULL, tadModel, threshold, flank = NULL, verbose = TRUE,
                       parallel = FALSE, cores = NULL, splits = NULL, DBSCAN = TRUE, DBSCAN_params,
                       method.Clust = NULL, PTBR = TRUE, CLARA = TRUE, method.Dist = "euclidean", samples = 100,
                       juicer = FALSE) {
 
-    #CHECKING FUNCTION INPUTS#
-
-    if (class(bounds.GR) != "GRanges") {
-        print("is not a GRanges object!")
-        return(0)
-    }
-    if (class(genomicElements.GR) != "CompressedGRangesList") {
-        print("genomicElements.GR is not a CompressedGRangesList object!")
-        return(0)
-    }
-    for (i in 1:length(genomicElements.GR)) {
-        if (class(genomicElements.GR[[i]]) != "GRanges") {
-            print(paste0(i, "-th object of genomicElements.GR is not a GenomicRanges object!"))
-            return(0)
-        }
-    }
-    if (class(featureType) != "character") {
-        print("featureType is not a character object!")
-        return(0)
-    }
-    if (!(featureType %in% c("distance", "binary", "oc", "op"))) {
-        print("featureType must be one of either 'distance', 'binary', 'oc', or 'op'!")
-        return(0)
-    }
-    if (class(CHR) != "character") {
-        print("CHR is not a character object!")
-        return(0)
-    }
-    for (i in 1:length(CHR)) {
-        if (grepl("CHR", CHR[i]) != TRUE) {
-            print(paste0(i, "-th chromosome for training is not in 'CHR' format!"))
-            return(0)
-        }
-    }
-
-    if (FALSE %in% (tolower(CHR) %in% unique(as.character(seqnames(bounds.GR))))) {
-        print("CHR parameter is not in the bound.GR parameter!")
-        return(0)
-    }
-
-    if (class(chromCoords) == "list" & length(chromCoords) != 2) {
-        print("chromCoords is a list that is not length 2!")
-        return(0)
-    }
-    if (class(chromCoords) == "list") {
-        if ((chromCoords[[1]] > chromCoords[[2]])) {
-            print("starting base pair coordinate is greater than ending base pair coordinate!")
-            return(0)
-        }
-    }
-    if (class(threshold) == "character" & threshold != "roc") {
-        print("threshold is not a number and therefore must be 'roc'!")
-        return(0)
-    }
-    if (class(threshold) == "numeric" & (threshold > 1 | threshold < 0)) {
-        print("if threshold is a number, it must be between 0 and 1!")
-        return(0)
-    }
-    if (class(flank) != "NULL" & class(flank) != "numeric") {
-        print("if flank is not NULL then flank must be a number > 0 representing number of base pairs!")
-        return(0)
-    }
-    if (class(verbose) != "logical") {
-        print("verbose is not a logical object!")
-        return(0)
-    }
-    if (class(seed) != "numeric") {
-        print("seed is not a numeric object!")
-        return(0)
-    }
-    if (class(parallel) != "logical") {
-        print("parallel is not a logical object!")
-        return(0)
-    }
-    if (parallel == TRUE) {
-        if (class(cores) != "numeric") {
-            print("cores is not a logical object!")
-            return(0)
-        }
-        if (class(splits) != "numeric") {
-            print("splits is not a logical object!")
-            return(0)
-        }
-    }
-    if (class(method.Dist) != "character") {
-        print("distance metric is not a character object!")
-        return(0)
-    }
-    if (!(method.Dist %in% c("euclidean", "maximum", "manhattan", "canberra", "binary",
-                             "minkowski"))) {
-        print("method.Dist must be one of either 'euclidean', 'maximum', 'manhattan', 'canberra', 'binary' or 'minkowski'!")
-        return(0)
-    }
-    if (class(DBSCAN) != "logical") {
-        print("DBSCAN is not a logical object!")
-        return(0)
-    }
-    if (DBSCAN == TRUE) {
-        if (class(DBSCAN_params) != "list") {
-            print("DBSCAN_params is not a list object!")
-            return(0)
-        }
-        if (length(DBSCAN_params) != 2) {
-            print("DBSCAN_params is missing either eps or MinPts parameters!")
-            return(0)
-        }
-    } else {
-        if (method.Clust != "character") {
-            print("cluster metric is not a character object!")
-            return(0)
-        }
-        if (!(method.Clust %in% c("ward.D", "ward.D2", "single", "complete", "average",
-                                  "mcquitty", "median", "centroid"))) {
-            print("method.Clust must be one of either 'ward.D', 'ward.D2', 'single', 'complete', 'average', 'mcquitty', 'median', 'centroid'!")
-            return(0)
-        }
-    }
-    if (class(CLARA) != "logical") {
-        print("CLARA is not a logical object!")
-        return(0)
-    }
-    if (CLARA == TRUE & class(samples) != "numeric") {
-        print("samples is not a numeric object!")
-        return(0)
-    }
-    if (class(juicer) != "logical") {
-        print("juicer is not a logical object!")
-        return(0)
-    }
+    set.seed(123)
 
     #ESTABLISHING CHROMOSOME-SPECIFIC SEQINFO#
 
@@ -515,13 +383,11 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
     if (CLARA == TRUE) {
         if (verbose == TRUE) {
             print(paste0("Initializing CLARA with ", k, " clusters"))
-            set.seed(seed)
             c <- clara(mid, k = k, samples = samples, metric = method.Dist, stand = FALSE,
                        trace = 2, medoids.x = TRUE, rngR = TRUE)
             medoids <- c$medoids
             clustering <- c$clustering
         } else {
-            set.seed(seed)
             c <- clara(mid, k = k, samples = samples, metric = method.Dist, stand = FALSE,
                        trace = 0, medoids.x = TRUE, keep.data = FALSE, rngR = TRUE)
             medoids <- c$medoids
@@ -530,14 +396,12 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
     } else {
         if (verbose == TRUE) {
             print(paste0("Initializing PAM with ", k, " clusters"))
-            set.seed(seed)
             c <- pam(x = mid, k = k, diss = FALSE, metric = method.Dist, medoids = NULL,
                      stand = FALSE, cluster.only = FALSE, do.swap = TRUE, keep.diss = FALSE,
                      trace.lev = 2)
             medoids <- c$medoids
             clustering <- c$clustering
         } else {
-            set.seed(seed)
             c <- pam(x = mid, k = k, diss = FALSE, metric = method.Dist, medoids = NULL,
                      stand = FALSE, cluster.only = FALSE, do.swap = TRUE, keep.diss = FALSE,
                      trace.lev = 0)

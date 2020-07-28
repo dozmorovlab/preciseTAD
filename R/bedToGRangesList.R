@@ -24,23 +24,6 @@
 #' tfbsList <- bedToGRangesList(filepath = path, pattern = "*.bed", signal=4)
 bedToGRangesList <- function(filepath, pattern = "*.bed", signal = 5) {
 
-    #STOP CHECKS#
-
-    if (class(filepath) != "character") {
-        print("filepath is not a character object!")
-        return(0)
-    }
-    if (class(pattern) != "character") {
-        print("pattern is not a character object!")
-        return(0)
-    }
-    if (!is.null(signal)) {
-        if (class(signal) != "numeric") {
-            print("signal is not a numeric object!")
-            return(0)
-        }
-    }
-
     #CREATING GRangesList#
 
     annots_gr_list <- GRangesList()

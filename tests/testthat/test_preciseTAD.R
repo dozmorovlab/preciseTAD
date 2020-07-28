@@ -13,14 +13,17 @@ test_that("Whether preciseTAD gives us the same output", {
 
     tfbsList_filt <- tfbsList[which(names(tfbsList) %in% c("Gm12878-Ctcf-Broad", "Gm12878-Rad21-Haib", "Gm12878-Smc3-Sydh", "Gm12878-Znf143-Sydh"))]
 
+    set.seed(123)
+
     tadData <- createTADdata(bounds.GR=bounds.GR,
                              resolution=5000,
                              genomicElements.GR=tfbsList_filt,
                              featureType="distance",
                              resampling="rus",
                              trainCHR="CHR21",
-                             predictCHR="CHR22",
-                             seed=123)
+                             predictCHR="CHR22")
+
+    set.seed(123)
 
     tadModel <- TADrandomForest(trainData=tadData[[1]],
                                 testData=tadData[[2]],
@@ -30,7 +33,6 @@ test_that("Whether preciseTAD gives us the same output", {
                                 cvFolds=3,
                                 cvMetric="Accuracy",
                                 verbose=TRUE,
-                                seed=123,
                                 model=TRUE,
                                 importances=TRUE,
                                 impMeasure="MDA",
@@ -41,6 +43,8 @@ test_that("Whether preciseTAD gives us the same output", {
                                    CHR="CHR22",
                                    resolution=5000)
 
+    set.seed(123)
+
     pt <- preciseTAD(bounds.GR=bounds.GR,
                      genomicElements.GR=tfbsList_filt,
                      featureType="distance",
@@ -50,7 +54,6 @@ test_that("Whether preciseTAD gives us the same output", {
                      threshold=1.0,
                      flank=NULL,
                      verbose=TRUE,
-                     seed=123,
                      parallel=TRUE,
                      cores=2,
                      splits=2,
@@ -65,7 +68,7 @@ test_that("Whether preciseTAD gives us the same output", {
 
     expect_equal(length(pt[[1]]), 12)
 
-    expect_equal(length(pt[[2]]), 7)
+    expect_equal(length(pt[[2]]), 9)
 
-    expect_equal(IRanges::start(pt[[2]])[1], 17403327)
+    expect_equal(IRanges::start(pt[[2]])[1], 17399162)
 })

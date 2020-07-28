@@ -10,16 +10,17 @@ test_that("Whether createTADdata gives us the same output", {
 
     data(tfbsList)
 
+    set.seed(123)
+
     tadData <- createTADdata(bounds.GR=bounds.GR,
                              resolution=5000,
                              genomicElements.GR=tfbsList,
                              featureType="oc",
-                             resampling="rus",
+                             resampling="smote",
                              trainCHR="CHR21",
-                             predictCHR="CHR22",
-                             seed=123)
+                             predictCHR="CHR22")
 
-    expect_equal(nrow(tadData[[1]]), 370)
+    expect_equal(nrow(tadData[[1]]), 740)
 
     expect_equal(nrow(tadData[[2]]), 9660)
 

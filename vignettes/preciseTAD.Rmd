@@ -117,14 +117,14 @@ tfbsList
 Now, using the "ground-truth" TAD boundaries and the following TFBS, we can build the data matrix that will be used for predictive modeling. The `preciseTAD::createTADdata` function can be used to create the training and testing data. Here, we specify to train on chromosome 1 and test on chromosome 22. Additionally, we specify `resolution = 5000` to construct 5kb shifted genomic bins (to match the resolution used to call the original TADs), `featureType = "distance"` for a ($log_2$) distance-type feature space, and `resampling = "rus"` to apply random under-sampling (RUS) on the training data to balance classes of TAD-boundary vs. nonTAD-boundary regions. We also specify a seed to ensure reproducibility when performing the resampling. The result is a list containing two data frames: (1) the resampled (if specified) training data, and (2) the testing data
 
 ```{r, eval=FALSE}
+set.seed(123)
 tadData <- createTADdata(bounds.GR = bounds,
                          resolution = 5000,
                          genomicElements.GR = tfbsList,
                          featureType = "distance",
                          resampling = "rus",
                          trainCHR = "CHR1",
-                         predictCHR = "CHR22",
-                         seed = 123)
+                         predictCHR = "CHR22")
 
 # View subset of training data
 tadData[[1]][1:5,1:4]
@@ -138,12 +138,12 @@ tadData[[2]][1:5,1:4]
 We can now implement our machine learning algorithm of choice to predict TAD-boundary regions. Here, we opt for the random forest algorithm for binary classification. `preciseTAD` offers functionality for performing recursive feature elimination (RFE) as a form of feature reduction through the use of the `preciseTAD::TADrfe` function, which is a wrapper for the `rfe` function in the `caret` package [@kuhn2012caret]. `preciseTAD::TADrfe` implements a random forest model on the best subset of features from 2 to the maximum number of features in the data by powers of 2, using 5-fold cross-validation. We specify accuracy as the performance metric. An example is shown below.
 
 ```{r, eval=FALSE}
+set.seed(123)
 rfe_res <- TADrfe(trainData = tadData[[1]],
                  tuneParams = list(ntree = 500, nodesize = 1),
                  cvFolds = 5,
                  cvMetric = "Accuracy",
-                 verbose = TRUE,
-                 seed = 123)
+                 verbose = TRUE)
 
 # View RFE performances
 rfe_res[[1]]
@@ -168,16 +168,18 @@ tfbsList_filt <- tfbsList[names(tfbsList) %in% c("Gm12878-Ctcf-Broad",
                                             "Gm12878-Rad21-Haib",
                                             "Gm12878-Smc3-Sydh",
                                             "Gm12878-Znf143-Sydh")]
+
+set.seed(123)
 tadData <- createTADdata(bounds.GR = bounds,
                          resolution = 5000,
                          genomicElements.GR = tfbsList_filt,
                          featureType = "distance",
                          resampling = "rus",
                          trainCHR = "CHR1",
-                         predictCHR = "CHR22",
-                         seed=123)
+                         predictCHR = "CHR22")
 
 # Run RF
+set.seed(123)
 tadModel <- TADrandomForest(trainData = tadData[[1]],
                             testData = tadData[[2]],
                             tuneParams = list(mtry = 2,
@@ -186,7 +188,6 @@ tadModel <- TADrandomForest(trainData = tadData[[1]],
                             cvFolds = 3,
                             cvMetric = "Accuracy",
                             verbose = FALSE,
-                            seed = 123,
                             model = TRUE,
                             importances = TRUE,
                             impMeasure = "MDA",
@@ -225,6 +226,7 @@ bounds <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
                               resolution = 5000)
 
 # Run preciseTAD
+set.seed(123)
 pt <- preciseTAD(bounds.GR = bounds,
                 genomicElements.GR = tfbsList_filt,
                 featureType = "distance",
@@ -234,7 +236,6 @@ pt <- preciseTAD(bounds.GR = bounds,
                 threshold = 1.0,
                 flank = NULL,
                 verbose = FALSE,
-                seed = 123,
                 parallel = FALSE,
                 cores = NULL,
                 splits = NULL,

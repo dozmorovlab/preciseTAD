@@ -20,8 +20,6 @@
 #' "Spec", "Pos Pred Value", "Neg Pred Value"). Default is "Accuracy"
 #' @param verbose Logical, controls whether or not details regarding modeling
 #' should be printed out (default is TRUE)
-#' @param seed Numeric, controls randomization incurred during data splitting
-#' from cross-validation (default is 123)
 #' @param model Logical, whether to keep the model object. Default is TRUE
 #' @param importances Logical, whether to extract variable importances. Default
 #' is TRUE
@@ -66,8 +64,7 @@
 #'                          featureType = "distance",
 #'                          resampling = "rus",
 #'                          trainCHR = "CHR21",
-#'                          predictCHR = "CHR22",
-#'                          seed = 123)
+#'                          predictCHR = "CHR22")
 #'
 #' # Perform random forest using TADrandomForest by tuning mtry over 10 values
 #' # using 3-fold CV
@@ -79,7 +76,6 @@
 #'                             cvFolds = 3,
 #'                             cvMetric = "Accuracy",
 #'                             verbose = TRUE,
-#'                             seed = 123,
 #'                             model = TRUE,
 #'                             importances = TRUE,
 #'                             impMeasure = "MDA",
@@ -92,34 +88,12 @@ TADrandomForest <- function(trainData,
                             cvFolds = 3,
                             cvMetric = "Accuracy",
                             verbose = FALSE,
-                            seed = 123,
                             model = TRUE,
                             importances = TRUE,
                             impMeasure = "MDA",
                             performances = FALSE){
 
-    ##########################
-    #CHECKING FUNCTION INPUTS#
-    ##########################
-
-    if(class(trainData)!="data.frame"){print("trainData is not a data.frame object!"); return(0)}
-    if(!is.null(testData)){
-        if(class(testData)!="data.frame"){print("testData is not a data.frame object!"); return(0)}
-    }
-    for(i in 1:3){
-        if(lapply(tuneParams,class)[[i]]!="numeric"){print("at least 1 component of tuneParams is not a numeric object!"); return(0)}
-    }
-    if(class(cvFolds)!="numeric"){print("cvFolds is not a numeric object!"); return(0)}
-    if(class(cvMetric)!="character"){print("cvMetric is not a character object!"); return(0)}
-    if(!(cvMetric %in% c("Kappa","Accuracy","MCC","ROC","Sens","Spec","Neg Pred Value"))){print("cvMetric must be one of either 'Kappa', 'Accuracy', 'MCC','ROC','Sens','Spec','Pos Pred Value','Neg Pred Value'!"); return(0)}
-    if(class(verbose)!="logical"){print("verbose is not a logical object"); return(0)}
-    if(class(model)!="logical"){print("model is not a logical object!"); return(0)}
-    if(class(importances)!="logical"){print("importances is not a logical object!"); return(0)}
-    if(class(performances)!="logical"){print("performances is not a logical object!"); return(0)}
-    if(class(seed)!="numeric"){print("seed is not a numeric object!"); return(0)}
-    if(class(impMeasure)!="character"){print("impMeasure is not a character object!"); return(0)}
-    if(!(impMeasure %in% c("MDA","MDG"))){print("impMeasure must be one of either 'MDA' or 'MDG'!"); return(0)}
-
+    set.seed(123)
 
     #################################
     #PREDICTING TAD BOUNDARY REGIONS#
@@ -192,14 +166,11 @@ TADrandomForest <- function(trainData,
     #Establishing control function#
     ###############################
 
-    set.seed(seed)
     seeds <- vector(mode = "list", length = (cvFolds+1))
     for(i in 1:cvFolds) {
-        #set.seed(seed)
         seeds[[i]] <- sample.int(n=100000, nrow(tunegrid))
     }
     #for the last model
-    set.seed(seed)
     seeds[[cvFolds+1]] <- sample.int(100000, 1)
 
     control <- trainControl(seeds = seeds,
@@ -214,7 +185,7 @@ TADrandomForest <- function(trainData,
                             allowParallel = FALSE)
 
 
-    set.seed(seed)
+
     tadModel <- train(y~.,
                       data = trainData,
                       method = customRF$rf,
@@ -277,7 +248,7 @@ TADrandomForest <- function(trainData,
                                   type = "raw")
 
 
-        confMat <- confusionMatrix(data=pred.tadModel2, testData[,1], positive="Yes")
+        confMat <- caret::confusionMatrix(data=pred.tadModel2, testData[,1], positive="Yes")
         TN = as.numeric(confMat$table[1,1])
         FN = as.numeric(confMat$table[1,2])
         FP = as.numeric(confMat$table[2,1])

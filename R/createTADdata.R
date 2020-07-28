@@ -25,7 +25,6 @@
 #' @param predictCHR Character vector of chromosomes to use to build the binned
 #' data matrix for testing. Default in NULL, indicating no test data is created.
 #'  If trainCHR=predictCHR then a 7:3 split is created
-#' @param seed Numeric for reproducibility of resampling
 #'
 #' @return A list object containing two data.frames: 1) the training data, 2)
 #' the test data (only if predictCHR is not NULL, otherwise it is NA). "y" is
@@ -60,87 +59,13 @@
 #'                          featureType = "oc",
 #'                          resampling = "rus",
 #'                          trainCHR = "CHR21",
-#'                          predictCHR = "CHR22",
-#'                          seed = 123)
+#'                          predictCHR = "CHR22")
 createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType = "distance",
-                          resampling, trainCHR, predictCHR = NULL, seed = 123) {
-
-    #CHECKING FUNCTION INPUTS#
-
-    if (class(bounds.GR) != "GRanges") {
-        print("is not a GRanges object!")
-        return(0)
-    }
-    if (class(genomicElements.GR) != "CompressedGRangesList") {
-        print("genomicElements.GR is not a CompressedGRangesList object!")
-        return(0)
-    }
-    for (i in 1:length(genomicElements.GR)) {
-        if (class(genomicElements.GR[[i]]) != "GRanges") {
-            print(paste0(i, "-th object of genomicElements.GR is not a GenomicRanges object!"))
-            return(0)
-        }
-    }
-    if (class(featureType) != "character") {
-        print("featureType is not a character object!")
-        return(0)
-    }
-    if (!(featureType %in% c("distance", "binary", "oc", "op", "signal"))) {
-        print("featureType must be one of either 'distance', 'binary', 'oc', or 'op'!")
-        return(0)
-    }
-    if (class(resampling) != "character") {
-        print("resampling is not a character object")
-        return(0)
-    }
-    if (!(resampling %in% c("none", "ros", "rus", "smote"))) {
-        print("resampling must be one of either 'none','ros','rus', or 'smote'!")
-        return(0)
-    }
-    if (class(resolution) != "numeric") {
-        print("resolution is not a numeric object!")
-        return(0)
-    }
-
-    if (class(trainCHR) != "character") {
-        print("trainCHR is not a character object!")
-        return(0)
-    }
-    for (i in 1:length(trainCHR)) {
-        if (grepl("CHR", trainCHR[i]) != TRUE) {
-            print(paste0(i, "-th chromosome for training is not in 'trainCHR' format!"))
-            return(0)
-        }
-    }
-
-    if (!(is.null(predictCHR)) & class(predictCHR) != "character") {
-        print("predictCHR is not a character object!")
-        return(0)
-    }
-
-    if (!(is.null(predictCHR))) {
-        for (i in 1:length(predictCHR)) {
-            if (grepl("CHR", predictCHR[i]) != TRUE) {
-                print(paste0(i, "-th chromosome for training is not in 'predictCHR' format!"))
-                return(0)
-            }
-        }
-    }
-
-    if (length(intersect(trainCHR, predictCHR)) > 0) {
-        print("there is a CHR that you are attempting to predict on that you are also training on; a 7:3 split will be implemented on the training:testing data")
-    }
-
-    if (!(is.null(predictCHR))) {
-        if (length(intersect(trainCHR, predictCHR)) == 0) {
-            print(c("The following chromosomes will be used to train:", trainCHR))
-            print(c("The following chromosomes will be used to test:", predictCHR))
-        }
-    } else {
-        print(c("The following chromosomes will be used to train:", trainCHR))
-    }
+                          resampling, trainCHR, predictCHR = NULL) {
 
     resolution = as.integer(resolution)
+
+    set.seed(123)
 
     #ESTABLISHING CHROMOSOME-SPECIFIC SEQINFO#
 
@@ -319,7 +244,6 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
             if (resampling == "ros") {
                 # assign sample indices
-                set.seed(seed)
                 sampids.train <- sample(x = which(train_list[[i]]$y == "Yes"), size = length(which(train_list[[i]]$y ==
                                                                                                        "No")), replace = TRUE)
 
@@ -327,12 +251,10 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
                                                                               "No"), ], train_list[[i]][sampids.train, ])
 
                 # Randomly shuffle the data
-                set.seed(seed)
                 train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
                 ]
 
             } else if (resampling == "rus") {
-                set.seed(seed)
                 sampids.train <- sample(x = which(train_list[[i]]$y == "No"), size = length(which(train_list[[i]]$y ==
                                                                                                       "Yes")), replace = FALSE)
 
@@ -340,17 +262,14 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
                                                                               "Yes"), ], train_list[[i]][sampids.train, ])
 
                 # Randomly shuffle the data
-                set.seed(seed)
                 train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
                 ]
 
             } else if (resampling == "smote") {
-                set.seed(seed)
                 train_list[[i]] <- SMOTE(y ~ ., data = train_list[[i]], perc.over = 100,
                                          perc.under = 200)
 
                 # Randomly shuffle the data
-                set.seed(seed)
                 train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
                 ]
             } else {
@@ -428,7 +347,6 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
             full_list[[i]]$y <- factor(full_list[[i]]$y)
             levels(full_list[[i]]$y) <- c("No", "Yes")
 
-            set.seed(seed)
             inTrainingSet <- sample(length(full_list[[i]]$y), floor(length(full_list[[i]]$y) *
                                                                         0.7))
             train_list[[i]] <- full_list[[i]][inTrainingSet, ]
@@ -436,7 +354,6 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
             if (resampling == "ros") {
                 # assign sample indices
-                set.seed(seed)
                 sampids.train <- sample(x = which(train_list[[i]]$y == "Yes"), size = length(which(train_list[[i]]$y ==
                                                                                                        "No")), replace = TRUE)
 
@@ -444,12 +361,10 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
                                                                               "No"), ], train_list[[i]][sampids.train, ])
 
                 # Randomly shuffle the data
-                set.seed(seed)
                 train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
                 ]
 
             } else if (resampling == "rus") {
-                set.seed(seed)
                 sampids.train <- sample(x = which(train_list[[i]]$y == "No"), size = length(which(train_list[[i]]$y ==
                                                                                                       "Yes")), replace = FALSE)
 
@@ -457,17 +372,14 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
                                                                               "Yes"), ], train_list[[i]][sampids.train, ])
 
                 # Randomly shuffle the data
-                set.seed(seed)
                 train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
                 ]
 
             } else if (resampling == "smote") {
-                set.seed(seed)
                 train_list[[i]] <- SMOTE(y ~ ., data = train_list[[i]], perc.over = 100,
                                          perc.under = 200)
 
                 # Randomly shuffle the data
-                set.seed(seed)
                 train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
                 ]
             } else {
@@ -546,7 +458,6 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
             if (resampling == "ros") {
                 # assign sample indices
-                set.seed(seed)
                 sampids.train <- sample(x = which(train_list[[i]]$y == "Yes"), size = length(which(train_list[[i]]$y ==
                                                                                                        "No")), replace = TRUE)
 
@@ -554,12 +465,10 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
                                                                               "No"), ], train_list[[i]][sampids.train, ])
 
                 # Randomly shuffle the data
-                set.seed(seed)
                 train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
                 ]
 
             } else if (resampling == "rus") {
-                set.seed(seed)
                 sampids.train <- sample(x = which(train_list[[i]]$y == "No"), size = length(which(train_list[[i]]$y ==
                                                                                                       "Yes")), replace = FALSE)
 
@@ -567,17 +476,14 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
                                                                               "Yes"), ], train_list[[i]][sampids.train, ])
 
                 # Randomly shuffle the data
-                set.seed(seed)
                 train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
                 ]
 
             } else if (resampling == "smote") {
-                set.seed(seed)
                 train_list[[i]] <- SMOTE(y ~ ., data = train_list[[i]], perc.over = 100,
                                          perc.under = 200)
 
                 # Randomly shuffle the data
-                set.seed(seed)
                 train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
                 ]
             } else {

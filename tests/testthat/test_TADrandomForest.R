@@ -11,14 +11,17 @@ test_that("Whether TADrandomForest gives us the same output", {
 
     data(tfbsList)
 
+    set.seed(123)
+
     tadData <- createTADdata(bounds.GR=bounds.GR,
                              resolution=5000,
                              genomicElements.GR=tfbsList,
                              featureType="distance",
                              resampling="rus",
                              trainCHR="CHR21",
-                             predictCHR="CHR22",
-                             seed=123)
+                             predictCHR="CHR22")
+
+    set.seed(123)
 
     tadModel <- TADrandomForest(trainData=tadData[[1]],
                                 testData=tadData[[2]],
@@ -28,15 +31,14 @@ test_that("Whether TADrandomForest gives us the same output", {
                                 cvFolds=3,
                                 cvMetric="Accuracy",
                                 verbose=TRUE,
-                                seed=123,
                                 model=TRUE,
                                 importances=TRUE,
                                 impMeasure="MDA",
                                 performances=TRUE)
 
-    expect_equal(tadModel[[1]]$bestTune$mtry, 8)
+    expect_equal(tadModel[[1]]$bestTune$mtry, 2)
 
-    expect_equal(round(tadModel[[2]]$Importance[which(tadModel[[2]]$Feature=="`Gm12878-Ctcf-Broad`")],3), 20.526)
+    expect_equal(round(tadModel[[2]]$Importance[which(tadModel[[2]]$Feature=="`Gm12878-Ctcf-Broad`")],3), 17.528)
 
-    expect_equal(round(tadModel[[3]]$Performance[which(tadModel[[3]]$Metric=="BalancedAccuracy")],3), 0.762)
+    expect_equal(round(tadModel[[3]]$Performance[which(tadModel[[3]]$Metric=="BalancedAccuracy")],3), 0.759)
 })

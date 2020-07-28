@@ -25,35 +25,6 @@
 #'                                resolution=5000)
 extractBoundaries <- function(domains.mat, preprocess = FALSE, CHR, resolution) {
 
-    #STOP CHECKS#
-
-    if (!(class(domains.mat) %in% c("data.frame", "matrix"))) {
-        print("domains.mat is not a data frame or a matrix")
-        return(0)
-    }
-    if (!(class(domains.mat[, 1]) %in% c("numeric", "integer"))) {
-        print("1st column is not a number indicating the chromosome (i.e. 1,2,...22)")
-        return(0)
-    }
-    if (class(CHR) != "character") {
-        print("CHR is not a character object!")
-        return(0)
-    }
-    for (i in 1:length(CHR)) {
-        if (grepl("CHR", CHR[i]) != TRUE) {
-            print(paste0(i, "-th chromosome for training is not in 'CHR' format!"))
-            return(0)
-        }
-    }
-    if (class(resolution) != "numeric") {
-        print("resolution is not a numeric object!")
-        return(0)
-    }
-    if (class(preprocess) != "logical") {
-        print("preprocess is not a logical object!")
-        return(0)
-    }
-
     #EXTRACTING UNIQUE BOUNDARIES#
 
     resolution = as.integer(resolution)

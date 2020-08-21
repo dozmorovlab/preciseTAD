@@ -3,15 +3,24 @@ Type: Package
 Title: preciseTAD: A machine learning framework for precise TAD boundary 
     prediction
 Version: 0.99.4
-Date: 2020-06-16
-Authors@R: c(person("Spiro", "Stilianoudakis", email = "stilianoudasc@vcu.edu", 
-    role = c("aut", "cre")), 
-    person("Mikhail", "Dozmorov", email = "mikhail.dozmorov@gmail.com",
-    role = c("aut")))
-Description: preciseTAD is an R package that leverages high resolution 
-    functional genomic data in a random forest classification algorithm to 
-    more precisely predict the genomic coordinates of TAD boundaries at base
-    pair resolution. 
+Author: Spiro Stilianoudakis <stilianoudasc@vcu.edu>,
+    Mikhail Dozmorov <mikhail.dozmorov@vcuhealth.org>
+Maintainer: Spiro Stilianoudakis <stilianoudasc@vcu.edu>, Mikhail Dozmorov <mikhail.dozmorov@vcuhealth.org>
+Description: preciseTAD provides functions to predict the location of boundaries 
+    of topologically associated domains (TADs) and chromatin loops at base-level 
+    resolution. As an input, it takes BED-formatted genomic coordinates of domain 
+    boundaries detected from low-resolution Hi-C data, and coordinates of 
+    high-resolution genomic annotations from ENCODE or other consortia. 
+    preciseTAD employs several feature engineering strategies and resampling 
+    techniques to address class imbalance, and trains an optimized random forest 
+    model for predicting low-resolution domain boundaries. Translated on 
+    a base-level, preciseTAD predicts the probability for each base to be 
+    a boundary. Density-based clustering and scalable partitioning techniques 
+    are used to detect precise boundary regions and summit points. Compared with 
+    low-resolution boundaries, preciseTAD boundaries are highly enriched for 
+    CTCF, RAD21, SMC3, and ZNF143 signal and more conserved across cell lines. 
+    The pre-trained model can accurately predict boundaries in another cell line 
+    using CTCF, RAD21, SMC3, and ZNF143 annotation data for this cell line. 
 License: MIT + file LICENSE
 Depends: R (>= 4.0.0)
 Encoding: UTF-8

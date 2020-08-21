@@ -1,1 +1,12 @@
-Preparing for release.
+Changes in version 0.99.5 (2020-08-21)
++ Update vignette
++ Update DESCRIPTION
+  o Package description
+  o Add Mikhail Dozmorov as Maintainer
++ Start tracking NEWS
+
+Changes in version 0.99.4 (2020-07-14)
++ Preparing for release
+
+Changes in version 0.99.0 (2020-06-16)
++ Initial version

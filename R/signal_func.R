@@ -8,7 +8,6 @@
 #'
 #' @import IRanges GenomicRanges
 #'
-#' @examples
 signal_func <- function(binned_data_gr, annot_data_gr){
 
     count_signal <- numeric(length(binned_data_gr))

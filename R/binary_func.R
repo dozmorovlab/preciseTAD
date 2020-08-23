@@ -7,7 +7,6 @@
 #'
 #' @import IRanges GenomicRanges
 #'
-#' @examples
 binary_func <- function(binned_data_gr, annot_data_gr) {
 
     # Finding the total number of overlaps between genomic bins and the specific

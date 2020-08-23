@@ -7,7 +7,6 @@
 #'
 #' @import IRanges GenomicRanges
 #'
-#' @examples
 percent_func <- function(binned_data_gr, annot_data_gr) {
 
     count_percent <- numeric(length(binned_data_gr))

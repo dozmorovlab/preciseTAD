@@ -7,7 +7,6 @@
 #'
 #' @import IRanges GenomicRanges
 #'
-#' @examples
 juicer_func <- function(grdat) {
     # n <- length(unique(as.character(seqnames(grdat))))
 

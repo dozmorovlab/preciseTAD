@@ -28,7 +28,7 @@ data derived from ChIP-Seq experiments and in the form of BED files
 }
 \examples{
 #set path
-path = system.file("extdata", package = "preciseTAD")
+path <- system.file("extdata", package = "preciseTAD")
 #contains 2 BED files representing YY1 and NFYA
 #transcription factor binding sites for GM12878
 tfbsList <- bedToGRangesList(filepath = path, pattern = "*.bed", signal=4)

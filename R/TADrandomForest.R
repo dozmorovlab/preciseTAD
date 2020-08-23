@@ -165,7 +165,7 @@ TADrandomForest <- function(trainData,
     ###############################
 
     seeds <- vector(mode = "list", length = (cvFolds+1))
-    for(i in 1:cvFolds) {
+    for(i in seq_len(cvFolds)) {
         seeds[[i]] <- sample.int(n=100000, nrow(tunegrid))
     }
     #for the last model
@@ -247,10 +247,10 @@ TADrandomForest <- function(trainData,
 
 
         confMat <- caret::confusionMatrix(data=pred.tadModel2, testData[,1], positive="Yes")
-        TN = as.numeric(confMat$table[1,1])
-        FN = as.numeric(confMat$table[1,2])
-        FP = as.numeric(confMat$table[2,1])
-        TP = as.numeric(confMat$table[2,2])
+        TN <- as.numeric(confMat$table[1,1])
+        FN <- as.numeric(confMat$table[1,2])
+        FP <- as.numeric(confMat$table[2,1])
+        TP <- as.numeric(confMat$table[2,2])
         rfperf[1,2] <- TN
         rfperf[2,2] <- FN
         rfperf[3,2] <- FP
@@ -274,9 +274,9 @@ TADrandomForest <- function(trainData,
 
     results_list <- list()
 
-    if(model == TRUE){results_list[[1]] = tadModel}else{results_list[[1]] = NA}
-    if(importances == TRUE){results_list[[2]] = rfimpvars}else{results_list[[2]] = NA}
-    if(!(is.null(testData)) & performances == TRUE){results_list[[3]] = rfperf}else{results_list[[3]] = NA}
+    if(model == TRUE){results_list[[1]] <- tadModel}else{results_list[[1]] <- NA}
+    if(importances == TRUE){results_list[[2]] <- rfimpvars}else{results_list[[2]] <- NA}
+    if(!(is.null(testData)) & performances == TRUE){results_list[[3]] <- rfperf}else{results_list[[3]] <- NA}
 
     return(results_list)
 }

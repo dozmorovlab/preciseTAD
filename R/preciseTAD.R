@@ -159,104 +159,6 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
         seqDataTest <- seqDataTest[-which(seqDataTest %in% c(centromereTestStart:centromereTestEnd))]
     }
 
-    #FUNCTIONS FOR DIFFERENT FEATURE TYPES#
-
-    #BINARY OVERLAPS#
-    binary_func <- function(binned_data_gr, annot_data_gr) {
-
-        # Finding the total number of overlaps between genomic bins and the specific
-        # genomic annotation
-        count_binary <- countOverlaps(binned_data_gr, annot_data_gr)
-
-        # Binarizing the overlap (1 or 0)
-        count_binary <- ifelse(count_binary > 0, 1, 0)
-
-        return(count_binary)
-    }
-
-    #COUNT OVERLAPS#
-    count_func <- function(binned_data_gr, annot_data_gr) {
-
-        # Finding the total number of overlaps between genomic bins and the specific
-        # genomic annotation
-        count_total <- countOverlaps(binned_data_gr, annot_data_gr)
-
-        return(count_total)
-    }
-
-    #PERCENT OVERLAPS#
-    percent_func <- function(binned_data_gr, annot_data_gr) {
-
-        count_percent <- numeric(length(binned_data_gr))
-
-        # Finding the total number of overlaps between genomic bins and the specific
-        # genomic annotation
-        c <- countOverlaps(binned_data_gr, annot_data_gr)
-
-        # places where c=0 denotes no overlap places where c>0 denotes some type of
-        # overlap, could be partial or within
-
-        # for c=0 assign percent overlap as 0
-        count_percent[which(c == 0)] <- 0
-
-        # for c=1:
-        count_percent[which(c == 1)] <- width(pintersect(findOverlapPairs(annot_data_gr,
-                                                                          binned_data_gr[which(c == 1)])))/(width(binned_data_gr[1]))
-
-        # for c>1: iterate through all bins with multiple overlaps with the annotation of
-        # interest find how many and which annotations overlap within each iterate
-        # calculate the width of each overlap sum the total widths and divide by bin
-        # width bins with some type of overlap
-        mo <- which(c > 1)
-        count_percent[mo] <- unlist(lapply(lapply(lapply(mo, function(x) {
-            width(pintersect(findOverlapPairs(annot_data_gr, binned_data_gr[x])))
-        }), sum), function(x) {
-            x/width(binned_data_gr[1])
-        }))
-
-        return(count_percent)
-    }
-
-    #SIGNAL#
-    signal_func <- function(binned_data_gr, annot_data_gr){
-
-        count_signal <- numeric(length(binned_data_gr))
-
-        #Finding the total number of overlaps between genomic bins and the specific genomic annotation
-        c <- countOverlaps(binned_data_gr, annot_data_gr)
-
-        #places where c=0 denotes no overlap
-        #places where c>0 denotes some type of overlap, could be partial or within
-
-        #for c=0 assign signal as 0
-        count_signal[which(c==0)] <- 0
-
-        #for c=1:
-        count_signal[which(c==1)] <- mcols(annot_data_gr[queryHits(findOverlaps(annot_data_gr,binned_data_gr[which(c==1)]))])$coverage
-
-        #for c>1:
-        #iterate through all bins with multiple overlaps with the annotation of interest
-        #find how many and which annotations overlap within each iterate
-        #calculate the width of each overlap
-        #sum the total widths and divide by bin width
-        #bins with some type of overlap
-        mo <- which(c>1)
-        count_signal[mo] <- unlist(lapply(mo, function(x){
-            sum(mcols(pintersect(findOverlapPairs(annot_data_gr,binned_data_gr[x])))$coverage)/c[x]
-        }))
-
-        return(count_signal)
-    }
-
-    #DISTANCE#
-    distance_func <- function(binned_data_center_gr, annot_data_center_gr) {
-
-        # distance from center of genomic bin to nearest genomic region of interest
-        dist <- mcols(distanceToNearest(binned_data_center_gr, annot_data_center_gr))$distance
-
-        return(dist)
-    }
-
     #CREATING BP RESOLUTION TEST DATA#
 
     test_data <- matrix(nrow = length(seqDataTest),
@@ -267,9 +169,9 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
                ceiling(seq_along(GRanges(seqnames=tolower(CHR),IRanges(start=seqDataTest,end=seqDataTest)))/10000000))
 
     if(verbose==TRUE){print(paste0("Establishing bp resolution test data using a ", featureType, " type feature space"))}
-    for(j in 1:length(genomicElements.GR)){
+    for(j in seq_len(length(genomicElements.GR))){
         p <-list()
-        for(i in 1:length(g)){
+        for(i in seq_len(length(g))){
             if(featureType=="distance"){
                 p[[i]] <- log(distance_func(g[[i]],genomicElements.GR[[j]]) + 1, base = 2)
             }else if(featureType=="binary"){
@@ -292,7 +194,7 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
         parallel_predictions<-function(fit,testing,c,n){
             cl<-makeCluster(c)
             registerDoSNOW(cl)
-            split_testing<-sort(rank(1:nrow(testing)) %% n)
+            split_testing<-sort(rank(seq_len(nrow(testing))) %% n)
             predictions<-foreach(i=unique(split_testing),
                                  .combine=c,
                                  .packages=c("caret")) %dopar% {
@@ -311,7 +213,7 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
             split_ind <- as.integer(nrow(test_data)/10000000) + 1
             test_data <- array_split(test_data, split_ind)
             predictions <- list()
-            for(i in 1:length(test_data)){
+            for(i in seq_len(length(test_data))){
                 predictions[[i]] <- predict(tadModel,newdata=test_data[[i]],type="prob")[,"Yes"]
             }
             predictions <- unlist(predictions)
@@ -416,50 +318,12 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
         trueBound_gr <- flank(trueBound_gr, width = flank, both = TRUE)
     }
 
-    juicer_func <- function(grdat) {
-        # n <- length(unique(as.character(seqnames(grdat))))
-
-        chrs <- unique(as.character(seqnames(grdat)))
-
-        mat_list <- list()
-
-        for (i in 1:length(chrs)) {
-            grdat_chr <- grdat[which(as.character(seqnames(grdat)) == chrs[i])]
-
-            if (length(grdat_chr) > 1) {
-                mymat <- matrix(nrow = (length(grdat_chr) - 1), ncol = 6)
-                mymat[, 1] <- mymat[, 4] <- chrs[i]
-                for (j in 1:(length(grdat_chr) - 1)) {
-                    mymat[j, 2] <- mymat[j, 5] <- start(grdat_chr)[j]
-                    mymat[j, 3] <- mymat[j, 6] <- start(grdat_chr)[j + 1]
-                }
-                mymat <- as.data.frame(mymat)
-
-                mymat$V1 <- as.character(mymat$V1)
-                mymat$V4 <- as.character(mymat$V4)
-                mymat$V2 <- as.numeric(as.character(mymat$V2))
-                mymat$V3 <- as.numeric(as.character(mymat$V3))
-                mymat$V5 <- as.numeric(as.character(mymat$V5))
-                mymat$V6 <- as.numeric(as.character(mymat$V6))
-
-                mat_list[[i]] <- mymat
-
-            }
-
-
-        }
-
-        mat_list <- do.call("rbind", mat_list)
-        return(mat_list)
-
-    }
-
     if (PTBR == TRUE) {
         grlist <- GRangesList()
-        for (i in 1:length(unique(clustering))) {
+        for (i in seq_len(length(unique(clustering)))) {
 
-            PTBAs = c(1:length(clustering))[which(clustering == i)][1]
-            PTBAe = c(1:length(clustering))[which(clustering == i)][length(which(clustering ==
+            PTBAs = c(seq_len(length(clustering)))[which(clustering == i)][1]
+            PTBAe = c(seq_len(length(clustering)))[which(clustering == i)][length(which(clustering ==
                                                                                      i))]
 
             PTBRs = mid[PTBAs]

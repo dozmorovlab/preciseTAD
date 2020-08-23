@@ -18,7 +18,7 @@
 #'
 #' @examples
 #' #set path
-#' path = system.file("extdata", package = "preciseTAD")
+#' path <- system.file("extdata", package = "preciseTAD")
 #' #contains 2 BED files representing YY1 and NFYA
 #' #transcription factor binding sites for GM12878
 #' tfbsList <- bedToGRangesList(filepath = path, pattern = "*.bed", signal=4)
@@ -28,7 +28,7 @@ bedToGRangesList <- function(filepath, pattern = "*.bed", signal = 5) {
 
     annots_gr_list <- GRangesList()
     # if(grepl(paste0(names, collapse = '|'), list.files(filepath)))
-    for (i in 1:length(list.files(filepath, pattern = pattern))) {
+    for (i in seq_len(length(list.files(filepath, pattern = pattern)))) {
         dat <- read.table(paste0(filepath, "/", list.files(filepath, pattern = pattern)[i]),
                           header = FALSE)
 

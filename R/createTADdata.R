@@ -33,7 +33,6 @@
 #' genomic annotations
 #' @export
 #'
-#
 #' @import IRanges GenomicRanges DMwR
 #'
 #' @examples
@@ -71,104 +70,6 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
     hg19 <- preciseTAD:::hg19
 
-    #FUNCTIONS FOR DIFFERENT FEATURE TYPES#
-
-    #BINARY OVERLAPS#
-    binary_func <- function(binned_data_gr, annot_data_gr) {
-
-        # Finding the total number of overlaps between genomic bins and the specific
-        # genomic annotation
-        count_binary <- countOverlaps(binned_data_gr, annot_data_gr)
-
-        # Binarizing the overlap (1 or 0)
-        count_binary <- ifelse(count_binary > 0, 1, 0)
-
-        return(count_binary)
-    }
-
-    #COUNT OVERLAPS#
-    count_func <- function(binned_data_gr, annot_data_gr) {
-
-        # Finding the total number of overlaps between genomic bins and the specific
-        # genomic annotation
-        count_total <- countOverlaps(binned_data_gr, annot_data_gr)
-
-        return(count_total)
-    }
-
-    #PERCENT OVERLAPS#
-    percent_func <- function(binned_data_gr, annot_data_gr) {
-
-        count_percent <- numeric(length(binned_data_gr))
-
-        # Finding the total number of overlaps between genomic bins and the specific
-        # genomic annotation
-        c <- countOverlaps(binned_data_gr, annot_data_gr)
-
-        # places where c=0 denotes no overlap places where c>0 denotes some type of
-        # overlap, could be partial or within
-
-        # for c=0 assign percent overlap as 0
-        count_percent[which(c == 0)] <- 0
-
-        # for c=1:
-        count_percent[which(c == 1)] <- width(pintersect(findOverlapPairs(annot_data_gr,
-                                                                          binned_data_gr[which(c == 1)])))/(width(binned_data_gr[1]))
-
-        # for c>1: iterate through all bins with multiple overlaps with the annotation of
-        # interest find how many and which annotations overlap within each iterate
-        # calculate the width of each overlap sum the total widths and divide by bin
-        # width bins with some type of overlap
-        mo <- which(c > 1)
-        count_percent[mo] <- unlist(lapply(lapply(lapply(mo, function(x) {
-            width(pintersect(findOverlapPairs(annot_data_gr, binned_data_gr[x])))
-        }), sum), function(x) {
-            x/width(binned_data_gr[1])
-        }))
-
-        return(count_percent)
-    }
-
-    #SIGNAL#
-    signal_func <- function(binned_data_gr, annot_data_gr){
-
-        count_signal <- numeric(length(binned_data_gr))
-
-        #Finding the total number of overlaps between genomic bins and the specific genomic annotation
-        c <- countOverlaps(binned_data_gr, annot_data_gr)
-
-        #places where c=0 denotes no overlap
-        #places where c>0 denotes some type of overlap, could be partial or within
-
-        #for c=0 assign signal as 0
-        count_signal[which(c==0)] <- 0
-
-        #for c=1:
-        count_signal[which(c==1)] <- mcols(annot_data_gr[queryHits(findOverlaps(annot_data_gr,binned_data_gr[which(c==1)]))])$coverage
-
-        #for c>1:
-        #iterate through all bins with multiple overlaps with the annotation of interest
-        #find how many and which annotations overlap within each iterate
-        #calculate the width of each overlap
-        #sum the total widths and divide by bin width
-        #bins with some type of overlap
-        mo <- which(c>1)
-        count_signal[mo] <- unlist(lapply(mo, function(x){
-            sum(mcols(pintersect(findOverlapPairs(annot_data_gr,binned_data_gr[x])))$coverage)/c[x]
-        }))
-
-        return(count_signal)
-    }
-
-    #DISTANCE#
-    distance_func <- function(binned_data_center_gr, annot_data_center_gr) {
-
-        # distance from center of genomic bin to nearest genomic region of interest
-        dist <- mcols(distanceToNearest(binned_data_center_gr, annot_data_center_gr))$distance
-
-        return(dist)
-    }
-
     #ESTABLISHING DATA MATRIX FOR MODELING#
 
     if (is.null(predictCHR)) {
@@ -182,12 +83,12 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
         outcome_list <- list()
         train_list <- list()
 
-        for (i in 1:length(trainCHR)) {
-            start = (resolution/2)
-            chrLength = hg19$length[hg19$chrom %in% trainCHR][i]
+        for (i in seq_len(length(trainCHR))) {
+            start <- (resolution/2)
+            chrLength <- hg19$length[hg19$chrom %in% trainCHR][i]
             centromereStart <- as.integer(hg19$centromerStart[hg19$chrom==trainCHR[i]])
             centromereEnd <- as.integer(hg19$centromerEnd[hg19$chrom==trainCHR[i]])
-            end = chrLength - (chrLength %% resolution) + resolution/2
+            end <- chrLength - (chrLength %% resolution) + resolution/2
 
             data_mat_list[[i]] <- matrix(nrow=length(seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))]),
                                          ncol=length(genomicElements.GR))
@@ -200,25 +101,25 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
                 # for use of distance type features
                 dat_mat_gr <- GRanges(seqnames = tolower(trainCHR[i]), IRanges(start = (start(dat_mat_gr) +
                                                                                             end(dat_mat_gr))/2, width = 1))
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq(length(genomicElements.GR))) {
                     d <- distance_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- d
                 }
-                for (h in 1:ncol(data_mat_list[[i]])) {
+                for (h in seq_len(ncol(data_mat_list[[i]]))) {
                     data_mat_list[[i]][, h] <- log(data_mat_list[[i]][, h] + 1, base = 2)
                 }
             } else if (featureType == "binary") {
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     cb <- binary_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- cb
                 }
             } else if (featureType == "oc") {
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     co <- count_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- co
                 }
             } else if (featureType == "op") {
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     cp <- percent_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- cp
                 }
@@ -289,12 +190,12 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
         train_list <- list()
         test_list <- list()
 
-        for (i in 1:length(trainCHR)) {
-            start = (resolution/2)
-            chrLength = hg19$length[hg19$chrom %in% trainCHR][i]
+        for (i in seq_len(length(trainCHR))) {
+            start <- (resolution/2)
+            chrLength <- hg19$length[hg19$chrom %in% trainCHR][i]
             centromereStart <- as.integer(hg19$centromerStart[hg19$chrom==trainCHR[i]])
             centromereEnd <- as.integer(hg19$centromerEnd[hg19$chrom==trainCHR[i]])
-            end = chrLength - (chrLength %% resolution) + resolution/2
+            end <- chrLength - (chrLength %% resolution) + resolution/2
 
             data_mat_list[[i]] <- matrix(nrow=length(seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))]),
                                          ncol=length(genomicElements.GR))
@@ -307,25 +208,25 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
                 # for use of distance type features
                 dat_mat_gr <- GRanges(seqnames = tolower(trainCHR[i]), IRanges(start = (start(dat_mat_gr) +
                                                                                             end(dat_mat_gr))/2, width = 1))
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     d <- distance_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- d
                 }
-                for (h in 1:ncol(data_mat_list[[i]])) {
+                for (h in seq_len(ncol(data_mat_list[[i]]))) {
                     data_mat_list[[i]][, h] <- log(data_mat_list[[i]][, h] + 1, base = 2)
                 }
             } else if (featureType == "binary") {
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     cb <- binary_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- cb
                 }
             } else if (featureType == "oc") {
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     co <- count_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- co
                 }
             } else if (featureType == "op") {
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     cp <- percent_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- cp
                 }
@@ -398,12 +299,12 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
         outcome_list <- list()
         train_list <- list()
 
-        for (i in 1:length(trainCHR)) {
-            start = (resolution/2)
-            chrLength = hg19$length[hg19$chrom %in% trainCHR][i]
+        for (i in seq_len(length(trainCHR))) {
+            start <- (resolution/2)
+            chrLength <- hg19$length[hg19$chrom %in% trainCHR][i]
             centromereStart <- as.integer(hg19$centromerStart[hg19$chrom==trainCHR[i]])
             centromereEnd <- as.integer(hg19$centromerEnd[hg19$chrom==trainCHR[i]])
-            end = chrLength - (chrLength %% resolution) + resolution/2
+            end <- chrLength - (chrLength %% resolution) + resolution/2
 
             data_mat_list[[i]] <- matrix(nrow=length(seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))]),
                                          ncol=length(genomicElements.GR))
@@ -416,25 +317,25 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
                 # for use of distance type features
                 dat_mat_gr <- GRanges(seqnames = tolower(trainCHR[i]), IRanges(start = (start(dat_mat_gr) +
                                                                                             end(dat_mat_gr))/2, width = 1))
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     d <- distance_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- d
                 }
-                for (h in 1:ncol(data_mat_list[[i]])) {
+                for (h in seq_len(ncol(data_mat_list[[i]]))) {
                     data_mat_list[[i]][, h] <- log(data_mat_list[[i]][, h] + 1, base = 2)
                 }
             } else if (featureType == "binary") {
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     cb <- binary_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- cb
                 }
             } else if (featureType == "oc") {
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     co <- count_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- co
                 }
             } else if (featureType == "op") {
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     cp <- percent_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- cp
                 }
@@ -498,12 +399,12 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
         outcome_list <- list()
         test_list <- list()
 
-        for (i in 1:length(predictCHR)) {
-            start = (resolution/2)
-            chrLength = hg19$length[hg19$chrom %in% predictCHR][i]
+        for (i in seq_len(length(predictCHR))) {
+            start <- (resolution/2)
+            chrLength <- hg19$length[hg19$chrom %in% predictCHR][i]
             centromereStart <- as.integer(hg19$centromerStart[hg19$chrom==predictCHR[i]])
             centromereEnd <- as.integer(hg19$centromerEnd[hg19$chrom==predictCHR[i]])
-            end = chrLength - (chrLength %% resolution) + resolution/2
+            end <- chrLength - (chrLength %% resolution) + resolution/2
 
             data_mat_list[[i]] <- matrix(nrow=length(seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))]),
                                          ncol=length(genomicElements.GR))
@@ -516,25 +417,25 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
                 # for use of distance type features
                 dat_mat_gr <- GRanges(seqnames = tolower(predictCHR[i]), IRanges(start = (start(dat_mat_gr) +
                                                                                               end(dat_mat_gr))/2, width = 1))
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     d <- distance_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- d
                 }
-                for (h in 1:ncol(data_mat_list[[i]])) {
+                for (h in seq_len(ncol(data_mat_list[[i]]))) {
                     data_mat_list[[i]][, h] <- log(data_mat_list[[i]][, h] + 1, base = 2)
                 }
             } else if (featureType == "binary") {
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     cb <- binary_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- cb
                 }
             } else if (featureType == "oc") {
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     co <- count_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- co
                 }
             } else if (featureType == "op") {
-                for (k in 1:length(genomicElements.GR)) {
+                for (k in seq_len(length(genomicElements.GR))) {
                     cp <- percent_func(dat_mat_gr, genomicElements.GR[[k]])
                     data_mat_list[[i]][, k] <- cp
                 }

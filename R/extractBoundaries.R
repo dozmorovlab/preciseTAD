@@ -27,8 +27,8 @@ extractBoundaries <- function(domains.mat, preprocess = FALSE, CHR, resolution) 
 
     #EXTRACTING UNIQUE BOUNDARIES#
 
-    resolution = as.integer(resolution)
-    domains.mat <- domains.mat[, 1:3]
+    resolution <- as.integer(resolution)
+    domains.mat <- domains.mat[, c(1,2,3)]
     domains.mat[, 1] <- paste0("chr", domains.mat[, 1])
     colnames(domains.mat) <- c("Chromosome", "Start", "End")
     if (preprocess == TRUE) {

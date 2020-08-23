@@ -110,13 +110,13 @@ TADrfe <- function(trainData, tuneParams = list(ntree = 500, nodesize = 1),
                           verbose = ifelse(verbose == TRUE, TRUE, FALSE), allowParallel = FALSE)
     control$returnResamp <- "final"
 
-    n = dim(trainData)[2] - 1
+    n <- dim(trainData)[2] - 1
     z <- numeric()
-    x = 0
-    i = 1
+    x <- 0
+    i <- 1
     while (x < n) {
-        x = 2^(i)
-        i = i + 1
+        x <- 2^(i)
+        i <- i + 1
         z <- c(z, x)
     }
     z[length(z)] <- n

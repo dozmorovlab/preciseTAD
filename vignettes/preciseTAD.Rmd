@@ -30,7 +30,7 @@ abstract: >
   at our predicted boundaries, as compared with the boundaries 
   identified by the popular Arrowhead TAD caller. The model trained 
   in one cell type can leverage genomic annotations and predict boundaries 
-  in another cell line.
+  in another cell type.
 package: preciseTAD
 output:
     BiocStyle::html_document
@@ -57,7 +57,7 @@ knitr::opts_chunk$set(warnings = FALSE, message = FALSE)
 
 ## Input data
 
-The training/testing data used for modeling is represented as a matrix with rows being genomic regions, columns being genomic annotations, and cells containing measures of association between them. 
+The training/testing data used for modeling is represented as a matrix with rows being genomic regions, columns being genomic annotations, and cells containing measures of association between them. Users have the option to concatenate genomic regions from multiple chromosomes.
 
 To create the row-wise dimension of the data, `preciseTAD` uses *shifted binning*, a strategy for creating the dimensions of the data matrix used for modeling by segmenting the linear genome into nonoverlapping regions. This step is transparent for the user. To create shifted bins, chromosome-specific bins start at half of the resolution *r*, and continue in congruent intervals of length *r* until the end of the chromosome (*mod r* + *r/2*), using hg19 genomic coordinates. The shifted genomic bins, are then defined as boundary regions (*Y = 1*) if they contain a called boundary, and non-boundary regions (*Y = 0*) otherwise, thus establishing the binary response vector (**Y**) used for classification. Intuitively, shifted bins are centered on borders between the original bins, thus capturing potential boundaries. We found the shifted binning strategy improves model performance.
 
@@ -69,7 +69,9 @@ The column-wise dimension is formed by genomic annotations, such as transcriptio
 
 To predict the base-level location of domain boundaries, the `preciseTAD` model is applied for each base annotated with the aforementioned genomic annotations. The base-level probabilities are clustered using density-based clustering and scalable data partitioning techniques, to narrow boundary regions and points. First, the probability vector, $p_{n_{i}}$, is extracted ($n_{i}$ representing the length of chromosome $i$). Next, *DBSCAN* (Density-based Spatial Clustering of Applications with Noise) [@ester1996density; @hahsler2019dbscan] is applied to the matrix of pairwise genomic distances between bases with $p_{n_{i}} \ge t$, where $t$ is a threshold determined by the user. The resulting clusters of highly predictive bases identified by DBSCAN are termed *preciseTAD boundary regions* (PTBR). To precisely identify a single base among each PTBR, *preciseTAD* implements an extension of partitioning around medoids (PAM), known as CLARA (Clustering Large Applications) for better scaling and more computational efficiency [@rousseeuw1990finding]. The corresponding cluster medoid is defined as a *preciseTAD boundary point* (PTBP), making it the most representative and biologically meaningful base within each clustered PTBR. The output includes a list of genomic coordinates of PTBPs and PTBSs.
 
-[??? Describe how to predict boundaries in another cell type, should be detailed paragraph]
+[??? Describe how to predict boundaries in another cell type, should be detailed paragraph; !!!added]
+
+Using the same model building and boundary prediction processes outlined above, `preciseTAD` provides functionality for predicting boundaries across cell types. Users can take advantage of the internal functions that create training and testing data sets (See Section 3.1.1) to build boundary prediction models in one cell type, to be used to make predictions in another cell type. The model building and prediction processes proceed similar to what is described in Section 1.1 and 1.2, the only difference is the cell type specific genomic annotations used to generate the base-level feature space, which the user can easily provide.
 
 # Getting Started
 
@@ -96,9 +98,17 @@ library(preciseTAD)
 
 ### Construction of the data matrix
 
-`preciseTAD` requires users to supply genomic coordinates of the "ground-truth" domain boundaries to establish the response vector (**Y**). As an example, we consider TAD boundaries derived from the popular *Arrowhead* TAD caller, a part of the Juicebox suite of tools developed by Aiden Lab [@durand2016juicer]. To get boundaries, *Arrowhead* was applied on the autosomal chromosomes using 5 kb GM12878 Hi-C data [@rao20143d] ([GSE63525](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE63525)). A tutorial for how to implement *Arrowhead* can be found [here](https://github.com/aidenlab/juicer/wiki/Arrowhead). An example of the first three columns of the resulting TAD coordinates is shown below.
+`preciseTAD` requires users to supply genomic coordinates of the "ground-truth" domain boundaries to establish the response vector (**Y**). As an example, we consider TAD boundaries derived from the popular *Arrowhead* TAD caller, a part of the Juicebox suite of tools developed by Aiden Lab [@durand2016juicer]. To get boundaries, *Arrowhead* was applied on the autosomal chromosomes using 5 kb GM12878 Hi-C data [@rao20143d] ([GSE63525](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE63525)). An example of the command line script used to called TADs with *Arrowhead* is provided below, as well as the first three columns of the resulting TAD coordinates. A more detailed tutorial for how to implement *Arrowhead* can be found [here](https://github.com/aidenlab/juicer/wiki/Arrowhead). 
 
-[??? Include the code for Arrowhead you put in Additional File for the manuscript. Describe it]
+[??? Include the code for Arrowhead you put in Additional File for the manuscript. Describe it; !!!added]
+
+```{r, eval=FALSE}
+arrowhead -c 1 \ #chromosome to call TADs on
+  -r 5000 \ #HiC data resolution
+  ~/GSE63525_GM12878_insitu_primary.hic \ #location of the .HIC file
+  ~/arrowhead_output #location to store the output
+```
+
 
 ```{r}
 data("arrowhead_gm12878_5kb")
@@ -113,7 +123,7 @@ bounds <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb, preprocess = FA
 bounds
 ```
 
-To identify genomic annotations best predictive of TAD boundaries, `preciseTAD` requires functional genomic annotations. They are used to establish the feature space ($\textbf{X}=\{X_{1}, X_{2}, \cdots, X_{p} \}$). Cell line-specific genomic annotation data can be downloaded from [ENCODE](https://www.encodeproject.org/chip-seq-matrix/?type=Experiment&replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&assay_title=TF%20ChIP-seq&status=released) as BED files. Once you have downloaded your preferred list of functional genomic annotations, store them in a specific file location (i.e. "./path/to/BEDfiles"). These files can then be converted into a GRangesList object and used to create the feature space using the `preciseTAD::bedToGRangesList()` function. The `signal` argument refers to the column in the BED files containing peak signal strength values and is used to assign metadata to the corresponding GRanges (only necessary for downstream plotting). As an example, we have already provided a GRangesList object with 26 transcription factor binding sites (TFBS) specific to the GM12878 cell line. Once you load it in, you can see the list of transcription factors using the following commands.
+To identify genomic annotations best predictive of TAD boundaries, `preciseTAD` requires functional genomic annotations. They are used to establish the feature space ($\textbf{X}=\{X_{1}, X_{2}, \cdots, X_{p} \}$). Cell type-specific genomic annotation data can be downloaded from [ENCODE](https://www.encodeproject.org/chip-seq-matrix/?type=Experiment&replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&assay_title=TF%20ChIP-seq&status=released) as BED files. Once you have downloaded your preferred list of functional genomic annotations, store them in a specific file location (i.e. "./path/to/BEDfiles"). These files can then be converted into a GRangesList object and used to create the feature space using the `preciseTAD::bedToGRangesList()` function. The `signal` argument refers to the column in the BED files containing peak signal strength values and is used to assign metadata to the corresponding GRanges (only necessary for downstream plotting). As an example, we have already provided a GRangesList object with 26 transcription factor binding sites (TFBS) specific to the GM12878 cell type. Once you load it in, you can see the list of transcription factors using the following commands.
 
 ```{r}
 # path <- "./path/to/BEDfiles"
@@ -271,7 +281,11 @@ pt
 
 The output of `preciseTAD::preciseTAD()` function is a list object with three elements: 1) the "ground-truth" called TAD boundary points (CTBP) used to train the model for the specified CHR (within the given region, if `chromCoord` is specified), 2) the `preciseTAD` predicted boundary points (PTBP), and 3) the `preciseTAD` predicted boundary regions (PTBR, if `PTBR=TRUE`). From the results above, we see that there were `r length(pt$CTBP)` called TAD boundary points by *Arrowhead* in the given section of CHR22. However, `preciseTAD` yielded `r length(pt$PTBP)` predicted boundary points.
 
-[??? Write a paragraph on how to predict boundaries in another cell type? I was thinking, one takes the model `tadModel[[1]]` trained in one cell type, the annotations `tfbsList_filt` of a cell type of interest, and that's it. But what is a cell type of interest does not have `bounds`, no Hi-C data, only annotations? That's the main selling point of your package, train a model once, then use only genomic annotations from other cell lines to predict boundaries in them.]
+### Cross cell type prediction
+
+[??? Write a paragraph on how to predict boundaries in another cell type? I was thinking, one takes the model `tadModel[[1]]` trained in one cell type, the annotations `tfbsList_filt` of a cell type of interest, and that's it. But what is a cell type of interest does not have `bounds`, no Hi-C data, only annotations? That's the main selling point of your package, train a model once, then use only genomic annotations from other cell lines to predict boundaries in them.; !!!added]
+
+Using built-in functions provided by `preciseTAD`, users can easily extend the model building and prediction processes described above to train and predict boundaries across cell types. To do so, users first build and train a boundary region prediction model on one cell type using `bedToGRangesList`, `extractBoundaries`, `createTADdata`, and `TADrandomForest` functions (See Section 3.1). Next, users will need to recreate genomic annotations from the other cell type as a GRanges object using the aforementioned `bedToGRangesList` function (i.e. creating another cell type specific `tfbsList_filt` object). This, with the `tadModel[[1]]` object that is created is all that is necessary to predict boundaries on the other cell type using `preciseTAD` (See Section 3.2).
 
 ### Using preciseTAD with Juicebox
 

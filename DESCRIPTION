@@ -3,9 +3,10 @@ Type: Package
 Title: preciseTAD: A machine learning framework for precise TAD boundary 
     prediction
 Version: 0.99.4
-Author: Spiro Stilianoudakis <stilianoudasc@vcu.edu>,
-    Mikhail Dozmorov <mikhail.dozmorov@vcuhealth.org>
-Maintainer: Spiro Stilianoudakis <stilianoudasc@vcu.edu>, Mikhail Dozmorov <mikhail.dozmorov@vcuhealth.org>
+Authors@R: c(person("Spiro", "Stilianoudakisc", email = "stilianoudasc@vcu.edu", 
+    role = c("aut", "cre")), 
+    person("Mikhail", "Dozmorov", email = "mikhail.dozmorov@vcuhealth.org",
+    role = c("aut")))
 Description: preciseTAD provides functions to predict the location of boundaries 
     of topologically associated domains (TADs) and chromatin loops at base-level 
     resolution. As an input, it takes BED-formatted genomic coordinates of domain 

@@ -246,16 +246,9 @@ Recall that our model classifies boundary **regions**, in that each prediction r
 Suppose we want to precisely predict the domain boundary coordinates for the 2Mb section of CHR22:25,500,000-27,500,000. To do so, we specify `chromCoords = list(25500000, 27500000)`. Additionally, we set a threshold of 1.0 for constructing PTBRs using `threshold = 1.0`. We also specify 100 random samples to be used to partition the pairwise genomic distances used by CLARA. For DBSCAN, we assign 5000 and 3 for the $\epsilon$ and *MinPts* parameters.
 
 ```{r}
-# Make sure the ground truth boundaries only include the CHR used to predict
-bounds <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
-                              preprocess = FALSE,
-                              CHR = "CHR22",
-                              resolution = 5000)
-
 # Run preciseTAD
 set.seed(123)
-pt <- preciseTAD(bounds.GR = bounds,
-                genomicElements.GR = tfbsList_filt,
+pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                 featureType = "distance",
                 CHR = "CHR22",
                 chromCoords = list(25500000, 27500000),
@@ -269,7 +262,6 @@ pt <- preciseTAD(bounds.GR = bounds,
                 DBSCAN = TRUE,
                 DBSCAN_params = list(5000, 3),
                 method.Clust = NULL,
-                PTBR = TRUE,
                 CLARA = TRUE,
                 method.Dist = "euclidean",
                 samples = 100,
@@ -279,13 +271,7 @@ pt <- preciseTAD(bounds.GR = bounds,
 pt
 ```
 
-The output of `preciseTAD::preciseTAD()` function is a list object with three elements: 1) the "ground-truth" called TAD boundary points (CTBP) used to train the model for the specified CHR (within the given region, if `chromCoord` is specified), 2) the `preciseTAD` predicted boundary points (PTBP), and 3) the `preciseTAD` predicted boundary regions (PTBR, if `PTBR=TRUE`). From the results above, we see that there were `r length(pt$CTBP)` called TAD boundary points by *Arrowhead* in the given section of CHR22. However, `preciseTAD` yielded `r length(pt$PTBP)` predicted boundary points.
-
-### Cross cell type prediction
-
-[??? Write a paragraph on how to predict boundaries in another cell type? I was thinking, one takes the model `tadModel[[1]]` trained in one cell type, the annotations `tfbsList_filt` of a cell type of interest, and that's it. But what is a cell type of interest does not have `bounds`, no Hi-C data, only annotations? That's the main selling point of your package, train a model once, then use only genomic annotations from other cell lines to predict boundaries in them.; !!!added]
-
-Using built-in functions provided by `preciseTAD`, users can easily extend the model building and prediction processes described above to train and predict boundaries across cell types. To do so, users first build and train a boundary region prediction model on one cell type using `bedToGRangesList`, `extractBoundaries`, `createTADdata`, and `TADrandomForest` functions (See Section 3.1). Next, users will need to recreate genomic annotations from the other cell type as a GRanges object using the aforementioned `bedToGRangesList` function (i.e. creating another cell type specific `tfbsList_filt` object). This, with the `tadModel[[1]]` object that is created is all that is necessary to predict boundaries on the other cell type using `preciseTAD` (See Section 3.2).
+The output of `preciseTAD::preciseTAD()` function is a list object with two elements: 1) the `preciseTAD` predicted boundary regions, and 2) the `preciseTAD` predicted boundary points (PTBP). From the results above, we see that `preciseTAD` yielded `r length(pt$PTBP)` predicted boundary points.
 
 ### Using preciseTAD with Juicebox
 
@@ -294,8 +280,7 @@ Juicebox is an interface provided by Aiden Lab that allows for superimposing bou
 ```{r}
 # Run preciseTAD
 set.seed(123)
-pt <- preciseTAD(bounds.GR = bounds,
-                genomicElements.GR = tfbsList_filt,
+pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                 featureType = "distance",
                 CHR = "CHR22",
                 chromCoords = list(25500000, 27500000),
@@ -309,7 +294,6 @@ pt <- preciseTAD(bounds.GR = bounds,
                 DBSCAN = TRUE,
                 DBSCAN_params = list(5000, 3),
                 method.Clust = NULL,
-                PTBR = TRUE,
                 CLARA = TRUE,
                 method.Dist = "euclidean",
                 samples = 100,
@@ -331,5 +315,78 @@ write.table(pt_chr22_255mb_275mb,
             row.names = FALSE,
             sep = "\t")
 ```
+
+### Cross cell type prediction
+
+[??? Write a paragraph on how to predict boundaries in another cell type? I was thinking, one takes the model `tadModel[[1]]` trained in one cell type, the annotations `tfbsList_filt` of a cell type of interest, and that's it. But what is a cell type of interest does not have `bounds`, no Hi-C data, only annotations? That's the main selling point of your package, train a model once, then use only genomic annotations from other cell lines to predict boundaries in them.; !!!added]
+
+Using built-in functions provided by `preciseTAD`, users can easily extend the model building and prediction processes described above to train and predict boundaries across cell types. This is beneficial when HiC data is unavailable for a particular cell type, likely due to high sequencing cost, yet ChIP-seq narrowpeak BED files are available. A particular example exists for Hela-S3, for which HiC data at 5 kb resolution is unavailable. Instead, we can leverage our RF model built on GM12878 ground truth boundaries to predict boundaries for Hela-S3 using the corresponding cell type specific CTCF, RAD21, SMC3, and ZNF143. To do so, users build and train a boundary region prediction model on GM12878 as before using `bedToGRangesList`, `extractBoundaries`, `createTADdata`, and `TADrandomForest` functions (See Section 3.1). Next, users will need to recreate genomic annotations from Hela-S3 as a GRanges object using the aforementioned `bedToGRangesList` function (i.e. creating another cell type specific `tfbsList_filt` object). They can be downloaded at ENCODE or read in from the repository https://github.com/stilianoudakis/preciseTAD_supplementary. This, with the `tadModel[[1]]` object that is created is all that is necessary to predict boundaries on the other cell type using `preciseTAD` (See Section 3.2). In the following example we use chr1-chr21 (omitting chr9) from GM12878 to predict TAD boundaries for chr22 from Hela-S3.
+
+```{r, eval=FALSE}
+# Establishing ground truth boundaries
+bounds <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb, 
+                            preprocess = FALSE, 
+                            CHR = paste0("CHR", c(1:8,10:22)), 
+                            resolution = 5000)
+
+# Creating training data
+set.seed(123)
+tadData <- createTADdata(bounds.GR = bounds,
+                         resolution = 5000,
+                         genomicElements.GR = tfbsList_filt,
+                         featureType = "distance",
+                         resampling = "rus",
+                         trainCHR = paste0("CHR", c(1:8,10:22)),
+                         predictCHR = NULL)
+
+# Performing RF model
+set.seed(123)
+tadModel <- TADrandomForest(trainData = tadData[[1]],
+                            testData = NULL,
+                            tuneParams = list(mtry = 2,
+                                              ntree = 500,
+                                              nodesize = ceiling(nrow(tadData[[1]])*.01)),
+                            cvFolds = 3,
+                            cvMetric = "Accuracy",
+                            verbose = TRUE,
+                            model = TRUE,
+                            importances = TRUE,
+                            impMeasure = "MDA",
+                            performances = FALSE)
+
+# Establishing Hela-specific genomic annotations
+# Reading in CTCF, RAD21, SMC3, and ZNF143 from repository and storing as list
+ctcf <- as.data.frame(read_delim("https://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/ctcf.bed", delim = "\t", col_names = FALSE))
+rad21 <- as.data.frame(read_delim("https://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/rad21.bed", delim = "\t", col_names = FALSE))
+smc3 <- as.data.frame(read_delim("https://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/smc3.bed", delim = "\t", col_names = FALSE))
+znf143 <- as.data.frame(read_delim("https://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/znf143.bed", delim = "\t", col_names = FALSE))
+helaList <- list(ctcf, rad21, smc3, znf143)
+
+hela.GR <- bedToGRangesList(bedList=helaList, bedNames=c("ctcf", "rad21", "smc3", "znf143"), signal=5)
+
+# Run preciseTAD
+set.seed(123)
+pt <- preciseTAD(genomicElements.GR = hela.GR,
+                featureType = "distance",
+                CHR = "CHR22",
+                chromCoords = NULL,
+                tadModel = tadModel[[1]],
+                threshold = 1.0,
+                flank = NULL,
+                verbose = FALSE,
+                parallel = FALSE,
+                cores = NULL,
+                splits = NULL,
+                DBSCAN = TRUE,
+                DBSCAN_params = list(5000, 3),
+                method.Clust = NULL,
+                CLARA = TRUE,
+                method.Dist = "euclidean",
+                samples = 100,
+                juicer = FALSE)
+
+pt
+```
+
 
 # References

@@ -4,15 +4,16 @@
 #' powers of 2, where p is the number of features in the data.
 #'
 #' @param trainData Data frame, the binned data matrix to built a random forest
-#' classifiers (can be obtained using \code{\link{createTADdata}})
+#' classifiers (can be obtained using \code{\link{createTADdata}}). Required.
 #' @param tuneParams List, providing \code{ntree} and \code{nodesize}
-#' parameters to feed into \code{\link{randomForest}}
-#' @param cvFolds Numeric, number of k-fold cross-validation to perform
+#' parameters to feed into \code{\link{randomForest}}. Required.
+#' @param cvFolds Numeric, number of k-fold cross-validation to perform.
+#' Required.
 #' @param cvMetric Character, performance metric to use to choose optimal
 #' tuning parameters (one of either "Kappa", "Accuracy", "MCC","ROC","Sens",
-#' "Spec", "Pos Pred Value", "Neg Pred Value"). Default is "Accuracy"
+#' "Spec", "Pos Pred Value", "Neg Pred Value"). Default is "Accuracy".
 #' @param verbose Logical, controls whether or not details regarding modeling
-#' should be printed out (default is TRUE)
+#' should be printed out. Default is TRUE.
 #'
 #' @return A list containing: 1) the performances extracted at each of the k
 #' folds and, 2) Variable importances among the top features at each step of

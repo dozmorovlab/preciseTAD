@@ -3,12 +3,12 @@
 #'
 #' @param genomicElements.GR \code{GRangesList} object containing GRanges from
 #' each ChIP-seq BED file that was used to train a predictive model (can be
-#' obtained using the \code{\link{bedToGRangesList}}).
+#' obtained using the \code{\link{bedToGRangesList}}). Required.
 #' @param featureType Controls how the feature space is constructed (one of
 #' either "binary", "oc", "op", "signal, or "distance" (log2- transformed).
 #' Default is "distance".
 #' @param CHR Controls which chromosome to predict boundaries on at base-level
-#' resolution.
+#' resolution. Required.
 #' @param chromCoords List containing the starting bp coordinate and ending bp
 #' coordinate that defines the region of the linear genome to make predictions
 #' on. If chromCoords is not specified, then predictions will be made on the
@@ -16,13 +16,14 @@
 #' @param tadModel Model object used to obtain predicted probabilities at base-level
 #' resolution (examples include \code{gbm}, \code{glmnet},
 #' \code{svm}, \code{glm}, etc). For a random forest model, can be obtained
-#' using \code{preciseTAD::randomForest}).
+#' using \code{preciseTAD::randomForest}). Required.
 #' @param threshold Bases with predicted probabilities that are greater
 #' than or equal to this value are labeled as potential TAD boundaries. Values
-#' in the range of .95-1.0 are suggested.
+#' in the range of .95-1.0 are suggested. Required.
 #' @param flank Controls how much to flank the final predicted TAD boundaries
-#' (necessary for evaluating overlaps, etc.). Default is NULL, i.e., no flanking.
-#' @param verbose Option to print progress.
+#' (necessary for evaluating overlaps, etc.). Default is NULL, i.e., no
+#' flanking.
+#' @param verbose Option to print progress. Default is TRUE.
 #' @param parallel Option to parallelise the process for obtaining predicted
 #' probabilities. Default is FALSE.
 #' @param cores Number of cores to use in parallel. Default is NULL.
@@ -32,7 +33,7 @@
 #' agglomerative hierarchical clustering (\code{\link{hclust}}) when clustering
 #' pairwise genomic distance. Default is TRUE.
 #' @param DBSCAN_params Parameters passed to \code{\link{dbscan}} in list form
-#' containing 1) eps and 2) MinPts.
+#' containing 1) eps and 2) MinPts. Required.
 #' @param method.Clust The agglomeration method to be passed to
 #' \code{\link{hclust}}. Default is NULL, indicating to use DBSCAN instead.
 #' @param CLARA Option to use CLARA (\code{\link{clara}}) instead of PAM
@@ -42,7 +43,7 @@
 #' @param samples Number of subsamples if applying CLARA. Default is 100.
 #' Ignored if CLARA=FALSE.
 #' @param juicer Option to return predicted boundaries in a format that allows
-#' for plotting in Juicebox from Aiden Lab.
+#' for plotting in Juicebox from Aiden Lab. Default is FALSE.
 #'
 #' @return A list object containing at most 3 \code{GRanges} elements including:
 #' 1) the genomic coordinates of the called TAD boundaries (CTBP) used to make

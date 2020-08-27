@@ -11,10 +11,10 @@
 #' @param bedNames A character vector to provide names to the GRangesList,
 #' should be in the order of bedList. Default is NULL.
 #' @param pattern Character describing the pattern of the files for the
-#' functional genomic annotations. Default is "*.bed"
+#' functional genomic annotations. Default is "*.bed".
 #' @param signal Numeric referring to the column in the BED files that denotes
 #' coverage strength. Must be the same for all files. Default is 5 (fifth
-#' column), as is the case with most BED files
+#' column), as is the case with most BED files.
 #'
 #' @return A \code{GRangesList} object where each entry is a \code{GRanges}
 #' object specific to each BED file in the path provided

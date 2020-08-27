@@ -5,11 +5,26 @@
 \title{Function to create a GRangesList object from functional genomic annotation
 data derived from ChIP-Seq experiments and in the form of BED files}
 \usage{
-bedToGRangesList(filepath, pattern = "*.bed", signal = 5)
+bedToGRangesList(
+  filepath,
+  bedList = NULL,
+  bedNames = NULL,
+  pattern = "*.bed",
+  signal = 5
+)
 }
 \arguments{
 \item{filepath}{Character describing the path to the folder containing the
-BED files of functional genomic annotations}
+BED files of functional genomic annotations. This is ignored if bedList is
+provided.}
+
+\item{bedList}{A list object containing the bed data as data frames to be
+converted into a GRangesList. The data frames must include at least
+chromosome, start, and end coordinates as the first 3 columns. Default is
+NULL.}
+
+\item{bedNames}{A character vector to provide names to the GRangesList,
+should be in the order of bedList. Default is NULL.}
 
 \item{pattern}{Character describing the pattern of the files for the
 functional genomic annotations. Default is "*.bed"}
@@ -31,5 +46,6 @@ data derived from ChIP-Seq experiments and in the form of BED files
 path <- system.file("extdata", package = "preciseTAD")
 #contains 2 BED files representing YY1 and NFYA
 #transcription factor binding sites for GM12878
-tfbsList <- bedToGRangesList(filepath = path, pattern = "*.bed", signal=4)
+tfbsList <- bedToGRangesList(filepath = path, bedList=NULL, bedNames=NULL,
+pattern = "*.bed", signal=4)
 }

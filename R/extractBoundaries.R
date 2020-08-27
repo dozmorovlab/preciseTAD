@@ -3,13 +3,14 @@
 #' @param domains.mat either a \code{matrix} or \code{data.frame} with at least
 #' 3 coluns. First column is either of class "numeric" or "integer". The second
 #' and third columns are the start and end coordinates of domains, respectively.
+#' Required.
 #' @param preprocess logical, indicating whether or not domains exceeding 2mb
 #' in width or smaller than 2*(the specified resolution) should be filtered out
-#'  (default is FALSE, all boundaries will be used)
+#' (default is FALSE, all boundaries will be used). Required.
 #' @param CHR character, specifying which chromosome(s) to extract domain
-#' boundaries on (ex: "CHR22")
+#' boundaries on (ex: "CHR22"). Required.
 #' @param resolution numeric, the Hi-C data resolution that domains were called
-#' at
+#' at. Ignored if preprocess is FALSE.
 #'
 #' @return A \code{GRanges} object
 #' @export

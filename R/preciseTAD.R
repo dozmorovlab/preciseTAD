@@ -1,9 +1,6 @@
 #' Precise TAD boundary prediction at base-level resolution using density-based
 #' spatial clustering and partitioning techniques
 #'
-#' @param bounds.GR \code{GRanges} object with chromosomal coordinates
-#' of TAD boundaries used to identify positive cases in binary classification.
-#' framework (can be obtained using \code{\link{extractBoundaries}})
 #' @param genomicElements.GR \code{GRangesList} object containing GRanges from
 #' each ChIP-seq BED file that was used to train a predictive model (can be
 #' obtained using the \code{\link{bedToGRangesList}}).
@@ -38,8 +35,6 @@
 #' containing 1) eps and 2) MinPts.
 #' @param method.Clust The agglomeration method to be passed to
 #' \code{\link{hclust}}. Default is NULL, indicating to use DBSCAN instead.
-#' @param PTBR Option to include PTBRs along with predicted boundaries. Default
-#' is TRUE.
 #' @param CLARA Option to use CLARA (\code{\link{clara}}) instead of PAM
 #' (\code{\link{pam}}). Default is TRUE.
 #' @param method.Dist Distance metric passed to \code{\link{clara}} or
@@ -64,8 +59,7 @@
 #' @importFrom stats cutree
 #' @importFrom stats dist
 #' @importFrom dbscan dbscan
-#' @import pbapply parallel doSNOW foreach cluster IRanges
-#' GenomicRanges
+#' @import pbapply parallel doSNOW foreach cluster IRanges GenomicRanges
 #'
 #' @examples
 #' # Read in ARROWHEAD-called TADs at 5kb
@@ -106,14 +100,8 @@
 #'                             impMeasure = "MDA",
 #'                             performances = TRUE)
 #'
-#' bounds.GR <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
-#'                                preprocess = FALSE,
-#'                                CHR = "CHR22",
-#'                                resolution = 5000)
-#'
 #' # Apply preciseTAD on a specific 2mb section of CHR22:17000000-19000000
-#' pt <- preciseTAD(bounds.GR = bounds.GR,
-#'                  genomicElements.GR = tfbsList,
+#' pt <- preciseTAD(genomicElements.GR = tfbsList,
 #'                  featureType = "distance",
 #'                  CHR = "CHR22",
 #'                  chromCoords = list(17000000, 19000000),
@@ -127,15 +115,14 @@
 #'                  DBSCAN = TRUE,
 #'                  DBSCAN_params = list(5000, 3),
 #'                  method.Clust = NULL,
-#'                  PTBR = TRUE,
 #'                  CLARA = TRUE,
 #'                  method.Dist = "euclidean",
 #'                  samples = 100,
 #'                  juicer = FALSE)
-preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", CHR,
+preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
                       chromCoords = NULL, tadModel, threshold, flank = NULL, verbose = TRUE,
                       parallel = FALSE, cores = NULL, splits = NULL, DBSCAN = TRUE, DBSCAN_params,
-                      method.Clust = NULL, PTBR = TRUE, CLARA = TRUE, method.Dist = "euclidean", samples = 100,
+                      method.Clust = NULL, CLARA = TRUE, method.Dist = "euclidean", samples = 100,
                       juicer = FALSE) {
 
     #ESTABLISHING CHROMOSOME-SPECIFIC SEQINFO#
@@ -222,20 +209,12 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
         }
     }
 
-    if (threshold == "roc") {
-        test_data_Y <- ifelse(seqDataTest %in% start(bounds.GR), 1, 0)
-        t <- pROC::coords(pROC::roc(test_data_Y, predictions, quiet = TRUE),
-                          "best", ret = "threshold", transpose = FALSE, best.method = "closest.topleft")
-    } else {
-        t <- threshold
-    }
-
     if (verbose == TRUE) {
-        print(paste0("preciseTAD identified a total of ", length(diff(seqDataTest[which(predictions >= t)])), " base pairs whose predictive probability was equal to or exceeded a threshold of ",
-                     t))
+        print(paste0("preciseTAD identified a total of ", length(diff(seqDataTest[which(predictions >= threshold)])), " base pairs whose predictive probability was equal to or exceeded a threshold of ",
+                     threshold))
     }
 
-    retain <- c(1, cumsum(ifelse(diff(seqDataTest[which(predictions >= t)]) !=
+    retain <- c(1, cumsum(ifelse(diff(seqDataTest[which(predictions >= threshold)]) !=
                                      1, 1, 0)) + 1)
 
     if (verbose == TRUE) {
@@ -243,7 +222,7 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
         print("Establishing PTBRs")
     }
 
-    mid <- tapply(seqDataTest[which(predictions >= t)], retain, function(x) {
+    mid <- tapply(seqDataTest[which(predictions >= threshold)], retain, function(x) {
         return(ceiling((x[1] + x[length(x)])/2))
     })
 
@@ -310,15 +289,10 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
     predBound_gr <- GRanges(seqnames = tolower(CHR), IRanges(start = seqDataTest[which(seqDataTest %in%
                                                                                            medoids)], end = seqDataTest[which(seqDataTest %in% medoids)]))
 
-    trueBound_gr <- GRanges(seqnames = tolower(CHR), IRanges(start = seqDataTest[which(seqDataTest %in%
-                                                                                           start(bounds.GR))], end = seqDataTest[which(seqDataTest %in% start(bounds.GR))]))
-
     if (!is.null(flank)) {
         predBound_gr <- flank(predBound_gr, width = flank, both = TRUE)
-        trueBound_gr <- flank(trueBound_gr, width = flank, both = TRUE)
     }
 
-    if (PTBR == TRUE) {
         grlist <- GRangesList()
         for (i in seq_len(length(unique(clustering)))) {
 
@@ -335,19 +309,12 @@ preciseTAD = function(bounds.GR, genomicElements.GR, featureType = "distance", C
         gr <- unlist(grlist)
 
         if (juicer == TRUE) {
-            bp_results <- list(CTBP = trueBound_gr, PTBP = juicer_func(predBound_gr),
-                               PTBR = gr)
+            bp_results <- list(PTBR = gr,
+                               PTBP = juicer_func(predBound_gr))
         } else {
-            bp_results <- list(CTBP = trueBound_gr, PTBP = predBound_gr, PTBR = gr)
+            bp_results <- list(PTBR = gr,
+                               PTBP = predBound_gr)
         }
-    } else {
-        if (juicer == TRUE) {
-            bp_results <- list(CTBP = trueBound_gr, PTBP = juicer_func(predBound_gr),
-                               PTBR = NULL)
-        } else {
-            bp_results <- list(CTBP = trueBound_gr, PTBP = predBound_gr, PTBR = NULL)
-        }
-    }
 
     return(bp_results)
 }

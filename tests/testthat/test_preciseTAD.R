@@ -38,15 +38,9 @@ test_that("Whether preciseTAD gives us the same output", {
                                 impMeasure="MDA",
                                 performances=TRUE)
 
-    bounds.GR <- extractBoundaries(domains.mat=arrowhead_gm12878_5kb,
-                                   preprocess=FALSE,
-                                   CHR="CHR22",
-                                   resolution=5000)
-
     set.seed(123)
 
-    pt <- preciseTAD(bounds.GR=bounds.GR,
-                     genomicElements.GR=tfbsList_filt,
+    pt <- preciseTAD(genomicElements.GR=tfbsList_filt,
                      featureType="distance",
                      CHR="CHR22",
                      chromCoords=list(17000000,19000000),
@@ -60,13 +54,12 @@ test_that("Whether preciseTAD gives us the same output", {
                      DBSCAN=TRUE,
                      DBSCAN_params=list(5000,3),
                      method.Clust=NULL,
-                     PTBR=TRUE,
                      CLARA=TRUE,
                      method.Dist="euclidean",
                      samples=100,
                      juicer=FALSE)
 
-    expect_equal(length(pt[[1]]), 12)
+    expect_equal(width(pt[[1]])[1], 13189)
 
     expect_equal(length(pt[[2]]), 9)
 

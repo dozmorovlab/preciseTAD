@@ -6,7 +6,6 @@
 spatial clustering and partitioning techniques}
 \usage{
 preciseTAD(
-  bounds.GR,
   genomicElements.GR,
   featureType = "distance",
   CHR,
@@ -21,7 +20,6 @@ preciseTAD(
   DBSCAN = TRUE,
   DBSCAN_params,
   method.Clust = NULL,
-  PTBR = TRUE,
   CLARA = TRUE,
   method.Dist = "euclidean",
   samples = 100,
@@ -29,10 +27,6 @@ preciseTAD(
 )
 }
 \arguments{
-\item{bounds.GR}{\code{GRanges} object with chromosomal coordinates
-of TAD boundaries used to identify positive cases in binary classification.
-framework (can be obtained using \code{\link{extractBoundaries}})}
-
 \item{genomicElements.GR}{\code{GRangesList} object containing GRanges from
 each ChIP-seq BED file that was used to train a predictive model (can be
 obtained using the \code{\link{bedToGRangesList}}).}
@@ -80,9 +74,6 @@ containing 1) eps and 2) MinPts.}
 
 \item{method.Clust}{The agglomeration method to be passed to
 \code{\link{hclust}}. Default is NULL, indicating to use DBSCAN instead.}
-
-\item{PTBR}{Option to include PTBRs along with predicted boundaries. Default
-is TRUE.}
 
 \item{CLARA}{Option to use CLARA (\code{\link{clara}}) instead of PAM
 (\code{\link{pam}}). Default is TRUE.}
@@ -147,14 +138,8 @@ tadModel <- TADrandomForest(trainData = tadData[[1]],
                             impMeasure = "MDA",
                             performances = TRUE)
 
-bounds.GR <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
-                               preprocess = FALSE,
-                               CHR = "CHR22",
-                               resolution = 5000)
-
 # Apply preciseTAD on a specific 2mb section of CHR22:17000000-19000000
-pt <- preciseTAD(bounds.GR = bounds.GR,
-                 genomicElements.GR = tfbsList,
+pt <- preciseTAD(genomicElements.GR = tfbsList,
                  featureType = "distance",
                  CHR = "CHR22",
                  chromCoords = list(17000000, 19000000),
@@ -168,7 +153,6 @@ pt <- preciseTAD(bounds.GR = bounds.GR,
                  DBSCAN = TRUE,
                  DBSCAN_params = list(5000, 3),
                  method.Clust = NULL,
-                 PTBR = TRUE,
                  CLARA = TRUE,
                  method.Dist = "euclidean",
                  samples = 100,

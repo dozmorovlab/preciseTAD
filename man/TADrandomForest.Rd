@@ -22,7 +22,7 @@ TADrandomForest(
 }
 \arguments{
 \item{trainData}{Data frame, the binned data matrix to built a random forest
-classifiers (can be obtained using \code{\link{createTADdata}})}
+classifiers (can be obtained using \code{\link{createTADdata}}). Required.}
 
 \item{testData}{Data frame, the binned data matrix to test random forest
 classifiers (can be obtained using \code{\link{createTADdata}}). The first
@@ -31,32 +31,32 @@ case no performances are evaluated.}
 
 \item{tuneParams}{List, providing \code{mtry}, \code{ntree}, and
 \code{nodesize} parameters to feed into \code{\link{randomForest}}. Default
-is list(mtry = ceiling(sqrt(ncol(trainData) - 1)), ntree = 500, nodesize = 1).
-If multiple values are provided, then a grid search is performed to tune the
-model.}
+is list(mtry = ceiling(sqrt(ncol(trainData) - 1)), ntree = 500,
+nodesize = 1). If multiple values are provided, then a grid search is
+performed to tune the model. Required.}
 
 \item{cvFolds}{Numeric, number of k-fold cross-validation to perform in
-order to tune the hyperparameters}
+order to tune the hyperparameters. Required.}
 
 \item{cvMetric}{Character, performance metric to use to choose optimal
 tuning parameters (one of either "Kappa", "Accuracy", "MCC", "ROC", "Sens",
-"Spec", "Pos Pred Value", "Neg Pred Value"). Default is "Accuracy"}
+"Spec", "Pos Pred Value", "Neg Pred Value"). Default is "Accuracy".}
 
 \item{verbose}{Logical, controls whether or not details regarding modeling
-should be printed out (default is TRUE)}
+should be printed out. Default is TRUE.}
 
-\item{model}{Logical, whether to keep the model object. Default is TRUE}
+\item{model}{Logical, whether to keep the model object. Default is TRUE.}
 
 \item{importances}{Logical, whether to extract variable importances. Default
-is TRUE}
+is TRUE.}
 
 \item{impMeasure}{Character, indicates the variable importance measure to
 use (one of either "MDA" (mean decrease in accuracy) or "MDG" (mean decrease
-in gini)). Ignored if importances = FALSE}
+in gini)). Ignored if importances = FALSE.}
 
 \item{performances}{Logical, indicates whether various performance metrics
 should be extracted when validating the model on the test data. Ignored if
-testData = NULL}
+testData = NULL.}
 }
 \value{
 A list containg: 1) a train object from \code{caret} with model

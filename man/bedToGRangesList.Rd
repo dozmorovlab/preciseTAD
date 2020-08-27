@@ -27,11 +27,11 @@ NULL.}
 should be in the order of bedList. Default is NULL.}
 
 \item{pattern}{Character describing the pattern of the files for the
-functional genomic annotations. Default is "*.bed"}
+functional genomic annotations. Default is "*.bed".}
 
 \item{signal}{Numeric referring to the column in the BED files that denotes
 coverage strength. Must be the same for all files. Default is 5 (fifth
-column), as is the case with most BED files}
+column), as is the case with most BED files.}
 }
 \value{
 A \code{GRangesList} object where each entry is a \code{GRanges}

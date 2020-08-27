@@ -29,14 +29,14 @@ preciseTAD(
 \arguments{
 \item{genomicElements.GR}{\code{GRangesList} object containing GRanges from
 each ChIP-seq BED file that was used to train a predictive model (can be
-obtained using the \code{\link{bedToGRangesList}}).}
+obtained using the \code{\link{bedToGRangesList}}). Required.}
 
 \item{featureType}{Controls how the feature space is constructed (one of
 either "binary", "oc", "op", "signal, or "distance" (log2- transformed).
 Default is "distance".}
 
 \item{CHR}{Controls which chromosome to predict boundaries on at base-level
-resolution.}
+resolution. Required.}
 
 \item{chromCoords}{List containing the starting bp coordinate and ending bp
 coordinate that defines the region of the linear genome to make predictions
@@ -46,16 +46,17 @@ entire chromosome. Default is NULL.}
 \item{tadModel}{Model object used to obtain predicted probabilities at base-level
 resolution (examples include \code{gbm}, \code{glmnet},
 \code{svm}, \code{glm}, etc). For a random forest model, can be obtained
-using \code{preciseTAD::randomForest}).}
+using \code{preciseTAD::randomForest}). Required.}
 
 \item{threshold}{Bases with predicted probabilities that are greater
 than or equal to this value are labeled as potential TAD boundaries. Values
-in the range of .95-1.0 are suggested.}
+in the range of .95-1.0 are suggested. Required.}
 
 \item{flank}{Controls how much to flank the final predicted TAD boundaries
-(necessary for evaluating overlaps, etc.). Default is NULL, i.e., no flanking.}
+(necessary for evaluating overlaps, etc.). Default is NULL, i.e., no
+flanking.}
 
-\item{verbose}{Option to print progress.}
+\item{verbose}{Option to print progress. Default is TRUE.}
 
 \item{parallel}{Option to parallelise the process for obtaining predicted
 probabilities. Default is FALSE.}
@@ -70,7 +71,7 @@ agglomerative hierarchical clustering (\code{\link{hclust}}) when clustering
 pairwise genomic distance. Default is TRUE.}
 
 \item{DBSCAN_params}{Parameters passed to \code{\link{dbscan}} in list form
-containing 1) eps and 2) MinPts.}
+containing 1) eps and 2) MinPts. Required.}
 
 \item{method.Clust}{The agglomeration method to be passed to
 \code{\link{hclust}}. Default is NULL, indicating to use DBSCAN instead.}
@@ -85,7 +86,7 @@ containing 1) eps and 2) MinPts.}
 Ignored if CLARA=FALSE.}
 
 \item{juicer}{Option to return predicted boundaries in a format that allows
-for plotting in Juicebox from Aiden Lab.}
+for plotting in Juicebox from Aiden Lab. Default is FALSE.}
 }
 \value{
 A list object containing at most 3 \code{GRanges} elements including:

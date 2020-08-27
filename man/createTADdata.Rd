@@ -18,34 +18,34 @@ createTADdata(
 \arguments{
 \item{bounds.GR}{a GRanges object with chromosomal coordinates of TAD
 boundaries used to identify positive cases (can be obtained using
-\code{\link{extractBoundaries}})}
+\code{\link{extractBoundaries}}). Required.}
 
 \item{resolution}{Numeric, the width to bin the genome at, should match the
-resolution that TADs were called at}
+resolution that TADs were called at. Required.}
 
 \item{genomicElements.GR}{a GRangesList object containing GRanges objects
 for each ChIP-seq data to leverage in the random forest model (can be
-obtained using the \code{\link{bedToGRangesList}})}
+obtained using the \code{\link{bedToGRangesList}}). Required.}
 
 \item{featureType}{Character, controls how the feature space is constructed
 (one of either "binary" (overlap yes/no), "oc" (overlap counts, the number
 of overlaps), "op" (overlap percent, the percent of bin width covered by the
 genomic annotation), or "distance" (log2-transformed distance from the center
 of the nearest genomic annotation to the center of the bin); default is
-"distance")}
+"distance"). Required.}
 
 \item{resampling}{Character, controls if and how the data should be
 resampled to create balanced classes of boundary vs. nonboundary regions (one
 of either "none" - no re-sampling, "ros" - Random Over-Sampling, "rus" -
 Random Under-Sampling, or "smote" - Synthetic Minority Over-sampling
-TEchnique)}
+TEchnique). Required.}
 
 \item{trainCHR}{Character vector of chromosomes to use to build the binned
-data matrix for training}
+data matrix for training. Required.}
 
 \item{predictCHR}{Character vector of chromosomes to use to build the binned
 data matrix for testing. Default in NULL, indicating no test data is created.
- If trainCHR=predictCHR then a 7:3 split is created}
+ If trainCHR=predictCHR then a 7:3 split is created.}
 }
 \value{
 A list object containing two data.frames: 1) the training data, 2)

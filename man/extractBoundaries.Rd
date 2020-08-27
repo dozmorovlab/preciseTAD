@@ -9,17 +9,18 @@ extractBoundaries(domains.mat, preprocess = FALSE, CHR, resolution)
 \arguments{
 \item{domains.mat}{either a \code{matrix} or \code{data.frame} with at least
 3 coluns. First column is either of class "numeric" or "integer". The second
-and third columns are the start and end coordinates of domains, respectively.}
+and third columns are the start and end coordinates of domains, respectively.
+Required.}
 
 \item{preprocess}{logical, indicating whether or not domains exceeding 2mb
 in width or smaller than 2*(the specified resolution) should be filtered out
- (default is FALSE, all boundaries will be used)}
+(default is FALSE, all boundaries will be used). Required.}
 
 \item{CHR}{character, specifying which chromosome(s) to extract domain
-boundaries on (ex: "CHR22")}
+boundaries on (ex: "CHR22"). Required.}
 
 \item{resolution}{numeric, the Hi-C data resolution that domains were called
-at}
+at. Ignored if preprocess is FALSE.}
 }
 \value{
 A \code{GRanges} object

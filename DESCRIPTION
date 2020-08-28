@@ -58,3 +58,5 @@ Imports:
     parallel
 biocViews: Software, HiC, Sequencing, Clustering, 
     Classification, FunctionalGenomics, FeatureExtraction
+BugReports: https://github.com/dozmorovlab/preciseTAD/issues
+URL: https://github.com/dozmorovlab/preciseTAD

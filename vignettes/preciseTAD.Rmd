@@ -288,7 +288,7 @@ write.table(pt_chr22_255mb_275mb,
 
 These data need to be assembled in a GRanges object using the aforementioned `bedToGRangesList` function (i.e. creating another cell type-specific `tfbsList_filt` object). As an example, we consider Hela-S3 cell line. We can leverage our RF model trained on GM12878 ground truth boundaries (Arrowhead or Peakachu) to predict the boundaries for Hela-S3 on chr22.
 
-The pre-trained model `tadModel` can be obtained by using `bedToGRangesList`, `extractBoundaries`, `createTADdata`, and `TADrandomForest` functions, as described. Alternatively, chromosome-specific pre-trained models can be downloaded from the [Google Drive folder](https://drive.google.com/drive/folders/10YGvuDxAuJtMkM7y5Pzntpkp1coomDzG). We recommend models pre-trained using GM12878 genome annotation data and Peakachu peaks. Note that each model is annotated with "CHRi_holdout", representing the chromosome that was held out of training, and thus to be used to predict boundaries. In the following example we use chr1-chr21 from GM12878 to predict TAD boundaries for chr22 from Hela-S3. Therefore, we opt to download [tadRF_CHR22_holdout_gm12878_arrowhead_gt.rds](https://1drv.ms/u/s!AhmbAyu-bORbgutoatqVlLzNMH_L1g?e=5AS27f). [??? Rename files. Swap to Peakachu model. Add direct download link; !!!swapped and added] 
+The pre-trained model `tadModel` can be obtained by using `bedToGRangesList`, `extractBoundaries`, `createTADdata`, and `TADrandomForest` functions, as described. Alternatively, chromosome-specific pre-trained models can be downloaded from the [Google Drive folder](https://1drv.ms/u/s!AhmbAyu-bORbgutlR0_b-DJP9jTNKw?e=zZhASJ). We recommend models pre-trained using GM12878 genome annotation data and Peakachu peaks. Note that each model is annotated with "CHRi_holdout", representing the chromosome that was held out of training, and thus to be used to predict boundaries. In the following example we use chr1-chr21 from GM12878 to predict TAD boundaries for chr22 from Hela-S3. Therefore, we opt to download [tadRF_CHR22_holdout_gm12878_arrowhead_gt.rds](https://1drv.ms/u/s!AhmbAyu-bORbgutomn2MXY_YRjdPDA?e=SW0GPO). [??? Rename files. Swap to Peakachu model. Add direct download link; !!!swapped and added] 
 
 ```{r, eval=FALSE}
 # Read in RF model built on chr1-chr21
@@ -300,10 +300,10 @@ The Hela-S3-specific TFBS data can be downloaded at [ENCODE](https://www.encodep
 ```{r, eval=FALSE}
 # Establishing Hela-specific genomic annotations
 # Reading in CTCF, RAD21, SMC3, and ZNF143 from repository and storing as list
-ctcf <- as.data.frame(read_delim("https://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/ctcf.bed", delim = "\t", col_names = FALSE))
-rad21 <- as.data.frame(read_delim("https://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/rad21.bed", delim = "\t", col_names = FALSE))
-smc3 <- as.data.frame(read_delim("https://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/smc3.bed", delim = "\t", col_names = FALSE))
-znf143 <- as.data.frame(read_delim("https://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/znf143.bed", delim = "\t", col_names = FALSE))
+ctcf <- as.data.frame(read_delim("http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/ctcf.bed", delim = "\t", col_names = FALSE))
+rad21 <- as.data.frame(read_delim("http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/rad21.bed", delim = "\t", col_names = FALSE))
+smc3 <- as.data.frame(read_delim("http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/smc3.bed", delim = "\t", col_names = FALSE))
+znf143 <- as.data.frame(read_delim("http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/znf143.bed", delim = "\t", col_names = FALSE))
 helaList <- list(ctcf, rad21, smc3, znf143)
 
 hela.GR <- bedToGRangesList(bedList=helaList, bedNames=c("ctcf", "rad21", "smc3", "znf143"), signal=5)

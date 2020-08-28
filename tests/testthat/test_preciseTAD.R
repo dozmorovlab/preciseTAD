@@ -51,13 +51,8 @@ test_that("Whether preciseTAD gives us the same output", {
                      parallel=TRUE,
                      cores=2,
                      splits=2,
-                     DBSCAN=TRUE,
                      DBSCAN_params=list(5000,3),
-                     method.Clust=NULL,
-                     CLARA=TRUE,
-                     method.Dist="euclidean",
-                     samples=100,
-                     juicer=FALSE)
+                     samples=100)
 
     expect_equal(width(pt[[1]])[1], 13189)
 

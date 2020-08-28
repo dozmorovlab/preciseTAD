@@ -1,4 +1,6 @@
 Changes in version 0.99.5 (2020-08-21)
++ Update preciseTAD function
+  o streamlined function parameters
 + Update vignette
 + Update DESCRIPTION
   o Package description

@@ -29,21 +29,10 @@
 #' @param cores Number of cores to use in parallel. Default is NULL.
 #' @param splits Number of splits of the test data to speed up the prediction.
 #' Default is NULL.
-#' @param DBSCAN Whether or not to use \code{\link{dbscan}} instead of
-#' agglomerative hierarchical clustering (\code{\link{hclust}}) when clustering
-#' pairwise genomic distance. Default is TRUE.
 #' @param DBSCAN_params Parameters passed to \code{\link{dbscan}} in list form
 #' containing 1) eps and 2) MinPts. Required.
-#' @param method.Clust The agglomeration method to be passed to
-#' \code{\link{hclust}}. Default is NULL, indicating to use DBSCAN instead.
-#' @param CLARA Option to use CLARA (\code{\link{clara}}) instead of PAM
-#' (\code{\link{pam}}). Default is TRUE.
-#' @param method.Dist Distance metric passed to \code{\link{clara}} or
-#' \code{\link{pam}} (if CLARA=FALSE). Default is "euclidean".
 #' @param samples Number of subsamples if applying CLARA. Default is 100.
 #' Ignored if CLARA=FALSE.
-#' @param juicer Option to return predicted boundaries in a format that allows
-#' for plotting in Juicebox from Aiden Lab. Default is FALSE.
 #'
 #' @return A list object containing at most 3 \code{GRanges} elements including:
 #' 1) the genomic coordinates of the called TAD boundaries (CTBP) used to make
@@ -113,18 +102,12 @@
 #'                  parallel = TRUE,
 #'                  cores = 2,
 #'                  splits = 2,
-#'                  DBSCAN = TRUE,
 #'                  DBSCAN_params = list(5000, 3),
-#'                  method.Clust = NULL,
-#'                  CLARA = TRUE,
-#'                  method.Dist = "euclidean",
-#'                  samples = 100,
-#'                  juicer = FALSE)
+#'                  samples = 100)
 preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
-                      chromCoords = NULL, tadModel, threshold, flank = NULL, verbose = TRUE,
-                      parallel = FALSE, cores = NULL, splits = NULL, DBSCAN = TRUE, DBSCAN_params,
-                      method.Clust = NULL, CLARA = TRUE, method.Dist = "euclidean", samples = 100,
-                      juicer = FALSE) {
+                      chromCoords = NULL, tadModel, threshold, flank = NULL,
+                      verbose = TRUE, parallel = FALSE, cores = NULL,
+                      splits = NULL, DBSCAN_params, samples = 100) {
 
     #ESTABLISHING CHROMOSOME-SPECIFIC SEQINFO#
 
@@ -229,20 +212,20 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
 
     mid <- as.vector(mid)
 
-    if (DBSCAN == FALSE) {
-        dist_mat <- dist(mid, method = "euclidean")
-        if (verbose == TRUE) {
-            print("Initializing hierarchical clustering")
-        }
-        hc1 <- hclust(dist_mat, method = method.Clust)
-        k <- pbsapply(2:(length(mid) - 1), function(i) {
-            mean(silhouette(cutree(hc1, i), dist = dist_mat)[, "sil_width"])
-        })
-        k = which.max(k) + 1
-        if (verbose == TRUE) {
-            print(paste0("preciseTAD identified ", k, " PTBRs"))
-        }
-    } else {
+    #if (DBSCAN == FALSE) {
+    #    dist_mat <- dist(mid, method = "euclidean")
+    #    if (verbose == TRUE) {
+    #        print("Initializing hierarchical clustering")
+    #    }
+    #    hc1 <- hclust(dist_mat, method = method.Clust)
+    #    k <- pbsapply(2:(length(mid) - 1), function(i) {
+    #        mean(silhouette(cutree(hc1, i), dist = dist_mat)[, "sil_width"])
+    #    })
+    #    k = which.max(k) + 1
+    #    if (verbose == TRUE) {
+    #        print(paste0("preciseTAD identified ", k, " PTBRs"))
+    #    }
+    #} else {
         if (verbose == TRUE) {
             print("Initializing DBSCAN")
         }
@@ -255,37 +238,37 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
         if (verbose == TRUE) {
             print(paste0("preciseTAD identified ", k, " PTBRs"))
         }
-    }
+    #}
 
-    if (CLARA == TRUE) {
+    #if (CLARA == TRUE) {
         if (verbose == TRUE) {
             print(paste0("Initializing CLARA with ", k, " clusters"))
-            c <- clara(mid, k = k, samples = samples, metric = method.Dist, stand = FALSE,
+            c <- clara(mid, k = k, samples = samples, metric = "euclidean", stand = FALSE,
                        trace = 2, medoids.x = TRUE, rngR = TRUE)
             medoids <- c$medoids
             clustering <- c$clustering
         } else {
-            c <- clara(mid, k = k, samples = samples, metric = method.Dist, stand = FALSE,
+            c <- clara(mid, k = k, samples = samples, metric = "euclidean", stand = FALSE,
                        trace = 0, medoids.x = TRUE, keep.data = FALSE, rngR = TRUE)
             medoids <- c$medoids
             clustering <- c$clustering
         }
-    } else {
-        if (verbose == TRUE) {
-            print(paste0("Initializing PAM with ", k, " clusters"))
-            c <- pam(x = mid, k = k, diss = FALSE, metric = method.Dist, medoids = NULL,
-                     stand = FALSE, cluster.only = FALSE, do.swap = TRUE, keep.diss = FALSE,
-                     trace.lev = 2)
-            medoids <- c$medoids
-            clustering <- c$clustering
-        } else {
-            c <- pam(x = mid, k = k, diss = FALSE, metric = method.Dist, medoids = NULL,
-                     stand = FALSE, cluster.only = FALSE, do.swap = TRUE, keep.diss = FALSE,
-                     trace.lev = 0)
-            medoids <- c$medoids
-            clustering <- c$clustering
-        }
-    }
+    #} else {
+    #    if (verbose == TRUE) {
+    #        print(paste0("Initializing PAM with ", k, " clusters"))
+    #        c <- pam(x = mid, k = k, diss = FALSE, metric = method.Dist, medoids = NULL,
+    #                 stand = FALSE, cluster.only = FALSE, do.swap = TRUE, keep.diss = FALSE,
+    #                 trace.lev = 2)
+    #        medoids <- c$medoids
+    #        clustering <- c$clustering
+    #    } else {
+    #        c <- pam(x = mid, k = k, diss = FALSE, metric = method.Dist, medoids = NULL,
+    #                 stand = FALSE, cluster.only = FALSE, do.swap = TRUE, keep.diss = FALSE,
+    #                 trace.lev = 0)
+    #        medoids <- c$medoids
+    #        clustering <- c$clustering
+    #    }
+    #}
 
     predBound_gr <- GRanges(seqnames = tolower(CHR), IRanges(start = seqDataTest[which(seqDataTest %in%
                                                                                            medoids)], end = seqDataTest[which(seqDataTest %in% medoids)]))
@@ -309,13 +292,13 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
         }
         gr <- unlist(grlist)
 
-        if (juicer == TRUE) {
-            bp_results <- list(PTBR = gr,
-                               PTBP = juicer_func(predBound_gr))
-        } else {
+        #if (juicer == TRUE) {
+        #    bp_results <- list(PTBR = gr,
+        #                       PTBP = juicer_func(predBound_gr))
+        #} else {
             bp_results <- list(PTBR = gr,
                                PTBP = predBound_gr)
-        }
+        #}
 
     return(bp_results)
 }

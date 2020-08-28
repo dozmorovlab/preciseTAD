@@ -17,13 +17,8 @@ preciseTAD(
   parallel = FALSE,
   cores = NULL,
   splits = NULL,
-  DBSCAN = TRUE,
   DBSCAN_params,
-  method.Clust = NULL,
-  CLARA = TRUE,
-  method.Dist = "euclidean",
-  samples = 100,
-  juicer = FALSE
+  samples = 100
 )
 }
 \arguments{
@@ -66,27 +61,11 @@ probabilities. Default is FALSE.}
 \item{splits}{Number of splits of the test data to speed up the prediction.
 Default is NULL.}
 
-\item{DBSCAN}{Whether or not to use \code{\link{dbscan}} instead of
-agglomerative hierarchical clustering (\code{\link{hclust}}) when clustering
-pairwise genomic distance. Default is TRUE.}
-
 \item{DBSCAN_params}{Parameters passed to \code{\link{dbscan}} in list form
 containing 1) eps and 2) MinPts. Required.}
 
-\item{method.Clust}{The agglomeration method to be passed to
-\code{\link{hclust}}. Default is NULL, indicating to use DBSCAN instead.}
-
-\item{CLARA}{Option to use CLARA (\code{\link{clara}}) instead of PAM
-(\code{\link{pam}}). Default is TRUE.}
-
-\item{method.Dist}{Distance metric passed to \code{\link{clara}} or
-\code{\link{pam}} (if CLARA=FALSE). Default is "euclidean".}
-
 \item{samples}{Number of subsamples if applying CLARA. Default is 100.
 Ignored if CLARA=FALSE.}
-
-\item{juicer}{Option to return predicted boundaries in a format that allows
-for plotting in Juicebox from Aiden Lab. Default is FALSE.}
 }
 \value{
 A list object containing at most 3 \code{GRanges} elements including:
@@ -151,11 +130,6 @@ pt <- preciseTAD(genomicElements.GR = tfbsList,
                  parallel = TRUE,
                  cores = 2,
                  splits = 2,
-                 DBSCAN = TRUE,
                  DBSCAN_params = list(5000, 3),
-                 method.Clust = NULL,
-                 CLARA = TRUE,
-                 method.Dist = "euclidean",
-                 samples = 100,
-                 juicer = FALSE)
+                 samples = 100)
 }

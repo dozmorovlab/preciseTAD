@@ -127,7 +127,7 @@ To identify genomic annotations best predictive of TAD boundaries, `preciseTAD` 
 
 ```{r}
 # path <- "./path/to/BEDfiles"
-# tfbsList <- bedToGRangesList(filepath=path, pattern = "*.bed", signal=4)
+# tfbsList <- bedToGRangesList(filepath=path, bedList=NULL, bedNames=NULL, pattern = "*.bed", signal=4)
 
 data("tfbsList")
 names(tfbsList)
@@ -259,13 +259,8 @@ pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                 parallel = FALSE,
                 cores = NULL,
                 splits = NULL,
-                DBSCAN = TRUE,
                 DBSCAN_params = list(5000, 3),
-                method.Clust = NULL,
-                CLARA = TRUE,
-                method.Dist = "euclidean",
-                samples = 100,
-                juicer = FALSE)
+                samples = 100)
 
 # View the results
 pt
@@ -275,7 +270,7 @@ The output of `preciseTAD::preciseTAD()` function is a list object with two elem
 
 ### Using preciseTAD with Juicebox
 
-Juicebox is an interface provided by Aiden Lab that allows for superimposing boundary coordinates onto Hi-C contact maps. To visualize domains flanked by the predicted boundaries, you must first select a Hi-C map. As an example, you can import the contact matrix for GM12878 derived by Rao et al. 2014 by choosing `File -> Open... -> Rao and Huntley et al. -> GM12878 -> in situ Mbol -> primary`. To format `preciseTAD` results to use in Juicebox, you must make sure to set `juicer=TRUE` in the function. 
+Juicebox is an interface provided by Aiden Lab that allows for superimposing boundary coordinates onto Hi-C contact maps. To visualize domains flanked by the predicted boundaries, you must first select a Hi-C map. As an example, you can import the contact matrix for GM12878 derived by Rao et al. 2014 by choosing `File -> Open... -> Rao and Huntley et al. -> GM12878 -> in situ Mbol -> primary`. To format `preciseTAD` results to use in Juicebox, users can take advantage of `preciseTAD::juicer_func`, which is a function available in the `preciseTAD` R package that transforms a GRanges object into a data frame as shown below. 
 
 ```{r}
 # Run preciseTAD
@@ -291,25 +286,19 @@ pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                 parallel = FALSE,
                 cores = NULL,
                 splits = NULL,
-                DBSCAN = TRUE,
                 DBSCAN_params = list(5000, 3),
-                method.Clust = NULL,
-                CLARA = TRUE,
-                method.Dist = "euclidean",
-                samples = 100,
-                juicer = TRUE)
+                samples = 100)
 
-# View the results
-pt$PTBP
+# Transform
+pt_juice <- juicer_func(pt[[2]])
 ```
 
 You will then need to save the PTBPs as a BED file using `write.table` as shown below. Once saved, import them into Juicebox using `Show Annotation Panel -> 2D Annotations -> Add Local -> pt_chr22_255mb_275mb.bed`.
 
 ```{r, eval=FALSE}
-pt_chr22_255mb_275mb <- pt$PTBP
 filepath = "~/path/to/store/ptbps"
 write.table(pt_chr22_255mb_275mb, 
-            file.path(filepath, "pt_chr22_255mb_275mb.bed"),
+            file.path(filepath, "pt_juice.bed"),
             quote = FALSE,
             col.names = FALSE,
             row.names = FALSE,

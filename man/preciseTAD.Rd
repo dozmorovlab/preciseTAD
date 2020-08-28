@@ -11,14 +11,11 @@ preciseTAD(
   CHR,
   chromCoords = NULL,
   tadModel,
-  threshold,
+  threshold = 1,
   flank = NULL,
   verbose = TRUE,
-  parallel = FALSE,
-  cores = NULL,
-  splits = NULL,
-  DBSCAN_params,
-  samples = 100
+  parallel = NULL,
+  DBSCAN_params
 )
 }
 \arguments{
@@ -38,14 +35,14 @@ coordinate that defines the region of the linear genome to make predictions
 on. If chromCoords is not specified, then predictions will be made on the
 entire chromosome. Default is NULL.}
 
-\item{tadModel}{Model object used to obtain predicted probabilities at base-level
-resolution (examples include \code{gbm}, \code{glmnet},
+\item{tadModel}{Model object used to obtain predicted probabilities at
+base-level resolution (examples include \code{gbm}, \code{glmnet},
 \code{svm}, \code{glm}, etc). For a random forest model, can be obtained
 using \code{preciseTAD::randomForest}). Required.}
 
 \item{threshold}{Bases with predicted probabilities that are greater
 than or equal to this value are labeled as potential TAD boundaries. Values
-in the range of .95-1.0 are suggested. Required.}
+in the range of .95-1.0 are suggested. Default is 1.}
 
 \item{flank}{Controls how much to flank the final predicted TAD boundaries
 (necessary for evaluating overlaps, etc.). Default is NULL, i.e., no
@@ -54,26 +51,16 @@ flanking.}
 \item{verbose}{Option to print progress. Default is TRUE.}
 
 \item{parallel}{Option to parallelise the process for obtaining predicted
-probabilities. Default is FALSE.}
-
-\item{cores}{Number of cores to use in parallel. Default is NULL.}
-
-\item{splits}{Number of splits of the test data to speed up the prediction.
-Default is NULL.}
+probabilities. Must be number to indicate the number of cores to use in
+parallel. Default is NULL.}
 
 \item{DBSCAN_params}{Parameters passed to \code{\link{dbscan}} in list form
 containing 1) eps and 2) MinPts. Required.}
-
-\item{samples}{Number of subsamples if applying CLARA. Default is 100.
-Ignored if CLARA=FALSE.}
 }
 \value{
-A list object containing at most 3 \code{GRanges} elements including:
-1) the genomic coordinates of the called TAD boundaries (CTBP) used to make
-predictions, 2) the genomic coordinates of preciseTAD predicted
-boundaries (PTBP) (if `juicer=TRUE`, this will be a data.frame that can be
-saved and imported into Juicer as a BED file), and 2) the genomic coordinates
-of preciseTAD predicted regions (PTBRs)if PTBR=TRUE (else NULL)
+A list object containing 2 \code{GRanges} elements including:
+1) the genomic coordinates of preciseTAD predicted regions (PTBRs), and 2)
+the genomic coordinates of preciseTAD predicted boundaries (PTBP)
 }
 \description{
 Precise TAD boundary prediction at base-level resolution using density-based
@@ -124,12 +111,9 @@ pt <- preciseTAD(genomicElements.GR = tfbsList,
                  CHR = "CHR22",
                  chromCoords = list(17000000, 19000000),
                  tadModel = tadModel[[1]],
-                 threshold = .75,
+                 threshold = 1,
                  flank = NULL,
                  verbose = TRUE,
-                 parallel = TRUE,
-                 cores = 2,
-                 splits = 2,
-                 DBSCAN_params = list(5000, 3),
-                 samples = 100)
+                 parallel = NULL,
+                 DBSCAN_params = list(5000, 3))
 }

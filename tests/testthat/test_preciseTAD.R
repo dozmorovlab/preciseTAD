@@ -48,11 +48,8 @@ test_that("Whether preciseTAD gives us the same output", {
                      threshold=1.0,
                      flank=NULL,
                      verbose=TRUE,
-                     parallel=TRUE,
-                     cores=2,
-                     splits=2,
-                     DBSCAN_params=list(5000,3),
-                     samples=100)
+                     parallel=2,
+                     DBSCAN_params=list(5000,3))
 
     expect_equal(width(pt[[1]])[1], 13189)
 

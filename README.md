@@ -59,7 +59,7 @@ Next, you will need to download cell line-specific ChIP-seq data in the form of 
 
 ``` r
 path = "pathToBEDfiles"
-tfbsList <- bedToGRangesList(filepath=path, pattern = "*.bed", signal=4)
+tfbsList <- bedToGRangesList(filepath=path, bedList=NULL, bedNames=NULL, pattern = "*.bed", signal=4)
 ```
 
 As an example, we have already provided a GRangesList object with a variety of transcription factor binding sites specific to the GM12878 cell line. Once you load it in, you can see the list of transcription factors using the following:
@@ -78,19 +78,20 @@ tfbsList <- tfbsList[names(tfbsList) %in% c("Gm12878-Ctcf-Broad","Gm12878-Rad21-
 Now, using the “ground-truth” boundaries and the following TFBS, we can build the data matrix that will be used for predictive modeling. The following command creates the training data from CHR1 and reserves the testing data from CHR22. We specify 5kb sized genomic bins (to match the resolution used to call the original TADs), a distance-type feature space, and apply random under-sampling (RUS) on the training data only.
 
 ``` r
+set.seed(123)
 tadData <- createTADdata(bounds.GR=bounds.GR,
                          resolution=5000,
                          genomicElements.GR=tfbsList,
                          featureType="distance",
                          resampling="rus",
                          trainCHR="CHR1",
-                         predictCHR="CHR22",
-                         seed=123)
+                         predictCHR="CHR22")
 ```
 
 We can now implement our machine learning algorithm of choice to predict TAD-boundary regions. Here, we opt for the random forest algorithm.
 
 ``` r
+set.seed(123)
 tadModel <- TADrandomForest(trainData=tadData[[1]],
                             testData=tadData[[2]],
                             tuneParams=list(mtry=2,
@@ -99,31 +100,24 @@ tadModel <- TADrandomForest(trainData=tadData[[1]],
                             cvFolds=3,
                             cvMetric="Accuracy",
                             verbose=TRUE,
-                            seed=123,
                             model=TRUE,
                             importances=TRUE,
                             impMeasure="MDA",
                             performances=TRUE)
                             
-#variable importances
+# Variable importances (mean decrease in accuracy)
 tadModel[[2]]
 
-#model performance metrics
+# Model performance metrics
 tadModel[[3]]
 ```
 
 Lastly, we take our TAD-boundary region predictive model and use it to make predictions on a 10mb section of CHR22:35,000,000-45,000,000.
 
 ``` r
-#first make sure to restrict the called boundaries to the specific chromosome used to make predictions on
-bounds.GR <- extractBoundaries(domains.mat=arrowhead_gm12878_5kb,
-                               preprocess=FALSE,
-                               CHR="CHR22",
-                               resolution=5000)
-                               
-#run preciseTAD
-pt <- preciseTAD(bounds.GR=bounds.GR,
-                 genomicElements.GR=tfbsList,
+# Run preciseTAD
+set.seed(123)
+pt <- preciseTAD(genomicElements.GR=tfbsList,
                  featureType="distance",
                  CHR="CHR22",
                  chromCoords=list(35000000,45000000),
@@ -131,22 +125,9 @@ pt <- preciseTAD(bounds.GR=bounds.GR,
                  threshold=1.0,
                  flank=NULL,
                  verbose=TRUE,
-                 seed=123,
-                 parallel=TRUE,
-                 cores=4,
-                 splits=4,
-                 DBSCAN=TRUE,
-                 DBSCAN_params=list(5000,3),
-                 method.Clust=NULL,
-                 PTBR=FALSE,
-                 CLARA=TRUE,
-                 method.Dist="euclidean",
-                 samples=100,
-                 juicer=FALSE)
+                 parallel=2,
+                 DBSCAN_params=list(5000,3))
                  
-#view preciseTAD predicted boundary coordinates between CHR22:35mb-45mb
+# View preciseTAD predicted boundary coordinates between CHR22:35mb-45mb
 pt[[2]]
-
-#view original called TAD boundary coordinates from Arrowhead between CHR22:35mb-45mb
-pt[[3]]
 ```

@@ -13,33 +13,26 @@
 #' coordinate that defines the region of the linear genome to make predictions
 #' on. If chromCoords is not specified, then predictions will be made on the
 #' entire chromosome. Default is NULL.
-#' @param tadModel Model object used to obtain predicted probabilities at base-level
-#' resolution (examples include \code{gbm}, \code{glmnet},
+#' @param tadModel Model object used to obtain predicted probabilities at
+#' base-level resolution (examples include \code{gbm}, \code{glmnet},
 #' \code{svm}, \code{glm}, etc). For a random forest model, can be obtained
 #' using \code{preciseTAD::randomForest}). Required.
 #' @param threshold Bases with predicted probabilities that are greater
 #' than or equal to this value are labeled as potential TAD boundaries. Values
-#' in the range of .95-1.0 are suggested. Required.
+#' in the range of .95-1.0 are suggested. Default is 1.
 #' @param flank Controls how much to flank the final predicted TAD boundaries
 #' (necessary for evaluating overlaps, etc.). Default is NULL, i.e., no
 #' flanking.
 #' @param verbose Option to print progress. Default is TRUE.
 #' @param parallel Option to parallelise the process for obtaining predicted
-#' probabilities. Default is FALSE.
-#' @param cores Number of cores to use in parallel. Default is NULL.
-#' @param splits Number of splits of the test data to speed up the prediction.
-#' Default is NULL.
+#' probabilities. Must be number to indicate the number of cores to use in
+#' parallel. Default is NULL.
 #' @param DBSCAN_params Parameters passed to \code{\link{dbscan}} in list form
 #' containing 1) eps and 2) MinPts. Required.
-#' @param samples Number of subsamples if applying CLARA. Default is 100.
-#' Ignored if CLARA=FALSE.
 #'
-#' @return A list object containing at most 3 \code{GRanges} elements including:
-#' 1) the genomic coordinates of the called TAD boundaries (CTBP) used to make
-#' predictions, 2) the genomic coordinates of preciseTAD predicted
-#' boundaries (PTBP) (if `juicer=TRUE`, this will be a data.frame that can be
-#' saved and imported into Juicer as a BED file), and 2) the genomic coordinates
-#' of preciseTAD predicted regions (PTBRs)if PTBR=TRUE (else NULL)
+#' @return A list object containing 2 \code{GRanges} elements including:
+#' 1) the genomic coordinates of preciseTAD predicted regions (PTBRs), and 2)
+#' the genomic coordinates of preciseTAD predicted boundaries (PTBP)
 #' @export
 #'
 #' @importFrom pROC roc
@@ -96,18 +89,14 @@
 #'                  CHR = "CHR22",
 #'                  chromCoords = list(17000000, 19000000),
 #'                  tadModel = tadModel[[1]],
-#'                  threshold = .75,
+#'                  threshold = 1,
 #'                  flank = NULL,
 #'                  verbose = TRUE,
-#'                  parallel = TRUE,
-#'                  cores = 2,
-#'                  splits = 2,
-#'                  DBSCAN_params = list(5000, 3),
-#'                  samples = 100)
+#'                  parallel = NULL,
+#'                  DBSCAN_params = list(5000, 3))
 preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
-                      chromCoords = NULL, tadModel, threshold, flank = NULL,
-                      verbose = TRUE, parallel = FALSE, cores = NULL,
-                      splits = NULL, DBSCAN_params, samples = 100) {
+                      chromCoords = NULL, tadModel, threshold = 1, flank = NULL,
+                      verbose = TRUE, parallel = NULL, DBSCAN_params) {
 
     #ESTABLISHING CHROMOSOME-SPECIFIC SEQINFO#
 
@@ -161,20 +150,20 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
 
     #PREDICTING AT BP RESOLUTION #
 
-    if(parallel == TRUE){
-        parallel_predictions<-function(fit,testing,c,n){
+    if(!is.null(parallel)){
+        parallel_predictions<-function(fit, testing, c, n){
             cl<-makeCluster(c)
             registerDoSNOW(cl)
             split_testing<-sort(rank(seq_len(nrow(testing))) %% n)
             predictions<-foreach(i=unique(split_testing),
                                  .combine=c,
                                  .packages=c("caret")) %dopar% {
-                                     as.numeric(predict(fit,newdata=testing[split_testing==i,],type="prob")[,"Yes"])
+                                     as.numeric(predict(fit, newdata=testing[split_testing==i, ], type="prob")[, "Yes"])
                                  }
             stopCluster(cl)
             predictions
         }
-        predictions <- parallel_predictions(fit=tadModel,testing=test_data,c=cores,n=splits)
+        predictions <- parallel_predictions(fit=tadModel, testing=test_data, c=parallel, n=parallel)
     }else{
         if(!is.list(chromCoords)){
             array_split <- function(data, number_of_chunks){
@@ -200,11 +189,6 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
 
     retain <- c(1, cumsum(ifelse(diff(seqDataTest[which(predictions >= threshold)]) !=
                                      1, 1, 0)) + 1)
-
-    if (verbose == TRUE) {
-        print(paste0("preciseTAD identified ", length(unique(retain)), " PTBAs"))
-        print("Establishing PTBRs")
-    }
 
     mid <- tapply(seqDataTest[which(predictions >= threshold)], retain, function(x) {
         return(ceiling((x[1] + x[length(x)])/2))
@@ -243,12 +227,12 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
     #if (CLARA == TRUE) {
         if (verbose == TRUE) {
             print(paste0("Initializing CLARA with ", k, " clusters"))
-            c <- clara(mid, k = k, samples = samples, metric = "euclidean", stand = FALSE,
+            c <- clara(mid, k = k, samples = 100, metric = "euclidean", stand = FALSE,
                        trace = 2, medoids.x = TRUE, rngR = TRUE)
             medoids <- c$medoids
             clustering <- c$clustering
         } else {
-            c <- clara(mid, k = k, samples = samples, metric = "euclidean", stand = FALSE,
+            c <- clara(mid, k = k, samples = 100, metric = "euclidean", stand = FALSE,
                        trace = 0, medoids.x = TRUE, keep.data = FALSE, rngR = TRUE)
             medoids <- c$medoids
             clustering <- c$clustering

@@ -253,10 +253,7 @@ pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                 flank = NULL,
                 verbose = FALSE,
                 parallel = FALSE,
-                cores = NULL,
-                splits = NULL,
-                DBSCAN_params = list(5000, 3),
-                samples = 100)
+                DBSCAN_params = list(5000, 3))
 
 # View the results
 pt
@@ -269,22 +266,6 @@ The output of `preciseTAD::preciseTAD()` function is a list object with two elem
 Juicebox is an interface provided by Aiden Lab that allows for superimposing boundary coordinates onto Hi-C contact maps. To visualize domains flanked by the predicted boundaries, you must first select a Hi-C map. As an example, you can import the contact matrix for GM12878 derived by Rao et al. 2014 by choosing `File -> Open... -> Rao and Huntley et al. -> GM12878 -> in situ Mbol -> primary`. To format `preciseTAD` results to use in Juicebox, users can take advantage of `preciseTAD::juicer_func`, which is a function available in the `preciseTAD` R package that transforms a GRanges object into a data frame as shown below. 
 
 ```{r}
-# Run preciseTAD
-set.seed(123)
-pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
-                featureType = "distance",
-                CHR = "CHR22",
-                chromCoords = list(25500000, 27500000),
-                tadModel = tadModel[[1]],
-                threshold = 1.0,
-                flank = NULL,
-                verbose = FALSE,
-                parallel = FALSE,
-                cores = NULL,
-                splits = NULL,
-                DBSCAN_params = list(5000, 3),
-                samples = 100)
-
 # Transform
 pt_juice <- juicer_func(pt[[2]])
 ```
@@ -307,14 +288,14 @@ write.table(pt_chr22_255mb_275mb,
 
 These data need to be assembled in a GRanges object using the aforementioned `bedToGRangesList` function (i.e. creating another cell type-specific `tfbsList_filt` object). As an example, we consider Hela-S3 cell line. We can leverage our RF model trained on GM12878 ground truth boundaries (Arrowhead or Peakachu) to predict the boundaries for Hela-S3 on chr22.
 
-The pre-trained model `tadModel` can be obtained by using `bedToGRangesList`, `extractBoundaries`, `createTADdata`, and `TADrandomForest` functions, as described. Alternatively, chromosome-specific pre-trained models can be downloaded from the [Google Drive folder](https://drive.google.com/drive/folders/10YGvuDxAuJtMkM7y5Pzntpkp1coomDzG). We recommend models pre-trained using GM12878 genome annotation data and Peakachu peaks. Note that each model is annotated with "CHRi_holdout", representing the chromosome that was held out of training, and thus to be used to predict boundaries. In the following example we use chr1-chr21 from GM12878 to predict TAD boundaries for chr22 from Hela-S3. Therefore, we opt to download [tadRF_gm12878_arrowhead_gt_CHR22_holdout.rds](). [??? Rename files. Swap to Peakachu model. Add direct download link] 
+The pre-trained model `tadModel` can be obtained by using `bedToGRangesList`, `extractBoundaries`, `createTADdata`, and `TADrandomForest` functions, as described. Alternatively, chromosome-specific pre-trained models can be downloaded from the [Google Drive folder](https://drive.google.com/drive/folders/10YGvuDxAuJtMkM7y5Pzntpkp1coomDzG). We recommend models pre-trained using GM12878 genome annotation data and Peakachu peaks. Note that each model is annotated with "CHRi_holdout", representing the chromosome that was held out of training, and thus to be used to predict boundaries. In the following example we use chr1-chr21 from GM12878 to predict TAD boundaries for chr22 from Hela-S3. Therefore, we opt to download [tadRF_CHR22_holdout_gm12878_arrowhead_gt.rds](https://1drv.ms/u/s!AhmbAyu-bORbgutoatqVlLzNMH_L1g?e=5AS27f). [??? Rename files. Swap to Peakachu model. Add direct download link; !!!swapped and added] 
 
 ```{r, eval=FALSE}
 # Read in RF model built on chr1-chr21
-tadModel <- readRDS("~/tadRF_gm12878_arrowhead_gt_CHR22_holdout.rds")
+tadModel <- readRDS("~/tadRF_CHR22_holdout_gm12878_arrowhead_gt.rds")
 ```
 
-The Hela-S3-specific TFBS data can be downloaded at [ENCODE]() [??? Add more detailed link. Can you read BED files directly from ENCODE URLs?] or read from the [supplementary repository]( https://github.com/stilianoudakis/preciseTAD_supplementary/tree/master/data/bed/hela) [??? To use ExperimentHub]. They can be converted into a GRangesList.
+The Hela-S3-specific TFBS data can be downloaded at [ENCODE](https://www.encodeproject.org/chip-seq-matrix/?type=Experiment&replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&assay_title=TF%20ChIP-seq&status=released) [??? Add more detailed link. Can you read BED files directly from ENCODE URLs?; !!!i don't think so, they require unzipping] or read from the [supplementary repository]( https://github.com/stilianoudakis/preciseTAD_supplementary/tree/master/data/bed/hela) [??? To use ExperimentHub;!!! looking into it]. They can be converted into a GRangesList.
 
 ```{r, eval=FALSE}
 # Establishing Hela-specific genomic annotations
@@ -336,16 +317,13 @@ set.seed(123)
 pt <- preciseTAD(genomicElements.GR = hela.GR,
                 featureType = "distance",
                 CHR = "CHR22",
-                chromCoords = NULL,
-                tadModel = tadModel,
+                chromCoords = list(25500000, 27500000),
+                tadModel = tadModel[[1]],
                 threshold = 1.0,
                 flank = NULL,
                 verbose = FALSE,
-                parallel = FALSE,
-                cores = NULL,
-                splits = NULL,
-                DBSCAN = TRUE,
-                samples = 100)
+                parallel = 2,
+                DBSCAN_params = list(5000, 3))
 
 pt
 ```

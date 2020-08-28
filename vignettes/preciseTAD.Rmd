@@ -71,7 +71,7 @@ To predict the base-level location of domain boundaries, the `preciseTAD` model 
 
 [??? Describe how to predict boundaries in another cell type, should be detailed paragraph; !!!added]
 
-Using the same model building and boundary prediction processes outlined above, `preciseTAD` provides functionality for predicting boundaries across cell types. Users can take advantage of the internal functions that create training and testing data sets (See Section 3.1.1) to build boundary prediction models in one cell type, to be used to make predictions in another cell type. The model building and prediction processes proceed similar to what is described in Section 1.1 and 1.2, the only difference is the cell type specific genomic annotations used to generate the base-level feature space, which the user can easily provide.
+Using the same model building and boundary prediction processes outlined above, `preciseTAD` provides functionality for predicting boundaries across cell types. Users can take advantage of the internal functions that create training and testing data sets to build boundary prediction models in one cell type, to be used to make predictions in another cell type. The model building and prediction processes proceed similar to what is described in Section 1.1 and 1.2, the only difference is the cell type specific genomic annotations used to generate the base-level feature space, which the user can easily provide.
 
 # Getting Started
 
@@ -309,40 +309,20 @@ write.table(pt_chr22_255mb_275mb,
 
 [??? Write a paragraph on how to predict boundaries in another cell type? I was thinking, one takes the model `tadModel[[1]]` trained in one cell type, the annotations `tfbsList_filt` of a cell type of interest, and that's it. But what is a cell type of interest does not have `bounds`, no Hi-C data, only annotations? That's the main selling point of your package, train a model once, then use only genomic annotations from other cell lines to predict boundaries in them.; !!!added]
 
-Using built-in functions provided by `preciseTAD`, users can easily extend the model building and prediction processes described above to train and predict boundaries across cell types. This is beneficial when HiC data is unavailable for a particular cell type, likely due to high sequencing cost, yet ChIP-seq narrowpeak BED files are available. A particular example exists for Hela-S3, for which HiC data at 5 kb resolution is unavailable. Instead, we can leverage our RF model built on GM12878 ground truth boundaries to predict boundaries for Hela-S3 using the corresponding cell type specific CTCF, RAD21, SMC3, and ZNF143. To do so, users build and train a boundary region prediction model on GM12878 as before using `bedToGRangesList`, `extractBoundaries`, `createTADdata`, and `TADrandomForest` functions (See Section 3.1). Next, users will need to recreate genomic annotations from Hela-S3 as a GRanges object using the aforementioned `bedToGRangesList` function (i.e. creating another cell type specific `tfbsList_filt` object). They can be downloaded at ENCODE or read in from the repository https://github.com/stilianoudakis/preciseTAD_supplementary. This, with the `tadModel[[1]]` object that is created is all that is necessary to predict boundaries on the other cell type using `preciseTAD` (See Section 3.2). In the following example we use chr1-chr21 (omitting chr9) from GM12878 to predict TAD boundaries for chr22 from Hela-S3.
+The functionality provided by `preciseTAD` allows users to extend the model building and prediction processes described above to train and predict boundaries across cell types. This is beneficial when HiC data is unavailable for a particular cell type, likely due to high sequencing costs, yet ChIP-seq narrowpeak BED files are available. A particular example exists for Hela-S3, for which HiC data at 5 kb resolution is unavailable. Here, we can leverage our RF model built on GM12878 ground truth boundaries to predict boundaries for Hela-S3 using the corresponding cell type specific CTCF, RAD21, SMC3, and ZNF143 transcription factor binding sites. In the example below, we opt to use chr1-chr21 (omitting chr9) from GM12878 to predict TAD boundaries for chr22 from Hela-S3.
+
+To do so, users build and train a boundary region prediction model on GM12878 as before using `bedToGRangesList`, `extractBoundaries`, `createTADdata`, and `TADrandomForest` functions. Next, users will need to recreate genomic annotations from Hela-S3 as a GRanges object using the aforementioned `bedToGRangesList` function (i.e. creating another cell type specific `tfbsList_filt` object). This, with the `tadModel[[1]]` object that is created is all that is necessary to predict boundaries on the other cell type using `preciseTAD`. 
+
+We have streamlined this process for the user by providing pre-trained models built on GM12878 and K562, which are stored at https://drive.google.com/drive/folders/10YGvuDxAuJtMkM7y5Pzntpkp1coomDzG [??? temporary]. Each model is annotated with "CHRi_holdout", representing the chromosome that was held out of training, and thus to be used to predict boundaries. In the following example we use chr1-chr21 (omitting chr9) from GM12878 to predict TAD boundaries for chr22 from Hela-S3. Therefore, we opt to download "tadRF_gm12878_arrowhead_gt_CHR22_holdout.rds" [??? update name]. 
 
 ```{r, eval=FALSE}
-# Establishing ground truth boundaries
-bounds <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb, 
-                            preprocess = FALSE, 
-                            CHR = paste0("CHR", c(1:8,10:22)), 
-                            resolution = 5000)
+# Read in RF model built on chr1-chr21
+tadModel <- readRDS("~/tadRF_gm12878_arrowhead_gt_CHR22_holdout.rds")
+```
 
-# Creating training data
-set.seed(123)
-tadData <- createTADdata(bounds.GR = bounds,
-                         resolution = 5000,
-                         genomicElements.GR = tfbsList_filt,
-                         featureType = "distance",
-                         resampling = "rus",
-                         trainCHR = paste0("CHR", c(1:8,10:22)),
-                         predictCHR = NULL)
+The Hela-S3 specific TFBS can be downloaded at ENCODE or read in from the repository https://github.com/stilianoudakis/preciseTAD_supplementary/tree/master/data/bed/hela [??? temporary]. They can be converted into a GRangesList as such.
 
-# Performing RF model
-set.seed(123)
-tadModel <- TADrandomForest(trainData = tadData[[1]],
-                            testData = NULL,
-                            tuneParams = list(mtry = 2,
-                                              ntree = 500,
-                                              nodesize = ceiling(nrow(tadData[[1]])*.01)),
-                            cvFolds = 3,
-                            cvMetric = "Accuracy",
-                            verbose = TRUE,
-                            model = TRUE,
-                            importances = TRUE,
-                            impMeasure = "MDA",
-                            performances = FALSE)
-
+```{r, eval=FALSE}
 # Establishing Hela-specific genomic annotations
 # Reading in CTCF, RAD21, SMC3, and ZNF143 from repository and storing as list
 ctcf <- as.data.frame(read_delim("https://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/ctcf.bed", delim = "\t", col_names = FALSE))
@@ -352,7 +332,11 @@ znf143 <- as.data.frame(read_delim("https://raw.githubusercontent.com/stilianoud
 helaList <- list(ctcf, rad21, smc3, znf143)
 
 hela.GR <- bedToGRangesList(bedList=helaList, bedNames=c("ctcf", "rad21", "smc3", "znf143"), signal=5)
+```
 
+Now we are ready to predict boundaries on chr22 for Hela-S3.
+
+```{r, eval=FALSE}
 # Run preciseTAD
 set.seed(123)
 pt <- preciseTAD(genomicElements.GR = hela.GR,
@@ -367,12 +351,7 @@ pt <- preciseTAD(genomicElements.GR = hela.GR,
                 cores = NULL,
                 splits = NULL,
                 DBSCAN = TRUE,
-                DBSCAN_params = list(5000, 3),
-                method.Clust = NULL,
-                CLARA = TRUE,
-                method.Dist = "euclidean",
-                samples = 100,
-                juicer = FALSE)
+                samples = 100)
 
 pt
 ```

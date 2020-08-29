@@ -96,7 +96,7 @@ library(preciseTAD)
 
 ### Construction of the data matrix
 
-`preciseTAD` requires users to supply genomic coordinates of the "ground-truth" domain boundaries to establish the response vector (**Y**). As an example, we consider TAD boundaries derived from the popular *Arrowhead* TAD caller, a part of the Juicebox suite of tools developed by Aiden Lab [@durand2016juicer]. To get boundaries, *Arrowhead* was applied on the autosomal chromosomes using 5 kb GM12878 Hi-C data [@rao20143d] ([GSE63525](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE63525)). An example of the command line script used to called TADs with *Arrowhead* is provided below, as well as the first three columns of the resulting TAD coordinates. A more detailed tutorial for how to implement *Arrowhead* can be found [here](https://github.com/aidenlab/juicer/wiki/Arrowhead). 
+`preciseTAD` requires users to supply genomic coordinates of the "ground-truth" domain boundaries to establish the response vector (**Y**). As an example, we consider TAD boundaries derived from the popular *Arrowhead* TAD caller, a part of the Juicebox suite of tools developed by Aiden Lab [@durand2016juicer]. To get boundaries, *Arrowhead* was applied on the autosomal chromosomes using 5 kb GM12878 Hi-C data [@rao20143d] ([GSE63525](http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE63525)). An example of the command line script used to called TADs with *Arrowhead* is provided below, as well as the first three columns of the resulting TAD coordinates. A more detailed tutorial for how to implement *Arrowhead* can be found [here](http://github.com/aidenlab/juicer/wiki/Arrowhead). 
 
 ```{r, eval=FALSE}
 arrowhead -c 1 \ #chromosome to call TADs on
@@ -119,7 +119,7 @@ bounds <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb, preprocess = FA
 bounds
 ```
 
-To identify genomic annotations best predictive of TAD boundaries, `preciseTAD` requires functional genomic annotations. They are used to establish the feature space ($\textbf{X}=\{X_{1}, X_{2}, \cdots, X_{p} \}$). Cell type-specific genomic annotation data can be downloaded from [ENCODE](https://www.encodeproject.org/chip-seq-matrix/?type=Experiment&replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&assay_title=TF%20ChIP-seq&status=released) as BED files. Once you have downloaded your preferred list of functional genomic annotations, store them in a specific file location (i.e. "./path/to/BEDfiles"). These files can then be converted into a GRangesList object and used to create the feature space using the `preciseTAD::bedToGRangesList()` function. The `signal` argument refers to the column in the BED files containing peak signal strength values and is used to assign metadata to the corresponding GRanges (only necessary for downstream plotting). As an example, we have already provided a GRangesList object with 26 transcription factor binding sites (TFBS) specific to the GM12878 cell type. Once you load it in, you can see the list of transcription factors using the following commands.
+To identify genomic annotations best predictive of TAD boundaries, `preciseTAD` requires functional genomic annotations. They are used to establish the feature space ($\textbf{X}=\{X_{1}, X_{2}, \cdots, X_{p} \}$). Cell type-specific genomic annotation data can be downloaded from [ENCODE](http://www.encodeproject.org/chip-seq-matrix/?type=Experiment&replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&assay_title=TF%20ChIP-seq&status=released) as BED files. Once you have downloaded your preferred list of functional genomic annotations, store them in a specific file location (i.e. "./path/to/BEDfiles"). These files can then be converted into a GRangesList object and used to create the feature space using the `preciseTAD::bedToGRangesList()` function. The `signal` argument refers to the column in the BED files containing peak signal strength values and is used to assign metadata to the corresponding GRanges (only necessary for downstream plotting). As an example, we have already provided a GRangesList object with 26 transcription factor binding sites (TFBS) specific to the GM12878 cell type. Once you load it in, you can see the list of transcription factors using the following commands.
 
 ```{r}
 # path <- "./path/to/BEDfiles"
@@ -235,7 +235,7 @@ table(svmPreds, tadData[[2]][, 1])
 
 ## Precise boundary prediction
 
-Recall that our model classifies boundary **regions**, in that each prediction refers to a genomic bin of width 5000 bases. To predict boundary coordinates at the base resolution more precisely, we can leverage our model through the use of the `preciseTAD::preciseTAD` function.  Conceptually, instead of genomic bins, we annotate each base with the selected genomic annotations and featureType and apply our model on this annotation matrix to predict the probability of each base is a boundary given the associated genomic annotations. To minimize computational costs, the base-level prediction should be performed in selected regions.
+Recall that our model classifies boundary **regions**, in that each prediction refers to a genomic bin of width 5000 bases. To predict boundary coordinates at the base resolution more precisely, we can leverage our model through the use of the `preciseTAD::preciseTAD()` function.  Conceptually, instead of genomic bins, we annotate each base with the selected genomic annotations and featureType and apply our model on this annotation matrix to predict the probability of each base is a boundary given the associated genomic annotations. To minimize computational costs, the base-level prediction should be performed in selected regions.
 
 ### Running preciseTAD
 
@@ -259,22 +259,22 @@ pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
 pt
 ```
 
-The output of `preciseTAD::preciseTAD()` function is a list object with two elements: 1) the `preciseTAD` predicted boundary regions, and 2) the `preciseTAD` predicted boundary points (PTBP). From the results above, we see that `preciseTAD` yielded `r length(pt$PTBP)` predicted boundary points.
+The output of `preciseTAD::preciseTAD()` function is a list object with two elements: 1) the `preciseTAD` predicted boundary regions, and 2) the `preciseTAD` predicted boundary points (PTBP). From the results above, we see that `preciseTAD` yielded 12 predicted boundary points.
 
 ### Using preciseTAD with Juicebox
 
-Juicebox is an interface provided by Aiden Lab that allows for superimposing boundary coordinates onto Hi-C contact maps. To visualize domains flanked by the predicted boundaries, you must first select a Hi-C map. As an example, you can import the contact matrix for GM12878 derived by Rao et al. 2014 by choosing `File -> Open... -> Rao and Huntley et al. -> GM12878 -> in situ Mbol -> primary`. To format `preciseTAD` results to use in Juicebox, users can take advantage of `preciseTAD::juicer_func`, which is a function available in the `preciseTAD` R package that transforms a GRanges object into a data frame as shown below. 
+Juicebox is an interface provided by Aiden Lab that allows for superimposing boundary coordinates onto Hi-C contact maps. To visualize domains flanked by the predicted boundaries, you must first select a Hi-C map. As an example, you can import the contact matrix for GM12878 derived by Rao et al. 2014 by choosing `File -> Open... -> Rao and Huntley et al. -> GM12878 -> in situ Mbol -> primary`. To format `preciseTAD` results to use in Juicebox, users can take advantage of `preciseTAD::juicer_func()`, which is a function available in the `preciseTAD` R package that transforms a GRanges object into a data frame as shown below. 
 
-```{r}
+```{r, eval=FALSE}
 # Transform
 pt_juice <- juicer_func(pt[[2]])
 ```
 
-You will then need to save the PTBPs as a BED file using `write.table` as shown below. Once saved, import them into Juicebox using `Show Annotation Panel -> 2D Annotations -> Add Local -> pt_chr22_255mb_275mb.bed`.
+You will then need to save the PTBPs as a BED file using `write.table` as shown below. Once saved, import them into Juicebox using `Show Annotation Panel -> 2D Annotations -> Add Local -> pt_juice.bed`.
 
 ```{r, eval=FALSE}
 filepath = "~/path/to/store/ptbps"
-write.table(pt_chr22_255mb_275mb, 
+write.table(pt_juice, 
             file.path(filepath, "pt_juice.bed"),
             quote = FALSE,
             col.names = FALSE,
@@ -288,14 +288,14 @@ write.table(pt_chr22_255mb_275mb,
 
 These data need to be assembled in a GRanges object using the aforementioned `bedToGRangesList` function (i.e. creating another cell type-specific `tfbsList_filt` object). As an example, we consider Hela-S3 cell line. We can leverage our RF model trained on GM12878 ground truth boundaries (Arrowhead or Peakachu) to predict the boundaries for Hela-S3 on chr22.
 
-The pre-trained model `tadModel` can be obtained by using `bedToGRangesList`, `extractBoundaries`, `createTADdata`, and `TADrandomForest` functions, as described. Alternatively, chromosome-specific pre-trained models can be downloaded from the [Google Drive folder](https://1drv.ms/u/s!AhmbAyu-bORbgutlR0_b-DJP9jTNKw?e=zZhASJ). We recommend models pre-trained using GM12878 genome annotation data and Peakachu peaks. Note that each model is annotated with "CHRi_holdout", representing the chromosome that was held out of training, and thus to be used to predict boundaries. In the following example we use chr1-chr21 from GM12878 to predict TAD boundaries for chr22 from Hela-S3. Therefore, we opt to download [tadRF_CHR22_holdout_gm12878_arrowhead_gt.rds](https://1drv.ms/u/s!AhmbAyu-bORbgutomn2MXY_YRjdPDA?e=SW0GPO). [??? Rename files. Swap to Peakachu model. Add direct download link; !!!swapped and added] 
+The pre-trained model `tadModel` can be obtained by using `bedToGRangesList`, `extractBoundaries`, `createTADdata`, and `TADrandomForest` functions, as described. Alternatively, chromosome-specific pre-trained models can be downloaded from the [Google Drive folder](http://1drv.ms/u/s!AhmbAyu-bORbgutlR0_b-DJP9jTNKw?e=zZhASJ). We recommend models pre-trained using GM12878 genome annotation data and Peakachu peaks. Note that each model is annotated with "CHRi_holdout", representing the chromosome that was held out of training, and thus to be used to predict boundaries. In the following example we use chr1-chr21 from GM12878 to predict TAD boundaries for chr22 from Hela-S3. Therefore, we opt to download [tadRF_CHR22_holdout_gm12878_arrowhead_gt.rds](http://1drv.ms/u/s!AhmbAyu-bORbgutomn2MXY_YRjdPDA?e=SW0GPO). [??? Rename files. Swap to Peakachu model. Add direct download link; !!!swapped and added] 
 
 ```{r, eval=FALSE}
 # Read in RF model built on chr1-chr21
 tadModel <- readRDS("~/tadRF_CHR22_holdout_gm12878_arrowhead_gt.rds")
 ```
 
-The Hela-S3-specific TFBS data can be downloaded at [ENCODE](https://www.encodeproject.org/chip-seq-matrix/?type=Experiment&replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&assay_title=TF%20ChIP-seq&status=released) [??? Add more detailed link. Can you read BED files directly from ENCODE URLs?; !!!i don't think so, they require unzipping] or read from the [supplementary repository]( https://github.com/stilianoudakis/preciseTAD_supplementary/tree/master/data/bed/hela) [??? To use ExperimentHub;!!! looking into it]. They can be converted into a GRangesList.
+The Hela-S3-specific TFBS data can be downloaded at [ENCODE](http://www.encodeproject.org/chip-seq-matrix/?type=Experiment&replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&assay_title=TF%20ChIP-seq&status=released) [??? Add more detailed link. Can you read BED files directly from ENCODE URLs?; !!!i don't think so, they require unzipping] or read from the [supplementary repository]( http://github.com/stilianoudakis/preciseTAD_supplementary/tree/master/data/bed/hela) [??? To use ExperimentHub;!!! looking into it]. They can be converted into a GRangesList.
 
 ```{r, eval=FALSE}
 # Establishing Hela-specific genomic annotations

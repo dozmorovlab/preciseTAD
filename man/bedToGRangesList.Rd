@@ -3,7 +3,7 @@
 \name{bedToGRangesList}
 \alias{bedToGRangesList}
 \title{Function to create a GRangesList object from functional genomic annotation
-data derived from ChIP-Seq experiments and in the form of BED files}
+data in the form of BED files}
 \usage{
 bedToGRangesList(
   filepath,
@@ -16,7 +16,7 @@ bedToGRangesList(
 \arguments{
 \item{filepath}{Character describing the path to the folder containing the
 BED files of functional genomic annotations. This is ignored if bedList is
-provided.}
+specified.}
 
 \item{bedList}{A list object containing the bed data as data frames to be
 converted into a GRangesList. The data frames must include at least
@@ -39,7 +39,7 @@ object specific to each BED file in the path provided
 }
 \description{
 Function to create a GRangesList object from functional genomic annotation
-data derived from ChIP-Seq experiments and in the form of BED files
+data in the form of BED files
 }
 \examples{
 #set path

@@ -8,7 +8,7 @@ extractBoundaries(domains.mat, preprocess = FALSE, CHR, resolution)
 }
 \arguments{
 \item{domains.mat}{either a \code{matrix} or \code{data.frame} with at least
-3 coluns. First column is either of class "numeric" or "integer". The second
+3 columns. First column is either of class "numeric" or "integer". The second
 and third columns are the start and end coordinates of domains, respectively.
 Required.}
 

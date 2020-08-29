@@ -1,9 +1,9 @@
 #' Function to create a GRangesList object from functional genomic annotation
-#' data derived from ChIP-Seq experiments and in the form of BED files
+#' data in the form of BED files
 #'
 #' @param filepath Character describing the path to the folder containing the
 #' BED files of functional genomic annotations. This is ignored if bedList is
-#' provided.
+#' specified.
 #' @param bedList A list object containing the bed data as data frames to be
 #' converted into a GRangesList. The data frames must include at least
 #' chromosome, start, and end coordinates as the first 3 columns. Default is

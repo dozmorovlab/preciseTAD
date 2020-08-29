@@ -81,7 +81,7 @@ Now, using the “ground-truth” boundaries and the following TFBS, we can buil
 set.seed(123)
 tadData <- createTADdata(bounds.GR          = bounds,
                          resolution         = 5000,
-                         genomicElements.GR = tfbsList,
+                         genomicElements.GR = tfbsList_filt,
                          featureType        = "distance",
                          resampling         = "rus",
                          trainCHR           = "CHR1",
@@ -117,7 +117,7 @@ Lastly, we take our TAD-boundary region predictive model and use it to make pred
 ``` r
 # Run preciseTAD
 set.seed(123)
-pt <- preciseTAD(genomicElements.GR = tfbsList,
+pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                  featureType        = "distance",
                  CHR                = "CHR22",
                  chromCoords        = list(35000000,45000000),

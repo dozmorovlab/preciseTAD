@@ -289,11 +289,11 @@ write.table(pt_juice,
 
 The pre-trained model `tadModel` can be obtained by using `bedToGRangesList()`, `extractBoundaries()`, `createTADdata()`, and `TADrandomForest()` functions, as described. Alternatively, chromosome-specific pre-trained models can be downloaded from the [OneDrive storage](https://1drv.ms/u/s!AhmbAyu-bORbgutlR0_b-DJP9jTNKw?e=zZhASJ)<!--[Google Drive folder](http://1drv.ms/u/s!AhmbAyu-bORbgutlR0_b-DJP9jTNKw?e=zZhASJ)-->. We recommend models pre-trained using GM12878 genome annotation data and Peakachu peaks. Note that each model is annotated with "CHRi_holdout", representing the chromosome held out of training, and thus to be used to predict boundaries. 
 
-As an example, we consider the Hela-S3 cell line. We will download and use the [???](link) model to predict boundaries for chr22 in the Hela-S3 cell line.
+As an example, we consider the Hela-S3 cell line. We will download and use the [CHR22_GM12878_5kb_Peakachu](https://1drv.ms/u/s!AhmbAyu-bORbguwDMgw2fA6Z84sYsQ?e=UrMUky) model to predict boundaries for chr22 in the Hela-S3 cell line.
 
 ```{r, eval=FALSE}
 # Read in RF model built on chr1-chr21
-tadModel <- readRDS("~/Documents/nobackup/tadRF_CHR22_holdout_gm12878_peakachu_gt.rds")
+tadModel <- readRDS("~/Documents/nobackup/CHR22_GM12878_5kb_Peakachu.rds")
 ```
 
 The Hela-S3-specific BED-formatted TFBS data can be downloaded at [ENCODE](http://www.encodeproject.org/chip-seq-matrix/?type=Experiment&replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&assay_title=TF%20ChIP-seq&status=released). The selected TFBS data can be downloaded from the [supplementary repository](http://github.com/stilianoudakis/preciseTAD_supplementary/tree/master/data/bed/hela). They can be converted into a GRangesList.
@@ -307,7 +307,7 @@ smc3 <- as.data.frame(read_delim("http://raw.githubusercontent.com/stilianoudaki
 znf143 <- as.data.frame(read_delim("http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/znf143.bed", delim = "\t", col_names = FALSE))
 helaList <- list(ctcf, rad21, smc3, znf143)
 
-hela.GR <- bedToGRangesList(bedList=helaList, bedNames=c("ctcf", "rad21", "smc3", "znf143"), signal=5)
+hela.GR <- bedToGRangesList(bedList=helaList, bedNames=c("Ctcf", "Rad21", "Smc3", "Znf143"), signal=5)
 ```
 
 Now we are ready to predict boundaries on chr22 for Hela-S3.
@@ -319,7 +319,7 @@ pt <- preciseTAD(genomicElements.GR = hela.GR,
                 featureType         = "distance",
                 CHR                 = "CHR22",
                 chromCoords         = list(25500000, 27500000),
-                tadModel            = tadModel,
+                tadModel            = tadModel[[1]],
                 threshold           = 1.0,
                 flank               = NULL,
                 verbose             = FALSE,

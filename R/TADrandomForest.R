@@ -30,7 +30,7 @@
 #' should be extracted when validating the model on the test data. Ignored if
 #' testData = NULL.
 #'
-#' @return A list containg: 1) a train object from \code{caret} with model
+#' @return A list containing: 1) a train object from \code{caret} with model
 #' information, 2) a data.frame of variable importance for each feature
 #' included in the model, and 3) a data.frame of various performance metrics
 #' @export

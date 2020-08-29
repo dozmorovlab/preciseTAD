@@ -12,11 +12,11 @@ preciseTAD provides functions to predict the location of boundaries of topologic
 
 The main functions (in order of implementation) are:
 
-- `extractBoundaries` accepts a 3-column data.frame or matrix with the chromosomal coordinates of user-defined TADs and outputs the unique boundaries
-- `bedToGRangesList` accepts a filepath containing BED files representing the coordinates of ChIP-seq defined functional genomic annotations
-- `createTADdata` accepts a set of unique boundaries and genomic annotations derived from `preciseTAD::extractBoundaries` and `preciseTAD::bedToGRangesList` respectively to create the data matrix used to build a model to predict TAD boundary regions
-- `TADrandomForest` a wrapper of the `randomForest` package which implements a random forest binary classification algorithm on TAD boundary data
-- `preciseTAD` which leverages a TAD boundary prediction model (i.e., random forest) and density-based clustering to predict TAD boundary coordinates at a base-level resolution
+- `extractBoundaries()` accepts a 3-column data.frame or matrix with the chromosomal coordinates of user-defined TADs and outputs the unique boundaries
+- `bedToGRangesList()` accepts a filepath containing BED files representing the coordinates of ChIP-seq defined functional genomic annotations
+- `createTADdata()` accepts a set of unique boundaries and genomic annotations derived from `preciseTAD::extractBoundaries()` and `preciseTAD::bedToGRangesList()` respectively to create the data matrix used to build a model to predict TAD boundary regions
+- `TADrandomForest()` a wrapper of the `randomForest` package which implements a random forest binary classification algorithm on TAD boundary data
+- `preciseTAD()` which leverages a TAD boundary prediction model (i.e., random forest) and density-based clustering to predict TAD boundary coordinates at a base-level resolution
 
 ## Installation
 
@@ -79,31 +79,31 @@ Now, using the “ground-truth” boundaries and the following TFBS, we can buil
 
 ``` r
 set.seed(123)
-tadData <- createTADdata(bounds.GR=bounds.GR,
-                         resolution=5000,
-                         genomicElements.GR=tfbsList,
-                         featureType="distance",
-                         resampling="rus",
-                         trainCHR="CHR1",
-                         predictCHR="CHR22")
+tadData <- createTADdata(bounds.GR          = bounds,
+                         resolution         = 5000,
+                         genomicElements.GR = tfbsList,
+                         featureType        = "distance",
+                         resampling         = "rus",
+                         trainCHR           = "CHR1",
+                         predictCHR         = "CHR22")
 ```
 
 We can now implement our machine learning algorithm of choice to predict TAD-boundary regions. Here, we opt for the random forest algorithm.
 
 ``` r
 set.seed(123)
-tadModel <- TADrandomForest(trainData=tadData[[1]],
-                            testData=tadData[[2]],
-                            tuneParams=list(mtry=2,
-                                            ntree=500,
-                                            nodesize=1),
-                            cvFolds=3,
-                            cvMetric="Accuracy",
-                            verbose=TRUE,
-                            model=TRUE,
-                            importances=TRUE,
-                            impMeasure="MDA",
-                            performances=TRUE)
+tadModel <- TADrandomForest(trainData  = tadData[[1]],
+                            testData   = tadData[[2]],
+                            tuneParams = list(mtry=2,
+                                              ntree=500,
+                                              nodesize=1),
+                            cvFolds    = 3,
+                            cvMetric   = "Accuracy",
+                            verbose    = TRUE,
+                            model      = TRUE,
+                            importances= TRUE,
+                            impMeasure = "MDA",
+                            performances = TRUE)
                             
 # Variable importances (mean decrease in accuracy)
 tadModel[[2]]
@@ -117,16 +117,16 @@ Lastly, we take our TAD-boundary region predictive model and use it to make pred
 ``` r
 # Run preciseTAD
 set.seed(123)
-pt <- preciseTAD(genomicElements.GR=tfbsList,
-                 featureType="distance",
-                 CHR="CHR22",
-                 chromCoords=list(35000000,45000000),
-                 tadModel=tadModel[[1]],
-                 threshold=1.0,
-                 flank=NULL,
-                 verbose=TRUE,
-                 parallel=2,
-                 DBSCAN_params=list(5000,3))
+pt <- preciseTAD(genomicElements.GR = tfbsList,
+                 featureType        = "distance",
+                 CHR                = "CHR22",
+                 chromCoords        = list(35000000,45000000),
+                 tadModel           = tadModel[[1]],
+                 threshold          = 1.0,
+                 flank              = NULL,
+                 verbose            = TRUE,
+                 parallel           = 2,
+                 DBSCAN_params      = list(5000,3))
                  
 # View preciseTAD predicted boundary coordinates between CHR22:35mb-45mb
 pt[[2]]

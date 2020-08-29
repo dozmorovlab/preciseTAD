@@ -76,15 +76,18 @@ bounds.GR <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
                                CHR = c("CHR21", "CHR22"),
                                resolution = 5000)
 
-# Read in GRangesList of 26 TFBS
+# Read in GRangesList of 26 TFBS and filter to include only CTCF, RAD21,
+#SMC3, and ZNF143
 data(tfbsList)
 
+tfbsList_filt <- tfbsList[which(names(tfbsList) \%in\% c("Gm12878-Ctcf-Broad", "Gm12878-Rad21-Haib", "Gm12878-Smc3-Sydh", "Gm12878-Znf143-Sydh"))]
+
 # Create the binned data matrix for CHR1 (training) and CHR22 (testing)
-# using 5 kb binning, distance-type predictors from 26 different TFBS from
+# using 5 kb binning, distance-type predictors from 4 TFBS from
 # the GM12878 cell line, and random under-sampling
 tadData <- createTADdata(bounds.GR = bounds.GR,
                          resolution = 5000,
-                         genomicElements.GR = tfbsList,
+                         genomicElements.GR = tfbsList_filt,
                          featureType = "distance",
                          resampling = "rus",
                          trainCHR = "CHR21",
@@ -94,7 +97,7 @@ tadData <- createTADdata(bounds.GR = bounds.GR,
 # using 3-fold CV
 tadModel <- TADrandomForest(trainData = tadData[[1]],
                             testData = tadData[[2]],
-                            tuneParams = list(mtry = c(2, 5, 8, 10, 13, 16, 18, 21, 24, 26),
+                            tuneParams = list(mtry = 2,
                                             ntree = 500,
                                             nodesize = 1),
                             cvFolds = 3,
@@ -106,7 +109,7 @@ tadModel <- TADrandomForest(trainData = tadData[[1]],
                             performances = TRUE)
 
 # Apply preciseTAD on a specific 2mb section of CHR22:17000000-19000000
-pt <- preciseTAD(genomicElements.GR = tfbsList,
+pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                  featureType = "distance",
                  CHR = "CHR22",
                  chromCoords = list(17000000, 19000000),

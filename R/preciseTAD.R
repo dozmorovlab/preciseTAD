@@ -61,7 +61,7 @@
 #' tfbsList_filt <- tfbsList[which(names(tfbsList) %in% c("Gm12878-Ctcf-Broad", "Gm12878-Rad21-Haib", "Gm12878-Smc3-Sydh", "Gm12878-Znf143-Sydh"))]
 #'
 #' # Create the binned data matrix for CHR1 (training) and CHR22 (testing)
-#' # using 5 kb binning, distance-type predictors from 26 different TFBS from
+#' # using 5 kb binning, distance-type predictors from 4 TFBS from
 #' # the GM12878 cell line, and random under-sampling
 #' tadData <- createTADdata(bounds.GR = bounds.GR,
 #'                          resolution = 5000,
@@ -75,7 +75,7 @@
 #' # using 3-fold CV
 #' tadModel <- TADrandomForest(trainData = tadData[[1]],
 #'                             testData = tadData[[2]],
-#'                             tuneParams = list(mtry = c(2, 5, 8, 10, 13, 16, 18, 21, 24, 26),
+#'                             tuneParams = list(mtry = 2,
 #'                                             ntree = 500,
 #'                                             nodesize = 1),
 #'                             cvFolds = 3,

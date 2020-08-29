@@ -58,11 +58,16 @@
 #' #SMC3, and ZNF143
 #' data(tfbsList)
 #'
-#' tfbsList_filt <- tfbsList[which(names(tfbsList) %in% c("Gm12878-Ctcf-Broad", "Gm12878-Rad21-Haib", "Gm12878-Smc3-Sydh", "Gm12878-Znf143-Sydh"))]
+#' tfbsList_filt <- tfbsList[which(names(tfbsList) %in%
+#'                                                  c("Gm12878-Ctcf-Broad",
+#'                                                    "Gm12878-Rad21-Haib",
+#'                                                    "Gm12878-Smc3-Sydh",
+#'                                                    "Gm12878-Znf143-Sydh"))]
 #'
 #' # Create the binned data matrix for CHR1 (training) and CHR22 (testing)
 #' # using 5 kb binning, distance-type predictors from 4 TFBS from
 #' # the GM12878 cell line, and random under-sampling
+#' set.seed(123)
 #' tadData <- createTADdata(bounds.GR = bounds.GR,
 #'                          resolution = 5000,
 #'                          genomicElements.GR = tfbsList_filt,
@@ -73,6 +78,7 @@
 #'
 #' # Perform random forest using TADrandomForest by tuning mtry over 10 values
 #' # using 3-fold CV
+#' set.seed(123)
 #' tadModel <- TADrandomForest(trainData = tadData[[1]],
 #'                             testData = tadData[[2]],
 #'                             tuneParams = list(mtry = 2,
@@ -87,12 +93,13 @@
 #'                             performances = TRUE)
 #'
 #' # Apply preciseTAD on a specific 2mb section of CHR22:17000000-19000000
+#' set.seed(123)
 #' pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
 #'                  featureType = "distance",
 #'                  CHR = "CHR22",
 #'                  chromCoords = list(17000000, 19000000),
 #'                  tadModel = tadModel[[1]],
-#'                  threshold = 1,
+#'                  threshold = 1.0,
 #'                  flank = NULL,
 #'                  verbose = TRUE,
 #'                  parallel = NULL,

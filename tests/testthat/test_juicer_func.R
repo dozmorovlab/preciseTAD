@@ -48,15 +48,12 @@ test_that("Whether juicer_func gives us the same output", {
                      threshold=1.0,
                      flank=NULL,
                      verbose=TRUE,
-                     parallel=TRUE,
-                     cores=2,
-                     splits=2,
-                     DBSCAN_params=list(5000,3),
-                     samples=100)
+                     parallel=2,
+                     DBSCAN_params=list(5000,3))
 
     pt_juice <- juicer_func(pt[[2]])
 
-    expect_equal(nrow(pt_juice), length(pt[[2]])-1)
+    expect_equal(nrow(pt_juice), 8)
 
     expect_equal(ncol(pt_juice), 6)
 })

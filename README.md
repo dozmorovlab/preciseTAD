@@ -1,4 +1,4 @@
-# preciseTAD
+# [preciseTAD](https://dozmorovlab.github.io/preciseTAD/)
 
 <!-- [![Travis build
 status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](https://travis-ci.com/stilianoudakis/preciseTAD) -->

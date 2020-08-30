@@ -1,6 +1,7 @@
-Changes in version 0.99.6 (2020-08-XX)
+Changes in version 0.99.6 (2020-08-30)
 + Major simplification of the preciseTAD function, many arguments are kept default
-+ Update vignette
++ Major vignette rewrite
++ Add pkgdown web site
 + Update DESCRIPTION
   o Package description
 + Start tracking NEWS

@@ -1,9 +1,11 @@
-# preciseTAD
+# [preciseTAD](https://dozmorovlab.github.io/preciseTAD/)
+
+<!-- [![Travis build
+status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](https://travis-ci.com/stilianoudakis/preciseTAD) -->
 
 <!-- badges: start -->
 
-[![Travis build
-status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](https://travis-ci.com/stilianoudakis/preciseTAD)
+[![Lifecycle: maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 <!-- badges: end -->
 
 ## Overview
@@ -104,6 +106,8 @@ tadModel <- TADrandomForest(trainData  = tadData[[1]],
                             importances= TRUE,
                             impMeasure = "MDA",
                             performances = TRUE)
+# The model itself
+tadModel[[1]]
                             
 # Variable importances (mean decrease in accuracy)
 tadModel[[2]]

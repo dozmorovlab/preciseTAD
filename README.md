@@ -104,6 +104,8 @@ tadModel <- TADrandomForest(trainData  = tadData[[1]],
                             importances= TRUE,
                             impMeasure = "MDA",
                             performances = TRUE)
+# The model itself
+tadModel[[1]]
                             
 # Variable importances (mean decrease in accuracy)
 tadModel[[2]]

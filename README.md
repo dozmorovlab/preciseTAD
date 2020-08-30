@@ -72,7 +72,7 @@ names(tfbsList)
 For the purposes of this example, let's focus only on CTCF, RAD21, SMC3, and ZNF143 transcription factors.
 
 ``` r
-tfbsList <- tfbsList[names(tfbsList) %in% c("Gm12878-Ctcf-Broad","Gm12878-Rad21-Haib","Gm12878-Smc3-Sydh","Gm12878-Znf143-Sydh")]
+tfbsList_filt <- tfbsList[names(tfbsList) %in% c("Gm12878-Ctcf-Broad","Gm12878-Rad21-Haib","Gm12878-Smc3-Sydh","Gm12878-Znf143-Sydh")]
 ```
 
 Now, using the “ground-truth” boundaries and the following TFBS, we can build the data matrix that will be used for predictive modeling. The following command creates the training data from CHR1 and reserves the testing data from CHR22. We specify 5kb sized genomic bins (to match the resolution used to call the original TADs), a distance-type feature space, and apply random under-sampling (RUS) on the training data only.

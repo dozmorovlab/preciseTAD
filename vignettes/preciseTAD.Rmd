@@ -293,7 +293,7 @@ As an example, we consider the Hela-S3 cell line. We will download and use the [
 
 ```{r, eval=FALSE}
 # Read in RF model built on chr1-chr21
-tadModel <- readRDS("~/Documents/nobackup/CHR22_GM12878_5kb_Peakachu.rds")
+tadModel <- readRDS("~/Downloads/CHR22_GM12878_5kb_Peakachu.rds")
 ```
 
 The Hela-S3-specific BED-formatted TFBS data can be downloaded at [ENCODE](http://www.encodeproject.org/chip-seq-matrix/?type=Experiment&replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&assay_title=TF%20ChIP-seq&status=released). The selected TFBS data can be downloaded from the [supplementary repository](http://github.com/stilianoudakis/preciseTAD_supplementary/tree/master/data/bed/hela). They can be converted into a GRangesList.
@@ -323,7 +323,7 @@ pt <- preciseTAD(genomicElements.GR = hela.GR,
                 threshold           = 1.0,
                 flank               = NULL,
                 verbose             = FALSE,
-                parallel            = 2,
+                parallel            = NULL,
                 DBSCAN_params       = list(5000, 3))
 
 pt

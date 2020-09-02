@@ -238,7 +238,7 @@ Recall that our model classifies boundary **regions**, in that each prediction r
 
 ### Running preciseTAD
 
-Suppose we want to precisely predict the domain boundary coordinates for the 2Mb section of CHR22:25,500,000-27,500,000. To do so, we specify `chromCoords = list(25500000, 27500000)`. Additionally, we set a threshold of 1.0 for constructing PTBRs using `threshold = 1.0`. We also specify 100 random samples to be used to partition the pairwise genomic distances used by CLARA. For DBSCAN, we assign 5000 and 3 for the $\epsilon$ and *MinPts* parameters.
+Suppose we want to precisely predict the domain boundary coordinates for the 2Mb section of CHR22:25,500,000-27,500,000. To do so, we specify `chromCoords = list(25500000, 27500000)`. Additionally, we set a threshold of 1.0 for constructing PTBRs using `threshold = 1.0`. We also specify 100 random samples to be used to partition the pairwise genomic distances used by CLARA. For DBSCAN, we assign 10000 and 3 for the $\epsilon$ and *MinPts* parameters.
 
 ```{r}
 # Run preciseTAD
@@ -249,10 +249,10 @@ pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                 chromCoords         = list(25500000, 27500000),
                 tadModel            = tadModel[[1]],
                 threshold           = 1.0,
-                flank               = NULL,
                 verbose             = FALSE,
                 parallel            = NULL,
-                DBSCAN_params       = list(5000, 3))
+                DBSCAN_params       = list(10000, 3),
+                flank               = 5000)
 
 # What is getting returned? PTBRs - precide TAD boundary regions, and PTBPs - points
 names(pt)
@@ -260,7 +260,7 @@ names(pt)
 pt
 ```
 
-The output of `preciseTAD::preciseTAD()` function is a list object with two elements: 1) the `preciseTAD` predicted boundary regions, and 2) the `preciseTAD` predicted boundary points (PTBP). From the results above, we see that `preciseTAD` yielded 12 predicted boundary points.
+The output of `preciseTAD::preciseTAD()` function is a list object with 3 elements: 1) the genomic coordinates spanning each preciseTAD predicted region (PTBRs), 2) the genomic coordinates of preciseTAD predicted boundaries points (PTBP), and 3) the normalized enrichment of the genomic annotations used in the model around flanked PTBPs. Normalized enrichment is calculated as the total number of peak regions that overlap with flanked predicted boundaries divided by the number of predicted boundaries.
 
 ### Using preciseTAD with Juicebox
 
@@ -321,10 +321,10 @@ pt <- preciseTAD(genomicElements.GR = hela.GR,
                 chromCoords         = list(25500000, 27500000),
                 tadModel            = tadModel[[1]],
                 threshold           = 1.0,
-                flank               = NULL,
                 verbose             = FALSE,
                 parallel            = NULL,
-                DBSCAN_params       = list(5000, 3))
+                DBSCAN_params       = list(10000, 3),
+                flank               = 5000)
 
 pt
 ```

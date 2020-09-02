@@ -39,6 +39,7 @@ Suggests:
     BiocStyle
 VignetteBuilder: knitr
 Imports: 
+    S4Vectors,
     IRanges,
     GenomicRanges,
     randomForest,

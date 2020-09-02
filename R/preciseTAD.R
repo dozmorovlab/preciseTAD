@@ -20,19 +20,23 @@
 #' @param threshold Bases with predicted probabilities that are greater
 #' than or equal to this value are labeled as potential TAD boundaries. Values
 #' in the range of .95-1.0 are suggested. Default is 1.
-#' @param flank Controls how much to flank the final predicted TAD boundaries
-#' (necessary for evaluating overlaps, etc.). Default is NULL, i.e., no
-#' flanking.
 #' @param verbose Option to print progress. Default is TRUE.
 #' @param parallel Option to parallelise the process for obtaining predicted
 #' probabilities. Must be number to indicate the number of cores to use in
 #' parallel. Default is NULL.
 #' @param DBSCAN_params Parameters passed to \code{\link{dbscan}} in list form
 #' containing 1) eps and 2) MinPts. Required.
+#' @param flank Controls how much to flank the predicted TAD boundaries for
+#' calculating normalized enrichment. Normalized enrichment is calculated as
+#' the total number of peak regions that overlap with flanked predicted
+#' boundaries divided by the number of predicted boundaries. Recommended value
+#' is resolution. Required.
 #'
-#' @return A list object containing 2 \code{GRanges} elements including:
-#' 1) the genomic coordinates of preciseTAD predicted regions (PTBRs), and 2)
-#' the genomic coordinates of preciseTAD predicted boundaries (PTBP)
+#' @return A list object containing 3 \code{GRanges} elements including:
+#' 1) the genomic coordinates spanning each preciseTAD predicted region (PTBRs),
+#' 2) the genomic coordinates of preciseTAD predicted boundaries points (PTBP),
+#' and 3) the normalized enrichment of the genomic annotations
+#' used in the model around flanked PTBPs.
 #' @export
 #'
 #' @importFrom pROC roc
@@ -42,6 +46,7 @@
 #' @importFrom stats cutree
 #' @importFrom stats dist
 #' @importFrom dbscan dbscan
+#' @importFrom S4Vectors subjectHits
 #' @import pbapply parallel doSNOW foreach cluster IRanges GenomicRanges
 #'
 #' @examples
@@ -100,13 +105,14 @@
 #'                  chromCoords = list(17000000, 19000000),
 #'                  tadModel = tadModel[[1]],
 #'                  threshold = 1.0,
-#'                  flank = NULL,
 #'                  verbose = TRUE,
 #'                  parallel = NULL,
-#'                  DBSCAN_params = list(5000, 3))
+#'                  DBSCAN_params = list(10000, 3),
+#'                  flank = 5000)
 preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
-                      chromCoords = NULL, tadModel, threshold = 1, flank = NULL,
-                      verbose = TRUE, parallel = NULL, DBSCAN_params) {
+                      chromCoords = NULL, tadModel, threshold = 1,
+                      verbose = TRUE, parallel = NULL, DBSCAN_params,
+                      flank) {
 
     #ESTABLISHING CHROMOSOME-SPECIFIC SEQINFO#
 
@@ -135,28 +141,58 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
                         ncol = length(genomicElements.GR),
                         dimnames = list(NULL,names(genomicElements.GR)))
 
-    g <- split(GRanges(seqnames=tolower(CHR),IRanges(start=seqDataTest,end=seqDataTest)),
-               ceiling(seq_along(GRanges(seqnames=tolower(CHR),IRanges(start=seqDataTest,end=seqDataTest)))/10000000))
+    #g <- split(GRanges(seqnames=tolower(CHR),IRanges(start=seqDataTest,end=seqDataTest)),
+    #           ceiling(seq_along(GRanges(seqnames=tolower(CHR),IRanges(start=seqDataTest,end=seqDataTest)))/10000000))
 
     if(verbose==TRUE){print(paste0("Establishing bp resolution test data using a ", featureType, " type feature space"))}
     for(j in seq_len(length(genomicElements.GR))){
         p <-list()
-        for(i in seq_len(length(g))){
+        for(i in 1:length(split(GRanges(seqnames=tolower(CHR),
+                                        IRanges(start=seqDataTest,
+                                                end=seqDataTest)),
+                                ceiling(seq_along(GRanges(seqnames=tolower(CHR),
+                                                          IRanges(start=seqDataTest,
+                                                                  end=seqDataTest)))/10000000)))){
             if(featureType=="distance"){
-                p[[i]] <- log(distance_func(g[[i]],genomicElements.GR[[j]]) + 1, base = 2)
+                p[[i]] <- log(distance_func(split(GRanges(seqnames=tolower(CHR),
+                                                          IRanges(start=seqDataTest,
+                                                                  end=seqDataTest)),
+                                                  ceiling(seq_along(GRanges(seqnames=tolower(CHR),
+                                                                            IRanges(start=seqDataTest,
+                                                                                    end=seqDataTest)))/10000000))[[i]],
+                                            genomicElements.GR[[j]]) + 1,
+                              base = 2)
             }else if(featureType=="binary"){
-                p[[i]] <- binary_func(g[[i]],genomicElements.GR[[j]])
+                p[[i]] <- binary_func(split(GRanges(seqnames=tolower(CHR),
+                                                    IRanges(start=seqDataTest,
+                                                            end=seqDataTest)),
+                                            ceiling(seq_along(GRanges(seqnames=tolower(CHR),
+                                                                      IRanges(start=seqDataTest,
+                                                                              end=seqDataTest)))/10000000))[[i]],
+                                      genomicElements.GR[[j]])
             }else if(featureType=="oc"){
-                p[[i]] <- count_func(g[[i]],genomicElements.GR[[j]])
+                p[[i]] <- count_func(split(GRanges(seqnames=tolower(CHR),
+                                                   IRanges(start=seqDataTest,
+                                                           end=seqDataTest)),
+                                           ceiling(seq_along(GRanges(seqnames=tolower(CHR),
+                                                                     IRanges(start=seqDataTest,
+                                                                             end=seqDataTest)))/10000000))[[i]],
+                                     genomicElements.GR[[j]])
             }else{
-                p[[i]] <- percent_func(g[[i]],genomicElements.GR[[j]])
+                p[[i]] <- percent_func(split(GRanges(seqnames=tolower(CHR),
+                                                     IRanges(start=seqDataTest,
+                                                             end=seqDataTest)),
+                                             ceiling(seq_along(GRanges(seqnames=tolower(CHR),
+                                                                       IRanges(start=seqDataTest,
+                                                                               end=seqDataTest)))/10000000))[[i]],
+                                       genomicElements.GR[[j]])
             }
         }
         p <- unlist(p)
         test_data[,j] <- p
     }
 
-    rm("p", "g")
+    #rm("p", "g")
 
     #PREDICTING AT BP RESOLUTION #
 
@@ -197,102 +233,101 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
                      threshold))
     }
 
-    retain <- c(1, cumsum(ifelse(diff(seqDataTest[which(predictions >= threshold)]) !=
-                                     1, 1, 0)) + 1)
+    if (verbose == TRUE) {
+        print("Initializing DBSCAN")
+    }
+    res <- dbscan::dbscan(as.matrix(seqDataTest[which(predictions>=threshold)]), eps = DBSCAN_params[[1]], minPts = DBSCAN_params[[2]])
+    if (0 %in% unique(res$cluster)) {
+        k = length(unique(res$cluster)) - 1
+    } else {
+        k = length(unique(res$cluster))
+    }
 
-    mid <- tapply(seqDataTest[which(predictions >= threshold)], retain, function(x) {
-        return(ceiling((x[1] + x[length(x)])/2))
-    })
+    if (verbose == TRUE) {
+        print(paste0("preciseTAD identified ", k, " PTBRs"))
+        print(paste0("Establishing PTBPs"))
+    }
 
-    mid <- as.vector(mid)
+    medoids <- numeric()
+    grlist <- GRangesList()
+    for(i in 1:k){
+        #print(i)
 
-    #if (DBSCAN == FALSE) {
-    #    dist_mat <- dist(mid, method = "euclidean")
-    #    if (verbose == TRUE) {
-    #        print("Initializing hierarchical clustering")
-    #    }
-    #    hc1 <- hclust(dist_mat, method = method.Clust)
-    #    k <- pbsapply(2:(length(mid) - 1), function(i) {
-    #        mean(silhouette(cutree(hc1, i), dist = dist_mat)[, "sil_width"])
-    #    })
-    #    k = which.max(k) + 1
-    #    if (verbose == TRUE) {
-    #        print(paste0("preciseTAD identified ", k, " PTBRs"))
-    #    }
-    #} else {
-        if (verbose == TRUE) {
-            print("Initializing DBSCAN")
-        }
-        res <- dbscan::dbscan(as.matrix(mid), eps = DBSCAN_params[[1]], minPts = DBSCAN_params[[2]])
-        if (0 %in% unique(res$cluster)) {
-            k = length(unique(res$cluster)) - 1
-        } else {
-            k = length(unique(res$cluster))
-        }
-        if (verbose == TRUE) {
-            print(paste0("preciseTAD identified ", k, " PTBRs"))
-        }
-    #}
+        grlist[[i]] <- GRanges(seqnames = tolower(CHR),
+                               IRanges(start=min(seqDataTest[which(predictions>=threshold)][which(res$cluster==i)]),
+                                       end=max(seqDataTest[which(predictions>=threshold)][which(res$cluster==i)])))
 
-    #if (CLARA == TRUE) {
-        if (verbose == TRUE) {
-            print(paste0("Initializing CLARA with ", k, " clusters"))
-            c <- clara(mid, k = k, samples = 100, metric = "euclidean", stand = FALSE,
-                       trace = 2, medoids.x = TRUE, rngR = TRUE)
-            medoids <- c$medoids
-            clustering <- c$clustering
-        } else {
-            c <- clara(mid, k = k, samples = 100, metric = "euclidean", stand = FALSE,
-                       trace = 0, medoids.x = TRUE, keep.data = FALSE, rngR = TRUE)
-            medoids <- c$medoids
-            clustering <- c$clustering
-        }
-    #} else {
-    #    if (verbose == TRUE) {
-    #        print(paste0("Initializing PAM with ", k, " clusters"))
-    #        c <- pam(x = mid, k = k, diss = FALSE, metric = method.Dist, medoids = NULL,
-    #                 stand = FALSE, cluster.only = FALSE, do.swap = TRUE, keep.diss = FALSE,
-    #                 trace.lev = 2)
-    #        medoids <- c$medoids
-    #        clustering <- c$clustering
-    #    } else {
-    #        c <- pam(x = mid, k = k, diss = FALSE, metric = method.Dist, medoids = NULL,
-    #                 stand = FALSE, cluster.only = FALSE, do.swap = TRUE, keep.diss = FALSE,
-    #                 trace.lev = 0)
-    #        medoids <- c$medoids
-    #        clustering <- c$clustering
-    #    }
-    #}
+        bp <- seqDataTest[which(predictions>=threshold)][which(res$cluster==i)]
 
-    predBound_gr <- GRanges(seqnames = tolower(CHR), IRanges(start = seqDataTest[which(seqDataTest %in%
-                                                                                           medoids)], end = seqDataTest[which(seqDataTest %in% medoids)]))
+        c <- pam(x = as.matrix(bp),
+                 k = 1,
+                 diss = FALSE,
+                 metric = "euclidean",
+                 medoids = NULL,
+                 stand = FALSE,
+                 cluster.only = FALSE,
+                 do.swap = TRUE,
+                 keep.diss = FALSE,
+                 trace.lev = 0)
+        medoids[i] <- c$medoids[1]
+
+    }
+
+    grlist <- unlist(grlist)
+
+    predBound_gr <- GRanges(seqnames=tolower(CHR),
+                            IRanges(start=medoids,
+                                    end=medoids))
 
     if (!is.null(flank)) {
         predBound_gr <- flank(predBound_gr, width = flank, both = TRUE)
     }
 
-        grlist <- GRangesList()
-        for (i in seq_len(length(unique(clustering)))) {
-
-            PTBAs = c(seq_len(length(clustering)))[which(clustering == i)][1]
-            PTBAe = c(seq_len(length(clustering)))[which(clustering == i)][length(which(clustering ==
-                                                                                     i))]
-
-            PTBRs = mid[PTBAs]
-            PTBRe = mid[PTBAe]
-
-            grlist[[i]] <- GRanges(seqnames = tolower(CHR), IRanges(start = PTBRs,
-                                                                    end = PTBRe))
-        }
-        gr <- unlist(grlist)
-
-        #if (juicer == TRUE) {
-        #    bp_results <- list(PTBR = gr,
-        #                       PTBP = juicer_func(predBound_gr))
-        #} else {
-            bp_results <- list(PTBR = gr,
-                               PTBP = predBound_gr)
-        #}
+    if(0 %in% unique(res$cluster)){
+        bp_results <- list(PTBR=grlist,
+                           #PTBRwidth = data.frame(min=min(as.vector(table(res$cluster))[-1]),
+                           #                       max=max(as.vector(table(res$cluster))[-1]),
+                           #                       median=median(as.vector(table(res$cluster))[-1]),
+                           #                       iqr=IQR(as.vector(table(res$cluster))[-1]),
+                           #                       mean=mean(as.vector(table(res$cluster))[-1]),
+                           #                       sd=sd(as.vector(table(res$cluster))[-1])),
+                           #DistBetweenPTBR = data.frame(min=min(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                           #                             max=max(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                           #                             median=median(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                           #                             iqr=IQR(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                           #                             mean=mean(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                           #                             sd=sd(start(grlist)[-1]-end(grlist)[-length(end(grlist))])),
+                           PTBP=predBound_gr,
+                           NormilizedEnrichment=unlist(lapply(genomicElements.GR,
+                                                              function(x){
+                                                                  length(unique(S4Vectors::subjectHits(findOverlaps(flank(predBound_gr,
+                                                                                                               width = flank,
+                                                                                                               both = TRUE),x))))/length(predBound_gr)
+                                                              }
+                           )))
+    }else{
+        bp_results <- list(PTBR=grlist,
+                           #PTBRwidth = data.frame(min=min(as.vector(table(res$cluster))),
+                        #                          max=max(as.vector(table(res$cluster))),
+                        #                          median=median(as.vector(table(res$cluster))),
+                        #                          iqr=IQR(as.vector(table(res$cluster))),
+                        #                          mean=mean(as.vector(table(res$cluster))),
+                        #                          sd=sd(as.vector(table(res$cluster)))),
+                        #   DistBetweenPTBR = data.frame(min=min(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                        #                                max=max(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                        #                                median=median(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                        #                                iqr=IQR(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                        #                                mean=mean(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                        #                                sd=sd(start(grlist)[-1]-end(grlist)[-length(end(grlist))])),
+                           PTBP=predBound_gr,
+                           NormilizedEnrichment=unlist(lapply(genomicElements.GR,
+                                                              function(x){
+                                                                  length(unique(S4Vectors::subjectHits(findOverlaps(flank(predBound_gr,
+                                                                                                               width = flank,
+                                                                                                               both = TRUE),x))))/length(predBound_gr)
+                                                              }
+                           )))
+    }
 
     return(bp_results)
 }

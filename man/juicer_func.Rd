@@ -31,12 +31,14 @@ bounds.GR <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
 # Read in GRangesList of 26 TFBS
 data(tfbsList)
 
+tfbsList_filt <- tfbsList[which(names(tfbsList) \%in\% c("Gm12878-Ctcf-Broad", "Gm12878-Rad21-Haib", "Gm12878-Smc3-Sydh", "Gm12878-Znf143-Sydh"))]
+
 # Create the binned data matrix for CHR1 (training) and CHR22 (testing)
 # using 5 kb binning, distance-type predictors from 26 different TFBS from
 # the GM12878 cell line, and random under-sampling
 tadData <- createTADdata(bounds.GR = bounds.GR,
                          resolution = 5000,
-                         genomicElements.GR = tfbsList,
+                         genomicElements.GR = tfbsList_filt,
                          featureType = "distance",
                          resampling = "rus",
                          trainCHR = "CHR21",
@@ -46,7 +48,7 @@ tadData <- createTADdata(bounds.GR = bounds.GR,
 # using 3-fold CV
 tadModel <- TADrandomForest(trainData = tadData[[1]],
                             testData = tadData[[2]],
-                            tuneParams = list(mtry = c(2, 5, 8, 10, 13, 16, 18, 21, 24, 26),
+                            tuneParams = list(mtry = 2,
                                             ntree = 500,
                                             nodesize = 1),
                             cvFolds = 3,
@@ -58,19 +60,18 @@ tadModel <- TADrandomForest(trainData = tadData[[1]],
                             performances = TRUE)
 
 # Apply preciseTAD on a specific 2mb section of CHR22:17000000-19000000
-pt <- preciseTAD(genomicElements.GR = tfbsList,
+pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                  featureType = "distance",
                  CHR = "CHR22",
                  chromCoords = list(17000000, 19000000),
                  tadModel = tadModel[[1]],
-                 threshold = .75,
-                 flank = NULL,
+                 threshold = 1.0,
                  verbose = TRUE,
                  parallel = TRUE,
                  cores = 2,
                  splits = 2,
-                 DBSCAN_params = list(5000, 3),
-                 samples = 100)
+                 DBSCAN_params = list(10000, 3),
+                 flank = NULL)
 
 # Transform into juicer format
 juicer_func(pt[[2]])

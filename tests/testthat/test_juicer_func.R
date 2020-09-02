@@ -46,14 +46,14 @@ test_that("Whether juicer_func gives us the same output", {
                      chromCoords=list(17000000,19000000),
                      tadModel=tadModel[[1]],
                      threshold=1.0,
-                     flank=NULL,
                      verbose=TRUE,
                      parallel=2,
-                     DBSCAN_params=list(5000,3))
+                     DBSCAN_params=list(10000,3),
+                     flank=5000)
 
     pt_juice <- juicer_func(pt[[2]])
 
-    expect_equal(nrow(pt_juice), 8)
+    expect_equal(nrow(pt_juice), 12)
 
     expect_equal(ncol(pt_juice), 6)
 })

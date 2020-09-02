@@ -46,14 +46,14 @@ test_that("Whether preciseTAD gives us the same output", {
                      chromCoords=list(17000000,19000000),
                      tadModel=tadModel[[1]],
                      threshold=1.0,
-                     flank=NULL,
                      verbose=TRUE,
                      parallel=2,
-                     DBSCAN_params=list(5000,3))
+                     DBSCAN_params=list(10000,3),
+                     flank=5000)
 
-    expect_equal(width(pt[[1]])[1], 13189)
+    expect_equal(width(pt[[1]])[1], 13498)
 
-    expect_equal(length(pt[[2]]), 9)
+    expect_equal(length(pt[[2]]), 13)
 
-    expect_equal(IRanges::start(pt[[2]])[1], 17399162)
+    expect_equal(IRanges::start(pt[[2]])[1], 17393701)
 })

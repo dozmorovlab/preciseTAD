@@ -12,10 +12,10 @@ preciseTAD(
   chromCoords = NULL,
   tadModel,
   threshold = 1,
-  flank = NULL,
   verbose = TRUE,
   parallel = NULL,
-  DBSCAN_params
+  DBSCAN_params,
+  flank
 )
 }
 \arguments{
@@ -44,10 +44,6 @@ using \code{preciseTAD::randomForest}). Required.}
 than or equal to this value are labeled as potential TAD boundaries. Values
 in the range of .95-1.0 are suggested. Default is 1.}
 
-\item{flank}{Controls how much to flank the final predicted TAD boundaries
-(necessary for evaluating overlaps, etc.). Default is NULL, i.e., no
-flanking.}
-
 \item{verbose}{Option to print progress. Default is TRUE.}
 
 \item{parallel}{Option to parallelise the process for obtaining predicted
@@ -56,11 +52,19 @@ parallel. Default is NULL.}
 
 \item{DBSCAN_params}{Parameters passed to \code{\link{dbscan}} in list form
 containing 1) eps and 2) MinPts. Required.}
+
+\item{flank}{Controls how much to flank the predicted TAD boundaries for
+calculating normalized enrichment. Normalized enrichment is calculated as
+the total number of peak regions that overlap with flanked predicted
+boundaries divided by the number of predicted boundaries. Recommended value
+is resolution. Required.}
 }
 \value{
-A list object containing 2 \code{GRanges} elements including:
-1) the genomic coordinates of preciseTAD predicted regions (PTBRs), and 2)
-the genomic coordinates of preciseTAD predicted boundaries (PTBP)
+A list object containing 3 \code{GRanges} elements including:
+1) the genomic coordinates spanning each preciseTAD predicted region (PTBRs),
+2) the genomic coordinates of preciseTAD predicted boundaries points (PTBP),
+and 3) the normalized enrichment of the genomic annotations
+used in the model around flanked PTBPs.
 }
 \description{
 Precise TAD boundary prediction at base-level resolution using density-based
@@ -122,8 +126,8 @@ pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                  chromCoords = list(17000000, 19000000),
                  tadModel = tadModel[[1]],
                  threshold = 1.0,
-                 flank = NULL,
                  verbose = TRUE,
                  parallel = NULL,
-                 DBSCAN_params = list(5000, 3))
+                 DBSCAN_params = list(10000, 3),
+                 flank = 5000)
 }

@@ -127,10 +127,10 @@ pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                  chromCoords        = list(35000000,45000000),
                  tadModel           = tadModel[[1]],
                  threshold          = 1.0,
-                 flank              = NULL,
                  verbose            = TRUE,
                  parallel           = 2,
-                 DBSCAN_params      = list(5000,3))
+                 DBSCAN_params      = list(5000,3),
+                 flank              = 5000)
                  
 # View preciseTAD predicted boundary coordinates between CHR22:35mb-45mb
 pt[[2]]

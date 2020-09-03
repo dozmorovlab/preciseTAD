@@ -51,7 +51,7 @@ test_that("Whether juicer_func gives us the same output", {
                      DBSCAN_params=list(10000,3),
                      flank=5000)
 
-    pt_juice <- juicer_func(pt[[3]])
+    pt_juice <- juicer_func(pt[[2]])
 
     expect_equal(nrow(pt_juice), 12)
 

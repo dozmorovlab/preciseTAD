@@ -32,17 +32,18 @@
 #' boundaries divided by the number of predicted boundaries. Recommended value
 #' is resolution. Required.
 #'
-#' @return A list containing 4 elements including:
+#' @return A list containing 3 elements including:
 #' 1) the genomic coordinates spanning each preciseTAD predicted region (PTBR),
-#' 2) a named list including summary statistics of the following:
-#' PTBRWidth - PTBR width, TotalCoordperPTBR - Total base level coordinates in
-#' each PTBR, PTBRCoverage - the ratio of TotalCoordperPTBR to PTBRWidth,
+#' 2) the genomic coordinates of preciseTAD predicted boundaries points (PTBP).
+#' 3) a named list including summary statistics of the following:
+#' PTBRWidth - PTBR width, PTBRCoverage - the ratio of base level coordinates
+#' with probabilities that exceed the threshold to PTBRWidth,
 #' DistanceBetweenPTBR - the genomic distance between the end of the previous
 #' PTBR and the start of the subsequent PTBR, NumSubRegions - the number of
-#' elements in each PTBR cluster, and DistBetweenSubRegions - the genomic
-#' distance between the end of the previous PTBR-specific region and the start
-#' of the subsequent PTBR-specific region, 3) the genomic coordinates of
-#' preciseTAD predicted boundaries points (PTBP), and 4) the normalized
+#' elements in each PTBR cluster, SubRegionWidth - the genomic coordinates
+#' spanning the subregion associated with each PTBR, DistBetweenSubRegions -
+#' the genomic distance between the end of the previous PTBR-specific region
+#' and the start of the subsequent PTBR-specific region, and the normalized
 #' enrichment of the genomic annotations used in the model around flanked PTBPs.
 #' @export
 #'
@@ -264,7 +265,7 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
     numsubreg <- numeric()
     distbtwsubreg <- numeric()
     coverage <- numeric()
-    #widthsubreg <- numeric()
+    widthsubreg <- numeric()
     for(i in seq_len(k)){
         if(verbose == TRUE){print(paste0("Cluster ", i, " out of ", k))}
 
@@ -288,9 +289,9 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
             distbtwsubreg <- c(distbtwsubreg, diff(bp)[-which(diff(bp)==1)])
         }
 
-        #retain <- c(1,cumsum(ifelse(diff(bp) != 1, 1, 0)) + 1)
+        retain <- c(1,cumsum(ifelse(diff(bp) != 1, 1, 0)) + 1)
 
-        #widthsubreg <- c(widthsubreg, as.vector(table(retain)))
+        widthsubreg <- c(widthsubreg, as.vector(table(retain)))
 
         c <- pam(x = as.matrix(bp),
                  k = 1,
@@ -315,18 +316,19 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
     if(0 %in% unique(res$cluster)){res$cluster <- res$cluster[-which(res$cluster==0)]}
 
     bp_results <- list(PTBR=grlist,
+                       PTBP=predBound_gr,
                        Summaries=list(PTBRWidth = data.frame(min=min(width(grlist)),
                                                              max=max(width(grlist)),
                                                              median=median(width(grlist)),
                                                              iqr=IQR(width(grlist)),
                                                              mean=mean(width(grlist)),
                                                              sd=sd(width(grlist))),
-                                      TotalCoordperPTBR = data.frame(min=min(as.vector(table(res$cluster))),
-                                                                     max=max(as.vector(table(res$cluster))),
-                                                                     median=median(as.vector(table(res$cluster))),
-                                                                     iqr=IQR(as.vector(table(res$cluster))),
-                                                                     mean=mean(as.vector(table(res$cluster))),
-                                                                     sd=sd(as.vector(table(res$cluster)))),
+                                      #TotalCoordperPTBR = data.frame(min=min(as.vector(table(res$cluster))),
+                                      #                               max=max(as.vector(table(res$cluster))),
+                                      #                               median=median(as.vector(table(res$cluster))),
+                                      #                               iqr=IQR(as.vector(table(res$cluster))),
+                                      #                               mean=mean(as.vector(table(res$cluster))),
+                                      #                               sd=sd(as.vector(table(res$cluster)))),
                                       PTBRCoverage = data.frame(min=min(coverage),
                                                                 max=max(coverage),
                                                                 median=median(coverage),
@@ -345,22 +347,26 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
                                                                  iqr=IQR(numsubreg),
                                                                  mean=mean(numsubreg),
                                                                  sd=sd(numsubreg)),
+                                      SubRegionWidth = data.frame(min=min(widthsubreg),
+                                                                  max=max(widthsubreg),
+                                                                  median=median(widthsubreg),
+                                                                  iqr=IQR(widthsubreg),
+                                                                  mean=mean(widthsubreg),
+                                                                  sd=sd(widthsubreg)),
                                       DistBetweenSubRegions = data.frame(min=min(distbtwsubreg),
                                                                          max=max(distbtwsubreg),
                                                                          median=median(distbtwsubreg),
                                                                          iqr=IQR(distbtwsubreg),
                                                                          mean=mean(distbtwsubreg),
-                                                                         sd=sd(distbtwsubreg))
-                       ),
-                       PTBP=predBound_gr,
-                       NormilizedEnrichment=unlist(
-                           lapply(genomicElements.GR,
-                                  function(x){length(unique(subjectHits(findOverlaps(flank(predBound_gr,
-                                                                                           width = 5000,
-                                                                                           both = TRUE),
-                                                                                     x))))/length(predBound_gr)
-                                      }
-                                  )))
+                                                                         sd=sd(distbtwsubreg)),
+                                      NormilizedEnrichment = unlist(
+                                          lapply(genomicElements.GR,
+                                                 function(x){length(unique(subjectHits(findOverlaps(flank(predBound_gr,
+                                                                                                          width = 5000,
+                                                                                                          both = TRUE),
+                                                                                                    x))))/length(predBound_gr)
+                                                 }
+                                          ))))
 
     return(bp_results)
 }

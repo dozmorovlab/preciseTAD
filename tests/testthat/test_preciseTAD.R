@@ -53,11 +53,11 @@ test_that("Whether preciseTAD gives us the same output", {
 
     expect_equal(width(pt[[1]])[1], 13498)
 
-    expect_equal(pt$Summaries$TotalCoordperPTBR$median, 801)
+    expect_equal(pt$Summaries$PTBRWidth$median, 4467)
 
     expect_equal(pt$Summaries$PTBRCoverage$median, 0.2923396)
 
-    expect_equal(length(pt[[3]]), 13)
+    expect_equal(length(pt[[2]]), 13)
 
-    expect_equal(IRanges::start(pt[[3]])[1], 17398701)
+    expect_equal(IRanges::start(pt[[2]])[1], 17398701)
 })

@@ -60,17 +60,18 @@ boundaries divided by the number of predicted boundaries. Recommended value
 is resolution. Required.}
 }
 \value{
-A list containing 4 elements including:
+A list containing 3 elements including:
 1) the genomic coordinates spanning each preciseTAD predicted region (PTBR),
-2) a named list including summary statistics of the following:
-PTBRWidth - PTBR width, TotalCoordperPTBR - Total base level coordinates in
-each PTBR, PTBRCoverage - the ratio of TotalCoordperPTBR to PTBRWidth,
+2) the genomic coordinates of preciseTAD predicted boundaries points (PTBP).
+3) a named list including summary statistics of the following:
+PTBRWidth - PTBR width, PTBRCoverage - the ratio of base level coordinates
+with probabilities that exceed the threshold to PTBRWidth,
 DistanceBetweenPTBR - the genomic distance between the end of the previous
 PTBR and the start of the subsequent PTBR, NumSubRegions - the number of
-elements in each PTBR cluster, and DistBetweenSubRegions - the genomic
-distance between the end of the previous PTBR-specific region and the start
-of the subsequent PTBR-specific region, 3) the genomic coordinates of
-preciseTAD predicted boundaries points (PTBP), and 4) the normalized
+elements in each PTBR cluster, SubRegionWidth - the genomic coordinates
+spanning the subregion associated with each PTBR, DistBetweenSubRegions -
+the genomic distance between the end of the previous PTBR-specific region
+and the start of the subsequent PTBR-specific region, and the normalized
 enrichment of the genomic annotations used in the model around flanked PTBPs.
 }
 \description{

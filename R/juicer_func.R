@@ -23,7 +23,11 @@
 #' # Read in GRangesList of 26 TFBS
 #' data(tfbsList)
 #'
-#' tfbsList_filt <- tfbsList[which(names(tfbsList) %in% c("Gm12878-Ctcf-Broad", "Gm12878-Rad21-Haib", "Gm12878-Smc3-Sydh", "Gm12878-Znf143-Sydh"))]
+#' tfbsList_filt <- tfbsList[which(names(tfbsList) %in%
+#'                                                    c("Gm12878-Ctcf-Broad",
+#'                                                      "Gm12878-Rad21-Haib",
+#'                                                      "Gm12878-Smc3-Sydh",
+#'                                                      "Gm12878-Znf143-Sydh"))]
 #'
 #' # Create the binned data matrix for CHR1 (training) and CHR22 (testing)
 #' # using 5 kb binning, distance-type predictors from 26 different TFBS from

@@ -270,7 +270,7 @@ Juicebox is an interface provided by Aiden Lab that allows for superimposing bou
 
 ```{r, eval=FALSE}
 # Transform
-pt_juice <- juicer_func(pt[[3]])
+pt_juice <- juicer_func(pt[[2]])
 ```
 
 You will then need to save the PTBPs as a BED file using `write.table` as shown below. Once saved, import them into Juicebox using `Show Annotation Panel -> 2D Annotations -> Add Local -> pt_juice.bed`.

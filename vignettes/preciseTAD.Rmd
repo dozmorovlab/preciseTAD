@@ -67,7 +67,7 @@ The column-wise dimension is formed by genomic annotations, such as transcriptio
 
 `preciseTAD` implements a random forest (RF) model, allowing tuning hyperparameters and applying feature reduction. The primary inputs are the training and testing data, a list of hyperparameter values, the number of cross-validation folds to use (if a grid of hyperparameter values is provided), and the metric used for optimization. The output includes the model object (necessary for downstream prediction of boundaries), the variable importance values, and a list of performance metrics when validating the model on the testing data (see Table 1). This model is then used to predict base-level precise boundary locations.
 
-To predict the base-level location of domain boundaries, the `preciseTAD` model is applied for each base annotated with the aforementioned genomic annotations. The base-level probabilities are clustered using density-based clustering and scalable data partitioning techniques, to narrow boundary regions and points. First, the probability vector, $p_{n_{i}}$, is extracted ($n_{i}$ representing the length of chromosome $i$). Next, *DBSCAN* (Density-based Spatial Clustering of Applications with Noise) [@ester1996density; @hahsler2019dbscan] is applied to the matrix of pairwise genomic distances between bases with $p_{n_{i}} \ge t$, where $t$ is a threshold determined by the user. The resulting clusters of highly predictive bases identified by DBSCAN are termed *preciseTAD boundary regions* (PTBR). To precisely identify a single base among each PTBR, *preciseTAD* implements an extension of partitioning around medoids (PAM), known as CLARA (Clustering Large Applications) for better scaling and more computational efficiency [@rousseeuw1990finding]. The corresponding cluster medoid is defined as a *preciseTAD boundary point* (PTBP), making it the most representative and biologically meaningful base within each clustered PTBR. The output includes a list of genomic coordinates of PTBPs and PTBSs.
+To predict the base-level location of domain boundaries, the `preciseTAD` model is applied for each base annotated with the aforementioned genomic annotations. The base-level probabilities are clustered using density-based clustering and scalable data partitioning techniques, to narrow boundary regions and points. First, the probability vector, $p_{n_{i}}$, is extracted ($n_{i}$ representing the length of chromosome $i$). Next, *DBSCAN* (Density-based Spatial Clustering of Applications with Noise) [@ester1996density; @hahsler2019dbscan] is applied to the matrix of pairwise genomic distances between bases with $p_{n_{i}} \ge t$, where $t$ is a threshold determined by the user. The resulting clusters of highly predictive bases identified by DBSCAN are termed *preciseTAD boundary regions* (PTBR). To precisely identify a single base among each PTBR, *preciseTAD* implements partitioning around medoids (PAM) within each cluster. The corresponding cluster medoid is defined as a *preciseTAD boundary point* (PTBP), making it the most representative and biologically meaningful base within each clustered PTBR. The output includes a list of genomic coordinates of PTBPs and PTBSs.
 
 `preciseTAD` allows us to use the pre-trained model to predict the precise location of domain boundaries in cell types without Hi-C data but with genome annotation data. Specifically, only cell-type-specific ChIP-seq data (BED format) for CTCF, RAD21, SMC3, and ZNF143 transcription factor binding sites is required. We provide models pre-trained using GM12878 and K562 genome annotation data, and Arrowhead- and Peakachu-predicted boundaries for chromosome-specific prediction of precise domain boundaries in other cell types.
 
@@ -238,7 +238,7 @@ Recall that our model classifies boundary **regions**, in that each prediction r
 
 ### Running preciseTAD
 
-Suppose we want to precisely predict the domain boundary coordinates for the 2Mb section of CHR22:25,500,000-27,500,000. To do so, we specify `chromCoords = list(25500000, 27500000)`. Additionally, we set a threshold of 1.0 for constructing PTBRs using `threshold = 1.0`. We also specify 100 random samples to be used to partition the pairwise genomic distances used by CLARA. For DBSCAN, we assign 10000 and 3 for the $\epsilon$ and *MinPts* parameters.
+Suppose we want to precisely predict the domain boundary coordinates for the 2Mb section of CHR22:25,500,000-27,500,000. To do so, we specify `chromCoords = list(25500000, 27500000)`. Additionally, we set a threshold of 1.0 for constructing PTBRs using `threshold = 1.0`. For DBSCAN, we assign 10000 and 3 for the $\epsilon$ and *MinPts* parameters.
 
 ```{r}
 # Run preciseTAD
@@ -260,7 +260,8 @@ names(pt)
 pt
 ```
 
-The output of `preciseTAD::preciseTAD()` function is a list object with 3 elements: 1) the genomic coordinates spanning each preciseTAD predicted region (PTBRs), 2) the genomic coordinates of preciseTAD predicted boundaries points (PTBP), and 3) the normalized enrichment of the genomic annotations used in the model around flanked PTBPs. Normalized enrichment is calculated as the total number of peak regions that overlap with flanked predicted boundaries divided by the number of predicted boundaries.
+The output of `preciseTAD::preciseTAD()` function is a list with 4 elements: the genomic coordinates spanning each preciseTAD predicted region (PTBR), 2) a named list object including summary statistics of the following: *PTBRWidth* - PTBR width, *TotalCoordperPTBR* - Total base level coordinates in each PTBR, *PTBRCoverage* - the ratio of TotalCoordperPTBR to PTBRWidth, *DistanceBetweenPTBR* - the genomic distance between the end of the previous PTBR and the start of the subsequent PTBR, *NumSubRegions* - the number of elements in each PTBR cluster, and 
+*DistBetweenSubRegions* - the genomic distance between the end of the previous PTBR-specific region and the start of the subsequent PTBR-specific region, 3) the genomic coordinates of preciseTAD predicted boundaries points (PTBP), and 4) the normalized enrichment of the genomic annotations used in the model around flanked PTBPs. Normalized enrichment is calculated as the total number of peak regions that overlap with flanked predicted boundaries divided by the number of predicted boundaries.
 
 ### Using preciseTAD with Juicebox
 
@@ -268,7 +269,7 @@ Juicebox is an interface provided by Aiden Lab that allows for superimposing bou
 
 ```{r, eval=FALSE}
 # Transform
-pt_juice <- juicer_func(pt[[2]])
+pt_juice <- juicer_func(pt[[3]])
 ```
 
 You will then need to save the PTBPs as a BED file using `write.table` as shown below. Once saved, import them into Juicebox using `Show Annotation Panel -> 2D Annotations -> Add Local -> pt_juice.bed`.

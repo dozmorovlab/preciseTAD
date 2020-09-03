@@ -60,11 +60,18 @@ boundaries divided by the number of predicted boundaries. Recommended value
 is resolution. Required.}
 }
 \value{
-A list object containing 3 \code{GRanges} elements including:
-1) the genomic coordinates spanning each preciseTAD predicted region (PTBRs),
-2) the genomic coordinates of preciseTAD predicted boundaries points (PTBP),
-and 3) the normalized enrichment of the genomic annotations
-used in the model around flanked PTBPs.
+A list containing 4 elements including:
+1) the genomic coordinates spanning each preciseTAD predicted region (PTBR),
+2) a named list including summary statistics of the following:
+PTBRWidth - PTBR width, TotalCoordperPTBR - Total base level coordinates in
+each PTBR, PTBRCoverage - the ratio of TotalCoordperPTBR to PTBRWidth,
+DistanceBetweenPTBR - the genomic distance between the end of the previous
+PTBR and the start of the subsequent PTBR, NumSubRegions - the number of
+elements in each PTBR cluster, and DistBetweenSubRegions - the genomic
+distance between the end of the previous PTBR-specific region and the start
+of the subsequent PTBR-specific region, 3) the genomic coordinates of
+preciseTAD predicted boundaries points (PTBP), and 4) the normalized
+enrichment of the genomic annotations used in the model around flanked PTBPs.
 }
 \description{
 Precise TAD boundary prediction at base-level resolution using density-based

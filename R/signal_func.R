@@ -6,6 +6,7 @@
 #' @return A vector of intensities indicating the signal strength within each
 #' overlap
 #'
+#' @importFrom S4Vectors queryHits
 #' @import IRanges GenomicRanges
 #'
 signal_func <- function(binned_data_gr, annot_data_gr){
@@ -22,7 +23,7 @@ signal_func <- function(binned_data_gr, annot_data_gr){
     count_signal[which(c==0)] <- 0
 
     #for c=1:
-    count_signal[which(c==1)] <- mcols(annot_data_gr[queryHits(findOverlaps(annot_data_gr,binned_data_gr[which(c==1)]))])$coverage
+    count_signal[which(c==1)] <- mcols(annot_data_gr[S4Vectors::queryHits(findOverlaps(annot_data_gr,binned_data_gr[which(c==1)]))])$coverage
 
     #for c>1:
     #iterate through all bins with multiple overlaps with the annotation of interest

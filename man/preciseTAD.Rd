@@ -64,14 +64,14 @@ A list containing 3 elements including:
 1) the genomic coordinates spanning each preciseTAD predicted region (PTBR),
 2) the genomic coordinates of preciseTAD predicted boundaries points (PTBP).
 3) a named list including summary statistics of the following:
-PTBRWidth - PTBR width, PTBRCoverage - the ratio of base level coordinates
-with probabilities that exceed the threshold to PTBRWidth,
+PTBRWidth - PTBR width, PTBRCoverage - the proportion of bases within a PTBR
+with probabilities that equal to or exceed the threshold (t=1 by default),
 DistanceBetweenPTBR - the genomic distance between the end of the previous
 PTBR and the start of the subsequent PTBR, NumSubRegions - the number of
-elements in each PTBR cluster, SubRegionWidth - the genomic coordinates
-spanning the subregion associated with each PTBR, DistBetweenSubRegions -
-the genomic distance between the end of the previous PTBR-specific region
-and the start of the subsequent PTBR-specific region, and the normalized
+the subregions in each PTBR cluster, SubRegionWidth - the width of
+the subregion forming each PTBR, DistBetweenSubRegions -
+the genomic distance between the end of the previous PTBR-specific subregion
+and the start of the subsequent PTBR-specific subregion, and the normalized
 enrichment of the genomic annotations used in the model around flanked PTBPs.
 }
 \description{

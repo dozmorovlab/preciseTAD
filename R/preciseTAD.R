@@ -362,7 +362,7 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
                                       NormilizedEnrichment = unlist(
                                           lapply(genomicElements.GR,
                                                  function(x){length(unique(subjectHits(findOverlaps(flank(predBound_gr,
-                                                                                                          width = 5000,
+                                                                                                          width = flank,
                                                                                                           both = TRUE),
                                                                                                     x))))/length(predBound_gr)
                                                  }

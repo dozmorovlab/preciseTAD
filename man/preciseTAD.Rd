@@ -42,7 +42,13 @@ using \code{preciseTAD::randomForest}). Required.}
 
 \item{threshold}{Bases with predicted probabilities that are greater
 than or equal to this value are labeled as potential TAD boundaries. Values
-in the range of .95-1.0 are suggested. Default is 1.}
+in the range of .95-1.0 are suggested. Default is 1. If a vector of different
+values is passed to the threshold paramenter then a grid is provided with eps
+(see DBSCAN_params parameter) threshold values and the optimal combination is
+chose as the combination that maximizes normalized enrichment -- calculated 
+as the number of peak regions that overlap with flanked predicted boundaries 
+divided by the total number of predicted boundaries, averaged over all 
+predictors (genomic elements).}
 
 \item{verbose}{Option to print progress. Default is TRUE.}
 
@@ -51,19 +57,26 @@ probabilities. Must be number to indicate the number of cores to use in
 parallel. Default is NULL.}
 
 \item{DBSCAN_params}{Parameters passed to \code{\link{dbscan}} in list form
-containing 1) eps and 2) MinPts. Required.}
+containing 1) eps and 2) MinPts. If a vector of different values is passed to
+eps then a grid is provided with the probability threshold (see threshold 
+parameter) values and the optimal combination is chose as the combination 
+that maximizes normalized enrichment -- calculated as the number of peak 
+regions that overlap with flanked predicted boundaries divided by the total 
+number of predicted boundaries, averaged over all predictors (genomic 
+elements). Required.}
 
 \item{flank}{Controls how much to flank the predicted TAD boundaries for
-calculating normalized enrichment. Normalized enrichment is calculated as
-the total number of peak regions that overlap with flanked predicted
-boundaries divided by the number of predicted boundaries. Recommended value
-is resolution. Required.}
+calculating normalized enrichment. Required.}
 }
 \value{
-A list containing 3 elements including:
-1) the genomic coordinates spanning each preciseTAD predicted region (PTBR),
-2) the genomic coordinates of preciseTAD predicted boundaries points (PTBP).
-3) a named list including summary statistics of the following:
+A list containing 4 elements including:
+1) data frame with average (and standard deviation) normalized enrichment 
+(NE) values for each combination of t and eps (only if multiple values are 
+provided for at least paramenter; all subsequent summaries are applied to 
+optimal combination of (t, eps)),
+2) the genomic coordinates spanning each preciseTAD predicted region (PTBR),
+3) the genomic coordinates of preciseTAD predicted boundaries points (PTBP),
+4) a named list including summary statistics of the following:
 PTBRWidth - PTBR width, PTBRCoverage - the proportion of bases within a PTBR
 with probabilities that equal to or exceed the threshold (t=1 by default),
 DistanceBetweenPTBR - the genomic distance between the end of the previous
@@ -133,9 +146,9 @@ pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                  CHR = "CHR22",
                  chromCoords = list(17000000, 19000000),
                  tadModel = tadModel[[1]],
-                 threshold = 1.0,
+                 threshold = c(0.975, 0.99, 1.0),
                  verbose = TRUE,
                  parallel = NULL,
-                 DBSCAN_params = list(10000, 3),
+                 DBSCAN_params = list(c(5000, 10000,15000,20000,30000), 3),
                  flank = 5000)
 }

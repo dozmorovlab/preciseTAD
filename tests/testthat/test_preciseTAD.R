@@ -51,13 +51,13 @@ test_that("Whether preciseTAD gives us the same output", {
                      DBSCAN_params=list(10000,3),
                      flank=5000)
 
-    expect_equal(width(pt[[1]])[1], 13498)
+    expect_equal(width(pt$PTBR)[1], 13498)
 
     expect_equal(pt$Summaries$PTBRWidth$median, 4467)
 
     expect_equal(pt$Summaries$PTBRCoverage$median, 0.2923396)
 
-    expect_equal(length(pt[[2]]), 13)
+    expect_equal(length(pt$PTBP), 13)
 
-    expect_equal(IRanges::start(pt[[2]])[1], 17398701)
+    expect_equal(IRanges::start(pt$PTBP)[1], 17398701)
 })

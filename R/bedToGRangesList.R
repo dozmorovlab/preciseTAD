@@ -12,9 +12,9 @@
 #' should be in the order of bedList. Default is NULL.
 #' @param pattern Character describing the pattern of the files for the
 #' functional genomic annotations. Default is "*.bed".
-#' @param signal Numeric referring to the column in the BED files that denotes
-#' coverage strength. Must be the same for all files. Default is 5 (fifth
-#' column), as is the case with most BED files.
+#' @param signal The column number in the BED files that denotes coverage 
+#' strength. Must be the same for all files. Default is NULL indicating to no 
+#' coverage value is to be used.
 #'
 #' @return A \code{GRangesList} object where each entry is a \code{GRanges}
 #' object specific to each BED file in the path provided
@@ -29,8 +29,9 @@
 #' #contains 2 BED files representing YY1 and NFYA
 #' #transcription factor binding sites for GM12878
 #' tfbsList <- bedToGRangesList(filepath = path, bedList=NULL, bedNames=NULL,
-#' pattern = "*.bed", signal=4)
-bedToGRangesList <- function(filepath, bedList=NULL, bedNames=NULL, pattern = "*.bed", signal = 5) {
+#' pattern = "*.bed", signal=NULL)
+bedToGRangesList <- function(filepath, bedList=NULL, bedNames=NULL, 
+                             pattern = "*.bed", signal = NULL) {
 
     #CREATING GRangesList#
 

@@ -10,7 +10,7 @@ bedToGRangesList(
   bedList = NULL,
   bedNames = NULL,
   pattern = "*.bed",
-  signal = 5
+  signal = NULL
 )
 }
 \arguments{
@@ -29,9 +29,9 @@ should be in the order of bedList. Default is NULL.}
 \item{pattern}{Character describing the pattern of the files for the
 functional genomic annotations. Default is "*.bed".}
 
-\item{signal}{Numeric referring to the column in the BED files that denotes
-coverage strength. Must be the same for all files. Default is 5 (fifth
-column), as is the case with most BED files.}
+\item{signal}{The column number in the BED files that denotes coverage 
+strength. Must be the same for all files. Default is NULL indicating to no 
+coverage value is to be used.}
 }
 \value{
 A \code{GRangesList} object where each entry is a \code{GRanges}
@@ -47,5 +47,5 @@ path <- system.file("extdata", package = "preciseTAD")
 #contains 2 BED files representing YY1 and NFYA
 #transcription factor binding sites for GM12878
 tfbsList <- bedToGRangesList(filepath = path, bedList=NULL, bedNames=NULL,
-pattern = "*.bed", signal=4)
+pattern = "*.bed", signal=NULL)
 }

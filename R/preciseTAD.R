@@ -40,6 +40,9 @@
 #' elements). Required.
 #' @param flank Controls how much to flank the predicted TAD boundaries for
 #' calculating normalized enrichment. Required.
+#' @param BaseProbs Option to include the vector of probabilities for each 
+#' base-level coordinate. Recommended to be used only when chromCoords is 
+#' specified.
 #'
 #' @return A list containing 4 elements including:
 #' 1) data frame with average (and standard deviation) normalized enrichment 
@@ -56,8 +59,10 @@
 #' the subregions in each PTBR cluster, SubRegionWidth - the width of
 #' the subregion forming each PTBR, DistBetweenSubRegions -
 #' the genomic distance between the end of the previous PTBR-specific subregion
-#' and the start of the subsequent PTBR-specific subregion, and the normalized
-#' enrichment of the genomic annotations used in the model around flanked PTBPs.
+#' and the start of the subsequent PTBR-specific subregion, NormilizedEnrichment
+#' - the normalized enrichment of the genomic annotations used in the model 
+#' around flanked PTBPs, and BaseProbs - a numeric vector of probabilities for 
+#' each corresponding base coordinate.
 #' @export
 #'
 #' @importFrom pROC roc
@@ -133,7 +138,7 @@
 preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
                       chromCoords = NULL, tadModel, threshold = 1,
                       verbose = TRUE, parallel = NULL, DBSCAN_params,
-                      flank) {
+                      flank, BaseProbs = FALSE) {
 
     #ESTABLISHING CHROMOSOME-SPECIFIC SEQINFO#
 
@@ -422,6 +427,16 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
     
     if(0 %in% unique(res$cluster)){res$cluster <- res$cluster[-which(res$cluster==0)]}
     
+    if(BaseProbs==TRUE){
+        if(is.list(chromCoords)){
+            predictions = setNames(predictions, as.character(seq.int(chromCoords[[1]], chromCoords[[2]])))
+        }else{
+            predictions = setNames(predictions, as.character(seqDataTest))
+        }
+    }else{
+        predictions = NA
+    }
+    
     bp_results <- list(preciseTADparams=ptMat,
                        PTBR=grlist,
                        PTBP=predBound_gr,
@@ -468,7 +483,8 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
                                                                                                           both = TRUE),
                                                                                                     x))))/length(predBound_gr)
                                                  }
-                                          ))))
+                                          )),
+                                      BaseProbs = predictions))
     
     return(bp_results)
 }

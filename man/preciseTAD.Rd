@@ -15,7 +15,8 @@ preciseTAD(
   verbose = TRUE,
   parallel = NULL,
   DBSCAN_params,
-  flank
+  flank,
+  BaseProbs = FALSE
 )
 }
 \arguments{
@@ -67,6 +68,10 @@ elements). Required.}
 
 \item{flank}{Controls how much to flank the predicted TAD boundaries for
 calculating normalized enrichment. Required.}
+
+\item{BaseProbs}{Option to include the vector of probabilities for each 
+base-level coordinate. Recommended to be used only when chromCoords is 
+specified.}
 }
 \value{
 A list containing 4 elements including:
@@ -84,8 +89,10 @@ PTBR and the start of the subsequent PTBR, NumSubRegions - the number of
 the subregions in each PTBR cluster, SubRegionWidth - the width of
 the subregion forming each PTBR, DistBetweenSubRegions -
 the genomic distance between the end of the previous PTBR-specific subregion
-and the start of the subsequent PTBR-specific subregion, and the normalized
-enrichment of the genomic annotations used in the model around flanked PTBPs.
+and the start of the subsequent PTBR-specific subregion, NormilizedEnrichment
+- the normalized enrichment of the genomic annotations used in the model 
+around flanked PTBPs, and BaseProbs - a numeric vector of probabilities for 
+each corresponding base coordinate.
 }
 \description{
 Precise TAD boundary prediction at base-level resolution using density-based

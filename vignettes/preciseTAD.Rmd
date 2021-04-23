@@ -337,7 +337,8 @@ pt <- preciseTAD(genomicElements.GR = hela.GR,
                 verbose             = FALSE,
                 parallel            = NULL,
                 DBSCAN_params       = list(30000, 3),
-                flank               = 5000)
+                flank               = 5000,
+                BaseProbs           = FALSE)
 
 pt
 ```

@@ -36,8 +36,7 @@ Suggests:
     testthat,
     BiocCheck,
     BiocManager,
-    BiocStyle,
-    DMwR
+    BiocStyle
 VignetteBuilder: knitr
 Imports: 
     S4Vectors,

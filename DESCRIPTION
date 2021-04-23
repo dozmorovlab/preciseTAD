@@ -36,7 +36,8 @@ Suggests:
     testthat,
     BiocCheck,
     BiocManager,
-    BiocStyle
+    BiocStyle,
+    DMwR
 VignetteBuilder: knitr
 Imports: 
     S4Vectors,
@@ -48,7 +49,6 @@ Imports:
     PRROC,
     pROC,
     caret,
-    DMwR,
     utils,
     cluster,
     dbscan,

@@ -18,8 +18,7 @@
 #' @param resampling Character, controls if and how the data should be
 #' resampled to create balanced classes of boundary vs. nonboundary regions (one
 #' of either "none" - no re-sampling, "ros" - Random Over-Sampling, "rus" -
-#' Random Under-Sampling, or "smote" - Synthetic Minority Over-sampling
-#' TEchnique). Required.
+#' Random Under-Sampling. Required.
 #' @param trainCHR Character vector of chromosomes to use to build the binned
 #' data matrix for training. Required.
 #' @param predictCHR Character vector of chromosomes to use to build the binned
@@ -33,7 +32,7 @@
 #' genomic annotations
 #' @export
 #'
-#' @import IRanges GenomicRanges DMwR
+#' @import IRanges GenomicRanges
 #'
 #' @examples
 #' # Create training data for CHR21 and testing data for CHR22 with
@@ -161,13 +160,13 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
                 train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
                 ]
 
-            } else if (resampling == "smote") {
-                train_list[[i]] <- SMOTE(y ~ ., data = train_list[[i]], perc.over = 100,
-                                         perc.under = 200)
-
-                # Randomly shuffle the data
-                train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
-                ]
+            # } else if (resampling == "smote") {
+            #     train_list[[i]] <- SMOTE(y ~ ., data = train_list[[i]], perc.over = 100,
+            #                              perc.under = 200)
+            # 
+            #     # Randomly shuffle the data
+            #     train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
+            #     ]
             } else {
                 train_list[[i]] = train_list[[i]]
             }
@@ -271,13 +270,13 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
                 train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
                 ]
 
-            } else if (resampling == "smote") {
-                train_list[[i]] <- SMOTE(y ~ ., data = train_list[[i]], perc.over = 100,
-                                         perc.under = 200)
-
-                # Randomly shuffle the data
-                train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
-                ]
+            # } else if (resampling == "smote") {
+            #     train_list[[i]] <- SMOTE(y ~ ., data = train_list[[i]], perc.over = 100,
+            #                              perc.under = 200)
+            # 
+            #     # Randomly shuffle the data
+            #     train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
+            #     ]
             } else {
                 train_list[[i]] = train_list[[i]]
             }
@@ -375,13 +374,13 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
                 train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
                 ]
 
-            } else if (resampling == "smote") {
-                train_list[[i]] <- SMOTE(y ~ ., data = train_list[[i]], perc.over = 100,
-                                         perc.under = 200)
-
-                # Randomly shuffle the data
-                train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
-                ]
+            # } else if (resampling == "smote") {
+            #     train_list[[i]] <- SMOTE(y ~ ., data = train_list[[i]], perc.over = 100,
+            #                              perc.under = 200)
+            # 
+            #     # Randomly shuffle the data
+            #     train_list[[i]] <- train_list[[i]][sample(nrow(train_list[[i]])),
+            #     ]
             } else {
                 train_list[[i]] = train_list[[i]]
             }

@@ -37,8 +37,7 @@ of the nearest genomic annotation to the center of the bin); default is
 \item{resampling}{Character, controls if and how the data should be
 resampled to create balanced classes of boundary vs. nonboundary regions (one
 of either "none" - no re-sampling, "ros" - Random Over-Sampling, "rus" -
-Random Under-Sampling, or "smote" - Synthetic Minority Over-sampling
-TEchnique). Required.}
+Random Under-Sampling. Required.}
 
 \item{trainCHR}{Character vector of chromosomes to use to build the binned
 data matrix for training. Required.}

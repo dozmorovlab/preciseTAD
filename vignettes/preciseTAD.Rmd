@@ -111,7 +111,7 @@ data("arrowhead_gm12878_5kb")
 head(arrowhead_gm12878_5kb)
 ```
 
-Users will then need to transform this TAD coordinate data into a GRanges object of unique boundary coordinates using the `preciseTAD::extractBoundaries()` function. Here we only extract boundaries for CHR1 and CHR22 (`CHR = c("CHR1", "CHR22")` parameter). We specify `preprocess=FALSE` because we are only interested in boundaries and not filtering TADs by length. Lastly, we specify `resolution=5000` to match the resolution used by *Arrowhead* (although this argument is ignored given that `preprocess=FALSE`). As shown below, there were a total of 1901 unique TAD boundaries reported by *Arrowhead* for chromosomes 1 and 22.
+Users will then need to transform this TAD coordinate data into a GRanges object of unique boundary coordinates using the `preciseTAD::extractBoundaries()` function. Here we only extract boundaries for CHR1 and CHR22 (`CHR = c("CHR1", "CHR22")` parameter). We specify `preprocess=FALSE` because we are only interested in all boundaries and not filtering TADs by length. Lastly, we specify `resolution=5000` to match the resolution used by *Arrowhead* (although this argument is ignored given that `preprocess=FALSE`). As shown below, there were a total of 1901 unique TAD boundaries reported by *Arrowhead* for chromosomes 1 and 22.
 
 ```{r}
 bounds <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb, preprocess = FALSE, CHR = c("CHR1", "CHR22"), resolution = 5000)
@@ -314,10 +314,10 @@ The Hela-S3-specific BED-formatted TFBS data can be downloaded at [ENCODE](http:
 ```{r, eval=FALSE}
 # Establishing Hela-specific genomic annotations
 # Reading in CTCF, RAD21, SMC3, and ZNF143 from repository and storing as list
-ctcf <- as.data.frame(read_delim("http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/ctcf.bed", delim = "\t", col_names = FALSE))
-rad21 <- as.data.frame(read_delim("http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/rad21.bed", delim = "\t", col_names = FALSE))
-smc3 <- as.data.frame(read_delim("http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/smc3.bed", delim = "\t", col_names = FALSE))
-znf143 <- as.data.frame(read_delim("http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/znf143.bed", delim = "\t", col_names = FALSE))
+ctcf <- as.data.frame(read.delim("http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/ctcf.bed", sep = "\t", header = FALSE))
+rad21 <- as.data.frame(read.delim("http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/rad21.bed", sep = "\t", header = FALSE))
+smc3 <- as.data.frame(read.delim("http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/smc3.bed", sep = "\t", header = FALSE))
+znf143 <- as.data.frame(read.delim("http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/znf143.bed", sep = "\t", header = FALSE))
 helaList <- list(ctcf, rad21, smc3, znf143)
 
 hela.GR <- bedToGRangesList(bedList=helaList, bedNames=c("Ctcf", "Rad21", "Smc3", "Znf143"), signal=5)

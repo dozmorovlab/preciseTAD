@@ -16,11 +16,11 @@ test_that("Whether createTADdata gives us the same output", {
                              resolution=5000,
                              genomicElements.GR=tfbsList,
                              featureType="oc",
-                             resampling="smote",
+                             resampling="rus",
                              trainCHR="CHR21",
                              predictCHR="CHR22")
 
-    expect_equal(nrow(tadData[[1]]), 740)
+    expect_equal(nrow(tadData[[1]]), 370)
 
     expect_equal(nrow(tadData[[2]]), 9660)
 

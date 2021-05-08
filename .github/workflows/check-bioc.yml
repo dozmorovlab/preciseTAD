@@ -151,6 +151,7 @@ jobs:
 
       - name: Set BiocVersion
         run: |
+          options(connectionObserver = NULL)
           BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE)
         shell: Rscript {0}
 

@@ -146,12 +146,12 @@ jobs:
       - name: Install BiocManager
         run: |
           message(paste('****', Sys.time(), 'installing BiocManager ****'))
-          remotes::install_cran("BiocManager")
+          # remotes::install_cran("BiocManager")
+          devtools::install_github("Bioconductor/BiocManager", ref="ghost-binary-repo")
         shell: Rscript {0}
 
       - name: Set BiocVersion
         run: |
-          options(connectionObserver = NULL)
           BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE)
         shell: Rscript {0}
 

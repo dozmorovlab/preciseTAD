@@ -147,7 +147,7 @@ jobs:
         run: |
           message(paste('****', Sys.time(), 'installing BiocManager ****'))
           # remotes::install_cran("BiocManager")
-          devtools::install_github("Bioconductor/BiocManager", ref="ghost-binary-repo")
+          remotes::install_github("Bioconductor/BiocManager", ref="ghost-binary-repo")
         shell: Rscript {0}
 
       - name: Set BiocVersion

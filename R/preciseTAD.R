@@ -71,6 +71,7 @@
 #' @importFrom stats hclust
 #' @importFrom stats cutree
 #' @importFrom stats dist
+#' @importFrom stats setNames
 #' @importFrom dbscan dbscan
 #' @importFrom S4Vectors subjectHits
 #' @import pbapply parallel doSNOW foreach cluster IRanges GenomicRanges
@@ -429,9 +430,9 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
     
     if(BaseProbs==TRUE){
         if(is.list(chromCoords)){
-            predictions = setNames(predictions, as.character(seq.int(chromCoords[[1]], chromCoords[[2]])))
+            predictions = stats::setNames(predictions, as.character(seq.int(chromCoords[[1]], chromCoords[[2]])))
         }else{
-            predictions = setNames(predictions, as.character(seqDataTest))
+            predictions = stats::setNames(predictions, as.character(seqDataTest))
         }
     }else{
         predictions = NA

@@ -55,7 +55,8 @@ Imports:
     foreach,
     pbapply,
     stats,
-    parallel
+    parallel,
+    stats
 biocViews: Software, HiC, Sequencing, Clustering, 
     Classification, FunctionalGenomics, FeatureExtraction
 BugReports: https://github.com/dozmorovlab/preciseTAD/issues

@@ -124,12 +124,12 @@
 #'                             impMeasure = "MDA",
 #'                             performances = TRUE)
 #'
-#' # Apply preciseTAD on a specific 2mb section of CHR22:17000000-19000000
+#' # Apply preciseTAD on a specific 2mb section of CHR22:17000000-18000000
 #' set.seed(123)
 #' pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
 #'                  featureType = "distance",
 #'                  CHR = "CHR22",
-#'                  chromCoords = list(17000000, 19000000),
+#'                  chromCoords = list(17000000, 18000000),
 #'                  tadModel = tadModel[[1]],
 #'                  threshold = c(0.975, 0.99, 1.0),
 #'                  verbose = TRUE,

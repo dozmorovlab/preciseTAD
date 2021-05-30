@@ -114,7 +114,7 @@ head(arrowhead_gm12878_5kb)
 Users will then need to transform this TAD coordinate data into a GRanges object of unique boundary coordinates using the `preciseTAD::extractBoundaries()` function. Here we only extract boundaries for CHR1 and CHR22 (`CHR = c("CHR1", "CHR22")` parameter). We specify `preprocess=FALSE` because we are only interested in all boundaries and not filtering TADs by length. Lastly, we specify `resolution=5000` to match the resolution used by *Arrowhead* (although this argument is ignored given that `preprocess=FALSE`). As shown below, there were a total of 1901 unique TAD boundaries reported by *Arrowhead* for chromosomes 1 and 22.
 
 ```{r}
-bounds <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb, preprocess = FALSE, CHR = c("CHR1", "CHR22"), resolution = 5000)
+bounds <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb, filter = FALSE, CHR = c("CHR1", "CHR22"), resolution = 5000)
 # View unique boundaries
 bounds
 ```

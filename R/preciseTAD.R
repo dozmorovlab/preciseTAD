@@ -82,7 +82,7 @@
 #'
 #' # Extract unique boundaries
 #' bounds.GR <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
-#'                                preprocess = FALSE,
+#'                                filter = FALSE,
 #'                                CHR = c("CHR21", "CHR22"),
 #'                                resolution = 5000)
 #'

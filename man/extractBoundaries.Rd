@@ -2,38 +2,40 @@
 % Please edit documentation in R/extractBoundaries.R
 \name{extractBoundaries}
 \alias{extractBoundaries}
-\title{Function to extract using boundaries from domain data}
+\title{Function to extract boundaries from domain data.}
 \usage{
-extractBoundaries(domains.mat, preprocess = FALSE, CHR, resolution)
+extractBoundaries(domains.mat, filter = FALSE, CHR, resolution)
 }
 \arguments{
 \item{domains.mat}{either a \code{matrix} or \code{data.frame} with at least
-3 columns. First column is either of class "numeric" or "integer". The second
-and third columns are the start and end coordinates of domains, respectively.
-Required.}
+3 columns. First column is chromosome number/character (1, 2, 3, X) or ID 
+(chr1, chr2).  Non-autosomal/sex chromosomes will be filtered.
+The second and third columns are the start and end coordinates 
+of the domains, respectively. Note these are coordinates of the domain anchor
+centers, not anchors. Only the first three columns are used. Required.}
 
-\item{preprocess}{logical, indicating whether or not domains exceeding 2mb
+\item{filter}{logical, indicating whether or not domains exceeding 2mb
 in width or smaller than 2*(the specified resolution) should be filtered out
 (default is FALSE, all boundaries will be used). Required.}
 
-\item{CHR}{character, specifying which chromosome(s) to extract domain
-boundaries on (ex: "CHR22"). Required.}
+\item{CHR}{character vector, specifying which chromosome(s) to extract domain
+boundaries on (ex: "chr22", case ignored). Unused seqnames are dropped. Required.}
 
 \item{resolution}{numeric, the Hi-C data resolution that domains were called
-at. Ignored if preprocess is FALSE.}
+at. Ignored if filter is FALSE, required otherwise.}
 }
 \value{
 A \code{GRanges} object
 }
 \description{
-Function to extract using boundaries from domain data
+Function to extract boundaries from domain data.
 }
 \examples{
 #Read in domain data from ARROWHEAD at 5 kb for GM12878
 data("arrowhead_gm12878_5kb")
 #Extract unique boundaries for CHRs 1-8 and 10-22
 bounds.GR <- extractBoundaries(domains.mat=arrowhead_gm12878_5kb,
-                               preprocess=FALSE,
+                               filter=FALSE,
                                CHR=paste0("CHR",c(1:8,10:22)),
                                resolution=5000)
 }

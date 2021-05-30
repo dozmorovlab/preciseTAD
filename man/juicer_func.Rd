@@ -18,13 +18,13 @@ Helper function for transforming a GRanges object into matrix form to be
 saved as .txt or .BED file and imported into juicer
 }
 \examples{
-\dontrun{
+\donttest{
 # Read in ARROWHEAD-called TADs at 5kb
 data(arrowhead_gm12878_5kb)
 
 # Extract unique boundaries
 bounds.GR <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb,
-                               preprocess = FALSE,
+                               filter = FALSE,
                                CHR = c("CHR21", "CHR22"),
                                resolution = 5000)
 

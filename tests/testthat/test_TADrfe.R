@@ -5,7 +5,7 @@ test_that("Whether TADrfe gives us the same output", {
     data(arrowhead_gm12878_5kb)
 
     bounds.GR <- extractBoundaries(domains.mat=arrowhead_gm12878_5kb,
-                                   preprocess=FALSE,
+                                   filter=FALSE,
                                    CHR="CHR22",
                                    resolution=5000)
 

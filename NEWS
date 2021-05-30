@@ -1,3 +1,9 @@
+changes in version
++ extractBoundaries function rewritten
+  + preprocess argument is renamed to filter
+  + natural sort of chromosome names is performed using gtools::mixedsort
+  + help expanded
+
 Changes in version 0.99.6 (2020-08-30)
 + Major simplification of the preciseTAD function, many arguments are kept default
 + Major vignette rewrite

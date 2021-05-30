@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">preciseTAD</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.3</span>
       </span>
     </div>
 
@@ -75,7 +75,7 @@
             <address class="author_afil">
       Department of Biostatistics, Virginia Commonwealth University, Richmond, VA<br><h4 class="author">Mikhail Dozmorov</h4>
             <address class="author_afil">
-      Department of Biostatistics, Virginia Commonwealth University, Richmond, VA<br><h4 class="date">May 8, 2021</h4>
+      Department of Biostatistics, Virginia Commonwealth University, Richmond, VA<br><h4 class="date">May 30, 2021</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/dozmorovlab/preciseTAD/blob/master/vignettes/preciseTAD.Rmd"><code>vignettes/preciseTAD.Rmd</code></a></small>
       <div class="hidden name"><code>preciseTAD.Rmd</code></div>
@@ -158,23 +158,23 @@
 ## 6  1   3995000   5505000</code></pre>
 <p>Users will then need to transform this TAD coordinate data into a GRanges object of unique boundary coordinates using the <code><a href="../reference/extractBoundaries.html">preciseTAD::extractBoundaries()</a></code> function. Here we only extract boundaries for CHR1 and CHR22 (<code>CHR = c("CHR1", "CHR22")</code> parameter). We specify <code>preprocess=FALSE</code> because we are only interested in all boundaries and not filtering TADs by length. Lastly, we specify <code>resolution=5000</code> to match the resolution used by <em>Arrowhead</em> (although this argument is ignored given that <code>preprocess=FALSE</code>). As shown below, there were a total of 1901 unique TAD boundaries reported by <em>Arrowhead</em> for chromosomes 1 and 22.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">bounds</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extractBoundaries.html">extractBoundaries</a></span><span class="op">(</span>domains.mat <span class="op">=</span> <span class="va">arrowhead_gm12878_5kb</span>, preprocess <span class="op">=</span> <span class="cn">FALSE</span>, CHR <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"CHR1"</span>, <span class="st">"CHR22"</span><span class="op">)</span>, resolution <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">bounds</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extractBoundaries.html">extractBoundaries</a></span><span class="op">(</span>domains.mat <span class="op">=</span> <span class="va">arrowhead_gm12878_5kb</span>, filter <span class="op">=</span> <span class="cn">FALSE</span>, CHR <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"CHR1"</span>, <span class="st">"CHR22"</span><span class="op">)</span>, resolution <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span>
 <span class="co"># View unique boundaries</span>
 <span class="va">bounds</span></code></pre></div>
 <pre><code>## GRanges object with 1901 ranges and 0 metadata columns:
-##          seqnames    ranges strand
-##             &lt;Rle&gt; &lt;IRanges&gt;  &lt;Rle&gt;
-##      [1]     chr1    815000      *
-##      [2]     chr1    890000      *
-##      [3]     chr1    915000      *
-##      [4]     chr1   1005000      *
-##      [5]     chr1   1015000      *
-##      ...      ...       ...    ...
-##   [1897]    chr22  50815000      *
-##   [1898]    chr22  50935000      *
-##   [1899]    chr22  50945000      *
-##   [1900]    chr22  51060000      *
-##   [1901]    chr22  51235000      *
+##         seqnames            ranges strand
+##            &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt;
+##     787     chr1     815000-815001      *
+##    9196     chr1     890000-890001      *
+##      37     chr1     915000-915001      *
+##    8923     chr1   1005000-1005001      *
+##     275     chr1   1015000-1015001      *
+##     ...      ...               ...    ...
+##    8379    chr22 50815000-50815001      *
+##   16788    chr22 50935000-50935001      *
+##    8382    chr22 50945000-50945001      *
+##   16791    chr22 51060000-51060001      *
+##   16670    chr22 51235000-51235001      *
 ##   -------
 ##   seqinfo: 22 sequences from an unspecified genome; no seqlengths</code></pre>
 <p>To identify genomic features best predictive of TAD boundaries, <code>preciseTAD</code> requires functional genomic annotation data. They are used to establish the feature space (<span class="math inline">\(\textbf{X}=\{X_{1}, X_{2}, \cdots, X_{p} \}\)</span>). Cell type-specific genomic annotation data can be downloaded from the <a href="http://www.encodeproject.org/chip-seq-matrix/?type=Experiment&amp;replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&amp;assay_title=TF%20ChIP-seq&amp;status=released">ENCODE</a> data portal as BED files. Once you have downloaded your preferred list of functional genomic annotations, store them in a specific file location (i.e., “./path/to/BEDfiles”). These files can then be converted into a GRangesList object and used to create the feature space using the <code><a href="../reference/bedToGRangesList.html">preciseTAD::bedToGRangesList()</a></code> function. The <code>signal</code> argument refers to the column in the BED files containing peak signal strength values and is used to assign metadata to the corresponding GRanges (only necessary for downstream plotting). We have already provided a GRangesList object with 26 transcription factor binding sites (TFBS) specific to the GM12878 cell type. Once you load it in, you can see the list of transcription factors using the following commands.</p>

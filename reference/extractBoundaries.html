@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function to extract using boundaries from domain data — extractBoundaries • preciseTAD</title>
+<title>Function to extract boundaries from domain data. — extractBoundaries • preciseTAD</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Function to extract using boundaries from domain data — extractBoundaries" />
-<meta property="og:description" content="Function to extract using boundaries from domain data" />
+<meta property="og:title" content="Function to extract boundaries from domain data. — extractBoundaries" />
+<meta property="og:description" content="Function to extract boundaries from domain data." />
 
 
 
@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">preciseTAD</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.3</span>
       </span>
     </div>
 
@@ -111,16 +111,16 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Function to extract using boundaries from domain data</h1>
+    <h1>Function to extract boundaries from domain data.</h1>
     <small class="dont-index">Source: <a href='https://github.com/dozmorovlab/preciseTAD/blob/master/R/extractBoundaries.R'><code>R/extractBoundaries.R</code></a></small>
     <div class="hidden name"><code>extractBoundaries.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Function to extract using boundaries from domain data</p>
+    <p>Function to extract boundaries from domain data.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>extractBoundaries</span><span class='op'>(</span><span class='va'>domains.mat</span>, preprocess <span class='op'>=</span> <span class='cn'>FALSE</span>, <span class='va'>CHR</span>, <span class='va'>resolution</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>extractBoundaries</span><span class='op'>(</span><span class='va'>domains.mat</span>, filter <span class='op'>=</span> <span class='cn'>FALSE</span>, <span class='va'>CHR</span>, <span class='va'>resolution</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -128,25 +128,27 @@
     <tr>
       <th>domains.mat</th>
       <td><p>either a <code>matrix</code> or <code>data.frame</code> with at least
-3 columns. First column is either of class "numeric" or "integer". The second
-and third columns are the start and end coordinates of domains, respectively.
-Required.</p></td>
+3 columns. First column is chromosome number/character (1, 2, 3, X) or ID 
+(chr1, chr2).  Non-autosomal/sex chromosomes will be filtered.
+The second and third columns are the start and end coordinates 
+of the domains, respectively. Note these are coordinates of the domain anchor
+centers, not anchors. Only the first three columns are used. Required.</p></td>
     </tr>
     <tr>
-      <th>preprocess</th>
+      <th>filter</th>
       <td><p>logical, indicating whether or not domains exceeding 2mb
 in width or smaller than 2*(the specified resolution) should be filtered out
 (default is FALSE, all boundaries will be used). Required.</p></td>
     </tr>
     <tr>
       <th>CHR</th>
-      <td><p>character, specifying which chromosome(s) to extract domain
-boundaries on (ex: "CHR22"). Required.</p></td>
+      <td><p>character vector, specifying which chromosome(s) to extract domain
+boundaries on (ex: "chr22", case ignored). Unused seqnames are dropped. Required.</p></td>
     </tr>
     <tr>
       <th>resolution</th>
       <td><p>numeric, the Hi-C data resolution that domains were called
-at. Ignored if preprocess is FALSE.</p></td>
+at. Ignored if filter is FALSE, required otherwise.</p></td>
     </tr>
     </table>
 
@@ -159,7 +161,7 @@ at. Ignored if preprocess is FALSE.</p></td>
 <span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='st'>"arrowhead_gm12878_5kb"</span><span class='op'>)</span>
 <span class='co'>#Extract unique boundaries for CHRs 1-8 and 10-22</span>
 <span class='va'>bounds.GR</span> <span class='op'>&lt;-</span> <span class='fu'>extractBoundaries</span><span class='op'>(</span>domains.mat<span class='op'>=</span><span class='va'>arrowhead_gm12878_5kb</span>,
-                               preprocess<span class='op'>=</span><span class='cn'>FALSE</span>,
+                               filter<span class='op'>=</span><span class='cn'>FALSE</span>,
                                CHR<span class='op'>=</span><span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span><span class='op'>(</span><span class='st'>"CHR"</span>,<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>1</span><span class='op'>:</span><span class='fl'>8</span>,<span class='fl'>10</span><span class='op'>:</span><span class='fl'>22</span><span class='op'>)</span><span class='op'>)</span>,
                                resolution<span class='op'>=</span><span class='fl'>5000</span><span class='op'>)</span>
 </div></pre>

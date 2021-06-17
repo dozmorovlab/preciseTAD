@@ -78,10 +78,9 @@ To predict the base-level location of domain boundaries, the `preciseTAD` model 
 ```{r, eval = FALSE}
 # if (!requireNamespace("BiocManager", quietly=TRUE))
 #     install.packages("BiocManager")
-# BiocManager::install("preciseTAD")
-devtools::install_github("dozmorovlab/preciseTAD")
-# Alternatively
-# devtools::install_github("stilianoudakis/preciseTAD")
+BiocManager::install("preciseTAD")
+# For the latest version install from GitHub
+# BiocManager::install("dozmorovlab/preciseTAD")
 ```
 
 ```{r}
@@ -111,7 +110,7 @@ data("arrowhead_gm12878_5kb")
 head(arrowhead_gm12878_5kb)
 ```
 
-Users will then need to transform this TAD coordinate data into a GRanges object of unique boundary coordinates using the `preciseTAD::extractBoundaries()` function. Here we only extract boundaries for CHR1 and CHR22 (`CHR = c("CHR1", "CHR22")` parameter). We specify `preprocess=FALSE` because we are only interested in all boundaries and not filtering TADs by length. Lastly, we specify `resolution=5000` to match the resolution used by *Arrowhead* (although this argument is ignored given that `preprocess=FALSE`). As shown below, there were a total of 1901 unique TAD boundaries reported by *Arrowhead* for chromosomes 1 and 22.
+Users will then need to transform this TAD coordinate data into a GRanges object of unique boundary coordinates using the `preciseTAD::extractBoundaries()` function. Note that the input for this function is a BED-like data frame where the second and third columns are genomic coordinates of domain anchor's midpoints. Here we only extract boundaries for CHR1 and CHR22 (`CHR = c("CHR1", "CHR22")` parameter). We specify `preprocess=FALSE` because we are only interested in all boundaries and not filtering TADs by length. Lastly, we specify `resolution=5000` to match the resolution used by *Arrowhead* (although this argument is ignored given that `preprocess=FALSE`). As shown below, there were a total of 1901 unique TAD boundaries reported by *Arrowhead* for chromosomes 1 and 22.
 
 ```{r}
 bounds <- extractBoundaries(domains.mat = arrowhead_gm12878_5kb, filter = FALSE, CHR = c("CHR1", "CHR22"), resolution = 5000)
@@ -240,25 +239,27 @@ Recall that our model classifies boundary **regions**, in that each prediction r
 
 Suppose we want to precisely predict the domain boundary coordinates for the 2Mb section of CHR22:25,500,000-27,500,000. To do so, we specify `chromCoords = list(25500000, 27500000)`. Additionally, we set a range of probability threshold values including 0.975, 0.99, and 1.0 used for constructing PTBRs. For DBSCAN, we assign a range of $\epsilon$-neighborhood values including 5000, 10000, 15000, 20000, and 30000 and maintain 3 as the *MinPts* value. We specify `verbose=TRUE` so that the function will print out some minor results for each combination of $(t, \epsilon)$ as well as the overall best combination
 
-```{r}
+```{r message=FALSE}
 # Run preciseTAD
 set.seed(123)
 pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                 featureType         = "distance",
                 CHR                 = "CHR22",
-                chromCoords         = list(25500000, 27500000),
+                chromCoords         = list(17000000, 18000000),
                 tadModel            = tadModel[[1]],
-                threshold           = c(0.975, 0.99, 1.0),
+                threshold           = 0.99,
                 verbose             = TRUE,
                 parallel            = NULL,
-                DBSCAN_params       = list(c(5000, 10000, 15000, 20000, 30000), 3),
+                DBSCAN_params       = list(eps = c(2000), # c(1000, 2000, 5000)
+                                           MinPts = c(1000)), # c(100, 1000)
                 flank               = 5000,
+                genome              = "hg19",
                 BaseProbs           = TRUE)
 
 # What is getting returned? PTBRs - precide TAD boundary regions, and PTBPs - boundary points
 names(pt)
 # View the results
-pt
+# pt
 ```
 
 When specifying `verbose=TRUE` the function provides brief output for all $t \times \epsilon$ combinations including how many PTBRs/PTBPs result from each combination. NOTE: it is advised to provide `verbose=FALSE` when implementing *preciseTAD* using multiple $t$ and $\epsilon$ on the entire chromosome. Additionally, we see from the verbose statements that the optimal combination of $(t, \epsilon) = (1, 30000)$.
@@ -270,7 +271,7 @@ The full output of the `preciseTAD::preciseTAD()` function is a list with 4 elem
 The vector of base-specific probabilities of being a boundary (`BaseProbs`) may be large, depending on the `chromCoords` settings. In our example, it has 2 million entries. Be careful when setting `BaseProbs = TRUE` to avoid memory issues. To see how the probabilities for the first five hundred bases look like, we do:
 
 ```{r}
-plot(x = seq_along(pt$Summaries$BaseProbs[1:500]), pt$Summaries$BaseProbs[1:500])
+plot(pt$Summaries$BaseProbs[1:100000])
 ```
 
 We can see that the probability of being a boundary seems to peak around 200 and 400 bases. It is well below 1, but may be worth further investigation. 
@@ -340,7 +341,6 @@ pt <- preciseTAD(genomicElements.GR = hela.GR,
                 flank               = 5000,
                 BaseProbs           = FALSE)
 
-pt
 ```
 
 

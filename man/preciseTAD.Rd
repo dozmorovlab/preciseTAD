@@ -16,6 +16,7 @@ preciseTAD(
   parallel = NULL,
   DBSCAN_params,
   flank,
+  genome = "hg19",
   BaseProbs = FALSE
 )
 }
@@ -43,13 +44,11 @@ using \code{preciseTAD::randomForest}). Required.}
 
 \item{threshold}{Bases with predicted probabilities that are greater
 than or equal to this value are labeled as potential TAD boundaries. Values
-in the range of .95-1.0 are suggested. Default is 1. If a vector of different
-values is passed to the threshold paramenter then a grid is provided with eps
-(see DBSCAN_params parameter) threshold values and the optimal combination is
-chose as the combination that maximizes normalized enrichment -- calculated 
-as the number of peak regions that overlap with flanked predicted boundaries 
-divided by the total number of predicted boundaries, averaged over all 
-predictors (genomic elements).}
+in the range of .95-1.0 are suggested. Default is 1. To explore how
+selection of the `threshold` parameter affects the results, it is recommended
+to rerun the function with a different threshold, e.g., 0.99, and compare the
+results of Normalized Enrichment test (see `DBSCAN_params` and the 
+`preciseTADparams` slot).}
 
 \item{verbose}{Option to print progress. Default is TRUE.}
 
@@ -59,15 +58,25 @@ parallel. Default is NULL.}
 
 \item{DBSCAN_params}{Parameters passed to \code{\link{dbscan}} in list form
 containing 1) eps and 2) MinPts. If a vector of different values is passed to
-eps then a grid is provided with the probability threshold (see threshold 
-parameter) values and the optimal combination is chose as the combination 
-that maximizes normalized enrichment -- calculated as the number of peak 
-regions that overlap with flanked predicted boundaries divided by the total 
-number of predicted boundaries, averaged over all predictors (genomic 
-elements). Required.}
+either or both eps and MinPts, then each combination of these parameters is
+evaluated to maximize normalized enrichment (NE) is the provided genomic 
+annotations. Normalized Enrichment is calculated as the number of peak 
+regions that overlap with flanked predicted boundaries (see flank parameter) 
+divided by the total number of predicted boundaries, averaged for all 
+genomic annotations. Parameters yielding  maximum NE score are automatically 
+selected for the final prediction. However, it is advisable to explore results 
+of the NE test, available in the `preciseTADparams` slot of the returned 
+object (NEmean - mean normalized enrichment, larger the better; k - number 
+of PTBRs), to, potentially, find eps and MinPts parameters providing 
+the number of PTBRs and mean NE score better agreeing with the number
+of boundaries used for training. Required.}
 
 \item{flank}{Controls how much to flank the predicted TAD boundaries for
 calculating normalized enrichment. Required.}
+
+\item{genome}{version of the human genome assembly. Used to filter out
+bases overlapping centromeric regions. Accepted values - hg19 (default) or 
+hg38.}
 
 \item{BaseProbs}{Option to include the vector of probabilities for each 
 base-level coordinate. Recommended to be used only when chromCoords is 
@@ -153,9 +162,11 @@ pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                  CHR = "CHR22",
                  chromCoords = list(17000000, 18000000),
                  tadModel = tadModel[[1]],
-                 threshold = c(0.975, 0.99, 1.0),
+                 threshold = 1.0,
                  verbose = TRUE,
                  parallel = NULL,
-                 DBSCAN_params = list(c(5000, 10000,15000,20000,30000), 3),
-                 flank = 5000)
+                 DBSCAN_params = list(c(1000, 5000, 10000), c(100, 1000, 2000, 3000)),
+                 flank = 5000,
+                 genome = "hg19",
+                 BaseProbs = FALSE)
 }

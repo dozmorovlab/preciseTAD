@@ -1,4 +1,11 @@
-changes in version
+Changes in version 1.1.4 (2021-06-16)
++ preciseTAD function rewritten
+  + genome version (hg19/hg38) is now supported via rCGH
+  + MinPts and eps DBSCAN parameters are now tested on a grid, instead of 
+  threshold t and eps
+  + help expanded
+
+Changes in version 1.1.3 (2021-05-29)
 + extractBoundaries function rewritten
   + preprocess argument is renamed to filter
   + natural sort of chromosome names is performed using gtools::mixedsort

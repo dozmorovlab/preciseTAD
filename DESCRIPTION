@@ -56,7 +56,8 @@ Imports:
     pbapply,
     stats,
     parallel,
-    gtools
+    gtools,
+    rCGH
 biocViews: Software, HiC, Sequencing, Clustering, 
     Classification, FunctionalGenomics, FeatureExtraction
 BugReports: https://github.com/dozmorovlab/preciseTAD/issues

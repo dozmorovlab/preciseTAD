@@ -19,27 +19,34 @@
 #' using \code{preciseTAD::randomForest}). Required.
 #' @param threshold Bases with predicted probabilities that are greater
 #' than or equal to this value are labeled as potential TAD boundaries. Values
-#' in the range of .95-1.0 are suggested. Default is 1. If a vector of different
-#' values is passed to the threshold paramenter then a grid is provided with eps
-#' (see DBSCAN_params parameter) threshold values and the optimal combination is
-#' chose as the combination that maximizes normalized enrichment -- calculated 
-#' as the number of peak regions that overlap with flanked predicted boundaries 
-#' divided by the total number of predicted boundaries, averaged over all 
-#' predictors (genomic elements). 
+#' in the range of .95-1.0 are suggested. Default is 1. To explore how
+#' selection of the `threshold` parameter affects the results, it is recommended
+#' to rerun the function with a different threshold, e.g., 0.99, and compare the
+#' results of Normalized Enrichment test (see `DBSCAN_params` and the 
+#' `preciseTADparams` slot).
 #' @param verbose Option to print progress. Default is TRUE.
 #' @param parallel Option to parallelise the process for obtaining predicted
 #' probabilities. Must be number to indicate the number of cores to use in
 #' parallel. Default is NULL.
 #' @param DBSCAN_params Parameters passed to \code{\link{dbscan}} in list form
 #' containing 1) eps and 2) MinPts. If a vector of different values is passed to
-#' eps then a grid is provided with the probability threshold (see threshold 
-#' parameter) values and the optimal combination is chose as the combination 
-#' that maximizes normalized enrichment -- calculated as the number of peak 
-#' regions that overlap with flanked predicted boundaries divided by the total 
-#' number of predicted boundaries, averaged over all predictors (genomic 
-#' elements). Required.
+#' either or both eps and MinPts, then each combination of these parameters is
+#' evaluated to maximize normalized enrichment (NE) is the provided genomic 
+#' annotations. Normalized Enrichment is calculated as the number of peak 
+#' regions that overlap with flanked predicted boundaries (see flank parameter) 
+#' divided by the total number of predicted boundaries, averaged for all 
+#' genomic annotations. Parameters yielding  maximum NE score are automatically 
+#' selected for the final prediction. However, it is advisable to explore results 
+#' of the NE test, available in the `preciseTADparams` slot of the returned 
+#' object (NEmean - mean normalized enrichment, larger the better; k - number 
+#' of PTBRs), to, potentially, find eps and MinPts parameters providing 
+#' the number of PTBRs and mean NE score better agreeing with the number
+#' of boundaries used for training. Required.
 #' @param flank Controls how much to flank the predicted TAD boundaries for
 #' calculating normalized enrichment. Required.
+#' @param genome version of the human genome assembly. Used to filter out
+#' bases overlapping centromeric regions. Accepted values - hg19 (default) or 
+#' hg38.
 #' @param BaseProbs Option to include the vector of probabilities for each 
 #' base-level coordinate. Recommended to be used only when chromCoords is 
 #' specified.
@@ -74,7 +81,7 @@
 #' @importFrom stats setNames
 #' @importFrom dbscan dbscan
 #' @importFrom S4Vectors subjectHits
-#' @import pbapply parallel doSNOW foreach cluster IRanges GenomicRanges
+#' @import pbapply parallel doSNOW foreach cluster IRanges GenomicRanges rCGH
 #'
 #' @examples
 #' # Read in ARROWHEAD-called TADs at 5kb
@@ -131,34 +138,41 @@
 #'                  CHR = "CHR22",
 #'                  chromCoords = list(17000000, 18000000),
 #'                  tadModel = tadModel[[1]],
-#'                  threshold = c(0.975, 0.99, 1.0),
+#'                  threshold = 1.0,
 #'                  verbose = TRUE,
 #'                  parallel = NULL,
-#'                  DBSCAN_params = list(c(5000, 10000,15000,20000,30000), 3),
-#'                  flank = 5000)
+#'                  DBSCAN_params = list(c(1000, 5000, 10000), c(100, 1000, 2000, 3000)),
+#'                  flank = 5000,
+#'                  genome = "hg19",
+#'                  BaseProbs = FALSE)
 preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
                       chromCoords = NULL, tadModel, threshold = 1,
                       verbose = TRUE, parallel = NULL, DBSCAN_params,
-                      flank, BaseProbs = FALSE) {
+                      flank, genome = "hg19", BaseProbs = FALSE) {
 
     #ESTABLISHING CHROMOSOME-SPECIFIC SEQINFO#
 
     #LOADING CHROMOSOME LENGTHS#
-
-    hg19 <- preciseTAD:::hg19
+    if (genome %in% c("hg19", "hg38")) {
+        ifelse(genome == "hg19", centromeres <- rCGH::hg19, centromeres <- rCGH::hg38)
+        centromeres$chrom <- paste0("CHR", centromeres$chrom)
+    } else {
+        print("Wrong genome version. Use hg19 or hg38")
+        return(NULL)
+    }
 
     if(is.list(chromCoords)) {
         seqDataTest <- c(chromCoords[[1]]:chromCoords[[2]])
-        if("TRUE" %in% table(seqDataTest %in% c(hg19$centromerStart[hg19$chrom == CHR]:hg19$centromerEnd[hg19$chrom == CHR]))) {
-            centromereTestStart <- hg19$centromerStart[hg19$chrom==CHR]
-            centromereTestEnd <- hg19$centromerEnd[hg19$chrom==CHR]
+        if("TRUE" %in% table(seqDataTest %in% c(centromeres$centromerStart[centromeres$chrom == CHR]:centromeres$centromerEnd[centromeres$chrom == CHR]))) {
+            centromereTestStart <- centromeres$centromerStart[centromeres$chrom==CHR]
+            centromereTestEnd <- centromeres$centromerEnd[centromeres$chrom==CHR]
             seqDataTest <- seqDataTest[-which(seqDataTest %in% c(centromereTestStart:centromereTestEnd))]
         }
     }else {
-        seqLengthTest <- hg19$length[hg19$chrom == CHR]
+        seqLengthTest <- centromeres$length[centromeres$chrom == CHR]
         seqDataTest <- seq_along(0:seqLengthTest)
-        centromereTestStart <- hg19$centromerStart[hg19$chrom == CHR]
-        centromereTestEnd <- hg19$centromerEnd[hg19$chrom == CHR]
+        centromereTestStart <- centromeres$centromerStart[centromeres$chrom == CHR]
+        centromereTestEnd <- centromeres$centromerEnd[centromeres$chrom == CHR]
         seqDataTest <- seqDataTest[-which(seqDataTest %in% c(centromereTestStart:centromereTestEnd))]
     }
 
@@ -259,46 +273,45 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
         }
     }
 
-    #DETERMING OPTIMAL COMBINATION OF (t, eps) #
+    #DETERMING OPTIMAL COMBINATION OF (MinPts, eps) #
+    if (verbose == TRUE) {
+        print("Determining optimal combination of epsilon neighborhood (eps) and minimum number of points (MinPts)")
+    }
     
-    if((length(threshold) > 1) | (length(DBSCAN_params[[1]]) > 1)) {
-        
+    ptMat <- expand.grid(DBSCAN_params[[2]], DBSCAN_params[[1]])
+    colnames(ptMat) <- c("MinPts", "eps")
+    ptMat$NEmean <- NA
+    ptMat$k <- NA
+    
+    for(i in seq_len(nrow(ptMat))){
         if (verbose == TRUE) {
-            print("Determining optimal combination of threshold (t) and epsilon neighborhood (eps)")
+            print(paste0("Initializing DBSCAN for MinPts=",
+                         ptMat$MinPts[i],
+                         " and eps=",
+                         ptMat$eps[i]))
         }
         
-        ptMat <- expand.grid(threshold, DBSCAN_params[[1]])
-        colnames(ptMat) <- c("t", "eps")
-        ptMat$NEmean <- NA
-        ptMat$NEsd <- NA
+        res <- dbscan::dbscan(as.matrix(seqDataTest[which(predictions >= threshold )]), 
+                              eps = ptMat$eps[i], 
+                              minPts = ptMat$MinPts[i])
+        if (0 %in% unique(res$cluster)) {
+            k = length(unique(res$cluster)) - 1
+        } else {
+            k = length(unique(res$cluster))
+        }
         
-        for(i in seq_len(nrow(ptMat))){
-            if (verbose == TRUE) {
-                print(paste0("Initializing DBSCAN for t=",
-                             ptMat$t[i],
-                             " and eps=",
-                             ptMat$eps[i]))
-            }
-            
-            res <- dbscan::dbscan(as.matrix(seqDataTest[which(predictions>=ptMat$t[i])]), 
-                                  eps = ptMat$eps[i], 
-                                  minPts = DBSCAN_params[[2]])
-            if (0 %in% unique(res$cluster)) {
-                k = length(unique(res$cluster)) - 1
-            } else {
-                k = length(unique(res$cluster))
-            }
-            
-            if (verbose == TRUE) {
-                print(paste0("    preciseTAD identified ", k, " PTBRs"))
-                print(paste0("    Establishing PTBPs"))
-            }
-            
+        if (verbose == TRUE) {
+            print(paste0("    preciseTAD identified ", k, " PTBRs"))
+            print(paste0("    Establishing PTBPs"))
+        }
+        
+        # If at least 1 cluster is found
+        if (k >= 1) {
             medoids <- numeric()
             for(l in seq_len(k)){
                 if(verbose == TRUE){print(paste0("        Cluster ", l, " out of ", k))}
                 
-                bp <- seqDataTest[which(predictions>=ptMat$t[i])][which(res$cluster==l)]
+                bp <- seqDataTest[which(predictions >= threshold)][which(res$cluster==l)]
                 
                 c <- pam(x = as.matrix(bp),
                          k = 1,
@@ -327,24 +340,25 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
                 ))
             
             ptMat$NEmean[i] <- mean(NormilizedEnrichment)
-            ptMat$NEsd[i] <- sd(NormilizedEnrichment)
-            
+            ptMat$k[i] <- k
+        } else { # If no clusters found
+            ptMat$NEmean[i] <- 0
+            ptMat$k[i] <- 0
         }
-        
-        if (verbose == TRUE) { 
-            print(paste0("Optimal combination of threshold and eps is (t, eps) = (",
-                         ptMat$t[which.max(ptMat$NEmean)],
-                         ", ",
-                         ptMat$eps[which.max(ptMat$NEmean)],
-                         ")"))
-        }
-        
-        threshold = ptMat$t[which.max(ptMat$NEmean)]
-        DBSCAN_params[[1]] = ptMat$eps[which.max(ptMat$NEmean)]
-    } else {
-        ptMat = NA
+
     }
     
+    if (verbose == TRUE) { 
+        print(paste0("Optimal combination of MinPts and eps is = (",
+                     ptMat$MinPts[which.max(ptMat$NEmean)],
+                     ", ",
+                     ptMat$eps[which.max(ptMat$NEmean)],
+                     ")"))
+    }
+    
+    DBSCAN_params[[2]] = ptMat$MinPts[which.max(ptMat$NEmean)]
+    DBSCAN_params[[1]] = ptMat$eps[which.max(ptMat$NEmean)]
+
     #PERFORMING preciseTAD ON OPTIMAL (t, eps) #
     
     if (verbose == TRUE) {
@@ -353,13 +367,13 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
                      " base pairs whose predictive probability was equal to or exceeded a threshold of ",
                      threshold))
         
-        print(paste0("Initializing DBSCAN for t = ", 
-                     threshold, 
+        print(paste0("Initializing DBSCAN for MinPts = ", 
+                     DBSCAN_params[[2]], 
                      " and eps = ", 
                      DBSCAN_params[[1]]))
     }
     
-    res <- dbscan::dbscan(as.matrix(seqDataTest[which(predictions>=threshold)]), 
+    res <- dbscan::dbscan(as.matrix(seqDataTest[which(predictions >= threshold)]), 
                           eps = DBSCAN_params[[1]], 
                           minPts = DBSCAN_params[[2]])
     if (0 %in% unique(res$cluster)) {
@@ -368,124 +382,132 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
         k = length(unique(res$cluster))
     }
     
+    
     if (verbose == TRUE) {
         print(paste0("preciseTAD identified ", k, " PTBRs"))
         print(paste0("Establishing PTBPs"))
     }
     
-    medoids <- numeric()
-    grlist <- GRangesList()
-    numsubreg <- numeric()
-    distbtwsubreg <- numeric()
-    coverage <- numeric()
-    widthsubreg <- numeric()
-    for(i in seq_len(k)){
-        if(verbose == TRUE){print(paste0("Cluster ", i, " out of ", k))}
-        
-        bp <- seqDataTest[which(predictions>=threshold)][which(res$cluster==i)]
-        
-        grlist[[i]] <- GRanges(seqnames = tolower(CHR),
-                               IRanges(start=min(bp),
-                                       end=max(bp)))
-        
-        if(0 %in% unique(res$cluster)){
-            coverage[i] <- as.vector(table(res$cluster))[-1][i]/(max(bp)-min(bp)+1)
-        }else{
-            coverage[i] <- as.vector(table(res$cluster))[i]/(max(bp)-min(bp)+1)
+    # If at least 1 cluster is found
+    if (k >= 1) {
+        medoids <- numeric()
+        grlist <- GRangesList()
+        numsubreg <- numeric()
+        distbtwsubreg <- numeric()
+        coverage <- numeric()
+        widthsubreg <- numeric()
+        for(i in seq_len(k)){
+            if(verbose == TRUE){print(paste0("Cluster ", i, " out of ", k))}
+            
+            bp <- seqDataTest[which(predictions>=threshold)][which(res$cluster==i)]
+            
+            grlist[[i]] <- GRanges(seqnames = tolower(CHR),
+                                   IRanges(start=min(bp),
+                                           end=max(bp)))
+            
+            if(0 %in% unique(res$cluster)){
+                coverage[i] <- as.vector(table(res$cluster))[-1][i]/(max(bp)-min(bp)+1)
+            }else{
+                coverage[i] <- as.vector(table(res$cluster))[i]/(max(bp)-min(bp)+1)
+            }
+            
+            if(identical(diff(bp[-which(diff(bp)==1)]), integer(0))){
+                numsubreg[i] <- 1
+                distbtwsubreg <- c(distbtwsubreg, 0)
+            }else{
+                numsubreg[i] <- length(diff(bp)[-which(diff(bp)==1)])+1
+                distbtwsubreg <- c(distbtwsubreg, diff(bp)[-which(diff(bp)==1)])
+            }
+            
+            retain <- c(1,cumsum(ifelse(diff(bp) != 1, 1, 0)) + 1)
+            
+            widthsubreg <- c(widthsubreg, as.vector(table(retain)))
+            
+            c <- pam(x = as.matrix(bp),
+                     k = 1,
+                     diss = FALSE,
+                     metric = "euclidean",
+                     medoids = NULL,
+                     stand = FALSE,
+                     cluster.only = FALSE,
+                     do.swap = TRUE,
+                     keep.diss = FALSE,
+                     trace.lev = 0)
+            medoids[i] <- c$medoids[1]
+            
         }
         
-        if(identical(diff(bp[-which(diff(bp)==1)]), integer(0))){
-            numsubreg[i] <- 1
-            distbtwsubreg <- c(distbtwsubreg, 0)
+        grlist <- unlist(grlist)
+        
+        predBound_gr <- GRanges(seqnames=tolower(CHR),
+                                IRanges(start=medoids,
+                                        end=medoids))
+        
+        if(0 %in% unique(res$cluster)){res$cluster <- res$cluster[-which(res$cluster==0)]}
+        
+        if(BaseProbs==TRUE){
+            if(is.list(chromCoords)){
+                predictions = stats::setNames(predictions, as.character(seq.int(chromCoords[[1]], chromCoords[[2]])))
+            }else{
+                predictions = stats::setNames(predictions, as.character(seqDataTest))
+            }
         }else{
-            numsubreg[i] <- length(diff(bp)[-which(diff(bp)==1)])+1
-            distbtwsubreg <- c(distbtwsubreg, diff(bp)[-which(diff(bp)==1)])
+            predictions = NA
         }
         
-        retain <- c(1,cumsum(ifelse(diff(bp) != 1, 1, 0)) + 1)
+        bp_results <- list(preciseTADparams=ptMat,
+                           PTBR=grlist,
+                           PTBP=predBound_gr,
+                           Summaries=list(PTBRWidth = data.frame(min=min(width(grlist)),
+                                                                 max=max(width(grlist)),
+                                                                 median=median(width(grlist)),
+                                                                 iqr=IQR(width(grlist)),
+                                                                 mean=mean(width(grlist)),
+                                                                 sd=sd(width(grlist))),
+                                          PTBRCoverage = data.frame(min=min(coverage),
+                                                                    max=max(coverage),
+                                                                    median=median(coverage),
+                                                                    iqr=IQR(coverage),
+                                                                    mean=mean(coverage),
+                                                                    sd=sd(coverage)),
+                                          DistanceBetweenPTBR = data.frame(min=min(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                                                                           max=max(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                                                                           median=median(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                                                                           iqr=IQR(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                                                                           mean=mean(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
+                                                                           sd=sd(start(grlist)[-1]-end(grlist)[-length(end(grlist))])),
+                                          NumSubRegions = data.frame(min=min(numsubreg),
+                                                                     max=max(numsubreg),
+                                                                     median=median(numsubreg),
+                                                                     iqr=IQR(numsubreg),
+                                                                     mean=mean(numsubreg),
+                                                                     sd=sd(numsubreg)),
+                                          SubRegionWidth = data.frame(min=min(widthsubreg),
+                                                                      max=max(widthsubreg),
+                                                                      median=median(widthsubreg),
+                                                                      iqr=IQR(widthsubreg),
+                                                                      mean=mean(widthsubreg),
+                                                                      sd=sd(widthsubreg)),
+                                          DistBetweenSubRegions = data.frame(min=min(distbtwsubreg),
+                                                                             max=max(distbtwsubreg),
+                                                                             median=median(distbtwsubreg),
+                                                                             iqr=IQR(distbtwsubreg),
+                                                                             mean=mean(distbtwsubreg),
+                                                                             sd=sd(distbtwsubreg)),
+                                          NormilizedEnrichment = unlist(
+                                              lapply(genomicElements.GR,
+                                                     function(x){length(unique(subjectHits(findOverlaps(flank(predBound_gr,
+                                                                                                              width = flank,
+                                                                                                              both = TRUE),
+                                                                                                        x))))/length(predBound_gr)
+                                                     }
+                                              )),
+                                          BaseProbs = predictions))
         
-        widthsubreg <- c(widthsubreg, as.vector(table(retain)))
-        
-        c <- pam(x = as.matrix(bp),
-                 k = 1,
-                 diss = FALSE,
-                 metric = "euclidean",
-                 medoids = NULL,
-                 stand = FALSE,
-                 cluster.only = FALSE,
-                 do.swap = TRUE,
-                 keep.diss = FALSE,
-                 trace.lev = 0)
-        medoids[i] <- c$medoids[1]
-        
+    } else { # If no clusters found
+        print("No clusters found. Check your data and parameters.")
+        bp_results <- NULL
     }
-    
-    grlist <- unlist(grlist)
-    
-    predBound_gr <- GRanges(seqnames=tolower(CHR),
-                            IRanges(start=medoids,
-                                    end=medoids))
-    
-    if(0 %in% unique(res$cluster)){res$cluster <- res$cluster[-which(res$cluster==0)]}
-    
-    if(BaseProbs==TRUE){
-        if(is.list(chromCoords)){
-            predictions = stats::setNames(predictions, as.character(seq.int(chromCoords[[1]], chromCoords[[2]])))
-        }else{
-            predictions = stats::setNames(predictions, as.character(seqDataTest))
-        }
-    }else{
-        predictions = NA
-    }
-    
-    bp_results <- list(preciseTADparams=ptMat,
-                       PTBR=grlist,
-                       PTBP=predBound_gr,
-                       Summaries=list(PTBRWidth = data.frame(min=min(width(grlist)),
-                                                             max=max(width(grlist)),
-                                                             median=median(width(grlist)),
-                                                             iqr=IQR(width(grlist)),
-                                                             mean=mean(width(grlist)),
-                                                             sd=sd(width(grlist))),
-                                      PTBRCoverage = data.frame(min=min(coverage),
-                                                                max=max(coverage),
-                                                                median=median(coverage),
-                                                                iqr=IQR(coverage),
-                                                                mean=mean(coverage),
-                                                                sd=sd(coverage)),
-                                      DistanceBetweenPTBR = data.frame(min=min(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
-                                                                       max=max(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
-                                                                       median=median(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
-                                                                       iqr=IQR(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
-                                                                       mean=mean(start(grlist)[-1]-end(grlist)[-length(end(grlist))]),
-                                                                       sd=sd(start(grlist)[-1]-end(grlist)[-length(end(grlist))])),
-                                      NumSubRegions = data.frame(min=min(numsubreg),
-                                                                 max=max(numsubreg),
-                                                                 median=median(numsubreg),
-                                                                 iqr=IQR(numsubreg),
-                                                                 mean=mean(numsubreg),
-                                                                 sd=sd(numsubreg)),
-                                      SubRegionWidth = data.frame(min=min(widthsubreg),
-                                                                  max=max(widthsubreg),
-                                                                  median=median(widthsubreg),
-                                                                  iqr=IQR(widthsubreg),
-                                                                  mean=mean(widthsubreg),
-                                                                  sd=sd(widthsubreg)),
-                                      DistBetweenSubRegions = data.frame(min=min(distbtwsubreg),
-                                                                         max=max(distbtwsubreg),
-                                                                         median=median(distbtwsubreg),
-                                                                         iqr=IQR(distbtwsubreg),
-                                                                         mean=mean(distbtwsubreg),
-                                                                         sd=sd(distbtwsubreg)),
-                                      NormilizedEnrichment = unlist(
-                                          lapply(genomicElements.GR,
-                                                 function(x){length(unique(subjectHits(findOverlaps(flank(predBound_gr,
-                                                                                                          width = flank,
-                                                                                                          both = TRUE),
-                                                                                                    x))))/length(predBound_gr)
-                                                 }
-                                          )),
-                                      BaseProbs = predictions))
-    
+        
     return(bp_results)
 }

@@ -12,7 +12,8 @@ createTADdata(
   featureType = "distance",
   resampling,
   trainCHR,
-  predictCHR = NULL
+  predictCHR = NULL,
+  genome = "hg19"
 )
 }
 \arguments{
@@ -45,6 +46,10 @@ data matrix for training. Required.}
 \item{predictCHR}{Character vector of chromosomes to use to build the binned
 data matrix for testing. Default in NULL, indicating no test data is created.
  If trainCHR=predictCHR then a 7:3 split is created.}
+
+\item{genome}{version of the human genome assembly. Used to filter out
+bases overlapping centromeric regions. Accepted values - hg19 (default) or 
+hg38.}
 }
 \value{
 A list object containing two data.frames: 1) the training data, 2)

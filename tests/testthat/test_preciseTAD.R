@@ -40,24 +40,28 @@ test_that("Whether preciseTAD gives us the same output", {
 
     set.seed(123)
 
-    pt <- preciseTAD(genomicElements.GR=tfbsList_filt,
-                     featureType="distance",
-                     CHR="CHR22",
-                     chromCoords=list(17000000,19000000),
-                     tadModel=tadModel[[1]],
-                     threshold=1.0,
-                     verbose=TRUE,
-                     parallel=2,
-                     DBSCAN_params=list(10000,3),
-                     flank=5000)
+    # genomicElements.GR=tfbsList_filt; featureType="distance"; CHR="CHR22"; chromCoords=list(17000000,19000000); tadModel=tadModel[[1]]; threshold=0.99; verbose=TRUE; parallel=NULL; DBSCAN_params=list(eps=c(5000), MinPts=c(1000)); flank=5000; genome="hg19"; BaseProbs=FALSE
+    pt <- preciseTAD(genomicElements.GR  = tfbsList_filt,
+                     featureType         = "distance",
+                     CHR                 = "CHR22",
+                     chromCoords         = list(17000000,19000000),
+                     tadModel            = tadModel[[1]],
+                     threshold           = 0.99,
+                     verbose             = TRUE,
+                     parallel            = NULL,
+                     DBSCAN_params       = list(eps = c(5000), 
+                                                MinPts = c(1000)),
+                     flank               = 5000,
+                     genome              = "hg19",
+                     BaseProbs           = FALSE)
 
-    expect_equal(width(pt$PTBR)[1], 13498)
+    expect_equal(width(pt$PTBR)[1], 13752)
 
-    expect_equal(pt$Summaries$PTBRWidth$median, 4467)
+    expect_equal(pt$Summaries$PTBRWidth$median, 11475)
 
-    expect_equal(pt$Summaries$PTBRCoverage$median, 0.2923396)
+    expect_equal(pt$Summaries$PTBRCoverage$median, 0.3979696)
 
-    expect_equal(length(pt$PTBP), 13)
+    expect_equal(length(pt$PTBP), 14)
 
     expect_equal(IRanges::start(pt$PTBP)[1], 17398701)
 })

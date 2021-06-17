@@ -24,6 +24,9 @@
 #' @param predictCHR Character vector of chromosomes to use to build the binned
 #' data matrix for testing. Default in NULL, indicating no test data is created.
 #'  If trainCHR=predictCHR then a 7:3 split is created.
+#' @param genome version of the human genome assembly. Used to filter out
+#' bases overlapping centromeric regions. Accepted values - hg19 (default) or 
+#' hg38.
 #'
 #' @return A list object containing two data.frames: 1) the training data, 2)
 #' the test data (only if predictCHR is not NULL, otherwise it is NA). "y" is
@@ -32,7 +35,7 @@
 #' genomic annotations
 #' @export
 #'
-#' @import IRanges GenomicRanges
+#' @import IRanges GenomicRanges rCGH
 #'
 #' @examples
 #' # Create training data for CHR21 and testing data for CHR22 with
@@ -59,16 +62,21 @@
 #'                          trainCHR = "CHR21",
 #'                          predictCHR = "CHR22")
 createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType = "distance",
-                          resampling, trainCHR, predictCHR = NULL) {
+                          resampling, trainCHR, predictCHR = NULL, genome = "hg19") {
 
     resolution = as.integer(resolution)
 
     #ESTABLISHING CHROMOSOME-SPECIFIC SEQINFO#
 
     #LOADING CHROMOSOME LENGTHS#
-
-    hg19 <- preciseTAD:::hg19
-
+    if (genome %in% c("hg19", "hg38")) {
+        ifelse(genome == "hg19", centromeres <- rCGH::hg19, centromeres <- rCGH::hg38)
+        centromeres$chrom <- paste0("CHR", centromeres$chrom)
+    } else {
+        print("Wrong genome version. Use hg19 or hg38")
+        return(NULL)
+    }
+    
     #ESTABLISHING DATA MATRIX FOR MODELING#
 
     if (is.null(predictCHR)) {
@@ -84,9 +92,9 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
         for (i in seq_len(length(trainCHR))) {
             start <- (resolution/2)
-            chrLength <- hg19$length[hg19$chrom %in% trainCHR][i]
-            centromereStart <- as.integer(hg19$centromerStart[hg19$chrom==trainCHR[i]])
-            centromereEnd <- as.integer(hg19$centromerEnd[hg19$chrom==trainCHR[i]])
+            chrLength <- centromeres$length[centromeres$chrom %in% trainCHR][i]
+            centromereStart <- as.integer(centromeres$centromerStart[centromeres$chrom==trainCHR[i]])
+            centromereEnd <- as.integer(centromeres$centromerEnd[centromeres$chrom==trainCHR[i]])
             end <- chrLength - (chrLength %% resolution) + resolution/2
 
             data_mat_list[[i]] <- matrix(nrow=length(seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))]),
@@ -191,9 +199,9 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
         for (i in seq_len(length(trainCHR))) {
             start <- (resolution/2)
-            chrLength <- hg19$length[hg19$chrom %in% trainCHR][i]
-            centromereStart <- as.integer(hg19$centromerStart[hg19$chrom==trainCHR[i]])
-            centromereEnd <- as.integer(hg19$centromerEnd[hg19$chrom==trainCHR[i]])
+            chrLength <- centromeres$length[centromeres$chrom %in% trainCHR][i]
+            centromereStart <- as.integer(centromeres$centromerStart[centromeres$chrom==trainCHR[i]])
+            centromereEnd <- as.integer(centromeres$centromerEnd[centromeres$chrom==trainCHR[i]])
             end <- chrLength - (chrLength %% resolution) + resolution/2
 
             data_mat_list[[i]] <- matrix(nrow=length(seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))]),
@@ -300,9 +308,9 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
         for (i in seq_len(length(trainCHR))) {
             start <- (resolution/2)
-            chrLength <- hg19$length[hg19$chrom %in% trainCHR][i]
-            centromereStart <- as.integer(hg19$centromerStart[hg19$chrom==trainCHR[i]])
-            centromereEnd <- as.integer(hg19$centromerEnd[hg19$chrom==trainCHR[i]])
+            chrLength <- centromeres$length[centromeres$chrom %in% trainCHR][i]
+            centromereStart <- as.integer(centromeres$centromerStart[centromeres$chrom==trainCHR[i]])
+            centromereEnd <- as.integer(centromeres$centromerEnd[centromeres$chrom==trainCHR[i]])
             end <- chrLength - (chrLength %% resolution) + resolution/2
 
             data_mat_list[[i]] <- matrix(nrow=length(seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))]),
@@ -400,9 +408,9 @@ createTADdata <- function(bounds.GR, resolution, genomicElements.GR, featureType
 
         for (i in seq_len(length(predictCHR))) {
             start <- (resolution/2)
-            chrLength <- hg19$length[hg19$chrom %in% predictCHR][i]
-            centromereStart <- as.integer(hg19$centromerStart[hg19$chrom==predictCHR[i]])
-            centromereEnd <- as.integer(hg19$centromerEnd[hg19$chrom==predictCHR[i]])
+            chrLength <- centromeres$length[centromeres$chrom %in% predictCHR][i]
+            centromereStart <- as.integer(centromeres$centromerStart[centromeres$chrom==predictCHR[i]])
+            centromereEnd <- as.integer(centromeres$centromerEnd[centromeres$chrom==predictCHR[i]])
             end <- chrLength - (chrLength %% resolution) + resolution/2
 
             data_mat_list[[i]] <- matrix(nrow=length(seq(start,end-1,resolution)[-which(seq(start,end-1,resolution) %in% c(centromereStart:centromereEnd))]),

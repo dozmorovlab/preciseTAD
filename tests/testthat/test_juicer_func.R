@@ -49,7 +49,9 @@ test_that("Whether juicer_func gives us the same output", {
                      verbose=TRUE,
                      parallel=2,
                      DBSCAN_params=list(10000,3),
-                     flank=5000)
+                     slope=5000,
+                     BaseProbs = FALSE,
+                     savetobed = FALSE)
 
     pt_juice <- juicer_func(pt[[2]])
 

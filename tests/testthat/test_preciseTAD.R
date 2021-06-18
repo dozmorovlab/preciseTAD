@@ -40,7 +40,7 @@ test_that("Whether preciseTAD gives us the same output", {
 
     set.seed(123)
 
-    # genomicElements.GR=tfbsList_filt; featureType="distance"; CHR="CHR22"; chromCoords=list(17000000,19000000); tadModel=tadModel[[1]]; threshold=0.99; verbose=TRUE; parallel=NULL; DBSCAN_params=list(eps=c(5000), MinPts=c(1000)); flank=5000; genome="hg19"; BaseProbs=FALSE
+    # genomicElements.GR=tfbsList_filt; featureType="distance"; CHR="CHR22"; chromCoords=list(17000000,19000000); tadModel=tadModel[[1]]; threshold=0.99; verbose=TRUE; parallel=NULL; DBSCAN_params=list(eps=c(5000), MinPts=c(1000)); slope=5000; genome="hg19"; BaseProbs=FALSE
     pt <- preciseTAD(genomicElements.GR  = tfbsList_filt,
                      featureType         = "distance",
                      CHR                 = "CHR22",
@@ -51,9 +51,10 @@ test_that("Whether preciseTAD gives us the same output", {
                      parallel            = NULL,
                      DBSCAN_params       = list(eps = c(5000), 
                                                 MinPts = c(1000)),
-                     flank               = 5000,
+                     slope               = 5000,
                      genome              = "hg19",
-                     BaseProbs           = FALSE)
+                     BaseProbs           = FALSE,
+                     savetobed           = FALSE)
 
     expect_equal(width(pt$PTBR)[1], 13752)
 

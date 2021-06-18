@@ -6,9 +6,9 @@
 #' obtained using the \code{\link{bedToGRangesList}}). Required.
 #' @param featureType Controls how the feature space is constructed (one of
 #' either "binary", "oc", "op", "signal, or "distance" (log2- transformed).
-#' Default is "distance".
+#' Default and recommended: "distance".
 #' @param CHR Controls which chromosome to predict boundaries on at base-level
-#' resolution. Required.
+#' resolution, e.g., CHR22. Required.
 #' @param chromCoords List containing the starting bp coordinate and ending bp
 #' coordinate that defines the region of the linear genome to make predictions
 #' on. If chromCoords is not specified, then predictions will be made on the
@@ -32,24 +32,30 @@
 #' containing 1) eps and 2) MinPts. If a vector of different values is passed to
 #' either or both eps and MinPts, then each combination of these parameters is
 #' evaluated to maximize normalized enrichment (NE) is the provided genomic 
-#' annotations. Normalized Enrichment is calculated as the number of peak 
-#' regions that overlap with flanked predicted boundaries (see flank parameter) 
-#' divided by the total number of predicted boundaries, averaged for all 
-#' genomic annotations. Parameters yielding  maximum NE score are automatically 
-#' selected for the final prediction. However, it is advisable to explore results 
+#' annotations. Normalized Enrichment is calculated as the number of genomic 
+#' annotations that overlap with flanked predicted boundary points (see the slope 
+#' parameter) divided by the total number of predicted boundaries, averaged for 
+#' all genomic annotations. Parameters yielding  maximum NE score are automatically 
+#' selected for the final prediction. It is advisable to explore results 
 #' of the NE test, available in the `preciseTADparams` slot of the returned 
 #' object (NEmean - mean normalized enrichment, larger the better; k - number 
 #' of PTBRs), to, potentially, find eps and MinPts parameters providing 
-#' the number of PTBRs and mean NE score better agreeing with the number
-#' of boundaries used for training. Required.
-#' @param flank Controls how much to flank the predicted TAD boundaries for
-#' calculating normalized enrichment. Required.
+#' the number of PTBRs and the NE score better agreeing with the number
+#' of boundaries used for training. Default: list(30000, 3). Required.
+#' @param slope Controls how much to flank the predicted TAD boundary points for
+#' calculating normalized enrichment. Default: 5000 bases. Required.
 #' @param genome version of the human genome assembly. Used to filter out
 #' bases overlapping centromeric regions. Accepted values - hg19 (default) or 
-#' hg38.
+#' hg38. Default: hg19
 #' @param BaseProbs Option to include the vector of probabilities for each 
 #' base-level coordinate. Recommended to be used only when chromCoords is 
-#' specified.
+#' specified. Default: FALSE
+#' @param savetobed If true, preciseTAD regions (PTBRs) and preciseTAD points
+#' (PTBPs) will be saved as BED-like files into the current folder 
+#' (as.data.frame(GRanges)). File name convention: 
+#' <PTBRs/PTBPs>_<threshold>_<MinPts>_<eps>.bed, e.g., PTBR_1_3_30000.bed. 
+#' If multiple DBSCAN_params are specified, each result will
+#' be saved in its own file. Default: FALSE
 #'
 #' @return A list containing 4 elements including:
 #' 1) data frame with average (and standard deviation) normalized enrichment 
@@ -142,13 +148,14 @@
 #'                  verbose = TRUE,
 #'                  parallel = NULL,
 #'                  DBSCAN_params = list(c(1000, 5000, 10000), c(100, 1000, 2000, 3000)),
-#'                  flank = 5000,
+#'                  slope = 5000,
 #'                  genome = "hg19",
-#'                  BaseProbs = FALSE)
+#'                  BaseProbs = FALSE,
+#'                  savetobed = FALSE)
 preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
                       chromCoords = NULL, tadModel, threshold = 1,
-                      verbose = TRUE, parallel = NULL, DBSCAN_params,
-                      flank, genome = "hg19", BaseProbs = FALSE) {
+                      verbose = TRUE, parallel = NULL, DBSCAN_params = list(30000, 3),
+                      slope = 5000, genome = "hg19", BaseProbs = FALSE, savetobed = FALSE) {
 
     #ESTABLISHING CHROMOSOME-SPECIFIC SEQINFO#
 
@@ -168,7 +175,7 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
             centromereTestEnd <- centromeres$centromerEnd[centromeres$chrom==CHR]
             seqDataTest <- seqDataTest[-which(seqDataTest %in% c(centromereTestStart:centromereTestEnd))]
         }
-    }else {
+    } else {
         seqLengthTest <- centromeres$length[centromeres$chrom == CHR]
         seqDataTest <- seq_along(0:seqLengthTest)
         centromereTestStart <- centromeres$centromerStart[centromeres$chrom == CHR]
@@ -177,14 +184,10 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
     }
 
     #CREATING BP RESOLUTION TEST DATA#
-
     test_data <- matrix(nrow = length(seqDataTest),
                         ncol = length(genomicElements.GR),
                         dimnames = list(NULL,names(genomicElements.GR)))
-
-    #g <- split(GRanges(seqnames=tolower(CHR),IRanges(start=seqDataTest,end=seqDataTest)),
-    #           ceiling(seq_along(GRanges(seqnames=tolower(CHR),IRanges(start=seqDataTest,end=seqDataTest)))/10000000))
-
+    # Split in 10M chunks
     if(verbose==TRUE){print(paste0("Establishing bp resolution test data using a ", featureType, " type feature space"))}
     for(j in seq_len(length(genomicElements.GR))){
         p <-list()
@@ -232,14 +235,10 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
         p <- unlist(p)
         test_data[,j] <- p
     }
-
     #rm("p", "g")
 
     #PREDICTING AT BP RESOLUTION #
-
-    if (verbose == TRUE) {
-        print("Establishing probability vector")
-    }
+    if (verbose == TRUE) { print("Establishing probability vector") }
 
     if(!is.null(parallel)){
         parallel_predictions<-function(fit, testing, c, n){
@@ -255,7 +254,7 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
             predictions
         }
         predictions <- parallel_predictions(fit=tadModel, testing=test_data, c=parallel, n=parallel)
-    }else{
+    } else {
         if(!is.list(chromCoords)){
             array_split <- function(data, number_of_chunks){
                 rowIdx <- seq_len(nrow(data))
@@ -307,70 +306,76 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
         
         # If at least 1 cluster is found
         if (k >= 1) {
+            # Lists to store PTBPs and PTBRs
             medoids <- numeric()
+            grlist <- GRangesList()
+            # Process each cluster
             for(l in seq_len(k)){
                 if(verbose == TRUE){print(paste0("        Cluster ", l, " out of ", k))}
-                
+                # Get PTBRs                
                 bp <- seqDataTest[which(predictions >= threshold)][which(res$cluster==l)]
+                grlist[[l]] <- GRanges(seqnames = tolower(CHR),
+                                       IRanges(start=min(bp),
+                                               end=max(bp)))
+                # Find PTBPs
+                cc <- pam(x = as.matrix(bp),
+                          k = 1,
+                          diss = FALSE,
+                          metric = "euclidean",
+                          medoids = NULL,
+                          stand = FALSE,
+                          cluster.only = FALSE,
+                          do.swap = TRUE,
+                          keep.diss = FALSE,
+                          trace.lev = 0)
+                medoids[l] <- cc$medoids[1]
                 
-                c <- pam(x = as.matrix(bp),
-                         k = 1,
-                         diss = FALSE,
-                         metric = "euclidean",
-                         medoids = NULL,
-                         stand = FALSE,
-                         cluster.only = FALSE,
-                         do.swap = TRUE,
-                         keep.diss = FALSE,
-                         trace.lev = 0)
-                medoids[l] <- c$medoids[1]
             }
-            
+            # Make one GRanges with PTBRs
+            grlist <- unlist(grlist)
+            # Make one GRanges with PTBPs
             predBound_gr <- GRanges(seqnames=tolower(CHR),
                                     IRanges(start=medoids,
                                             end=medoids))
-            
-            NormilizedEnrichment = unlist(
-                lapply(genomicElements.GR,
-                       function(x){length(unique(subjectHits(findOverlaps(flank(predBound_gr,
-                                                                                width = flank,
-                                                                                both = TRUE),
-                                                                          x))))/length(predBound_gr)
-                       }
-                ))
-            
-            ptMat$NEmean[i] <- mean(NormilizedEnrichment)
+            # Save the data, if savetobed is set
+            if (savetobed) {
+                # Save PTBRs
+                fileNameOut <- paste0("PTBRs_", threshold, "_", ptMat$MinPts[i], "_", ptMat$eps[i], ".bed")
+                write.table(as.data.frame(grlist), fileNameOut, sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+                # Save PTBPs
+                fileNameOut <- paste0("PTBPs_", threshold, "_", ptMat$MinPts[i], "_", ptMat$eps[i], ".bed")
+                write.table(as.data.frame(predBound_gr), fileNameOut, sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+            }
+            # Calculate normalized enrichment
+            NormilizedEnrichment <- length(unique(subjectHits(GenomicRanges::findOverlaps(GenomicRanges::flank(predBound_gr, width = slope,  both = TRUE), unlist(genomicElements.GR))))) / length(predBound_gr)
+            # Save the results
+            ptMat$NEmean[i] <- NormilizedEnrichment
             ptMat$k[i] <- k
         } else { # If no clusters found
             ptMat$NEmean[i] <- 0
             ptMat$k[i] <- 0
         }
-
+        
     }
     
     if (verbose == TRUE) { 
         print(paste0("Optimal combination of MinPts and eps is = (",
-                     ptMat$MinPts[which.max(ptMat$NEmean)],
-                     ", ",
-                     ptMat$eps[which.max(ptMat$NEmean)],
-                     ")"))
+                     ptMat$MinPts[which.max(ptMat$NEmean)], ", ",
+                     ptMat$eps[which.max(ptMat$NEmean)], ")"))
     }
     
     DBSCAN_params[[2]] = ptMat$MinPts[which.max(ptMat$NEmean)]
     DBSCAN_params[[1]] = ptMat$eps[which.max(ptMat$NEmean)]
 
-    #PERFORMING preciseTAD ON OPTIMAL (t, eps) #
-    
+    #PERFORMING preciseTAD ON OPTIMAL (MinPts, eps)
     if (verbose == TRUE) {
         print(paste0("preciseTAD identified a total of ", 
                      length(diff(seqDataTest[which(predictions >= threshold)])), 
                      " base pairs whose predictive probability was equal to or exceeded a threshold of ",
                      threshold))
         
-        print(paste0("Initializing DBSCAN for MinPts = ", 
-                     DBSCAN_params[[2]], 
-                     " and eps = ", 
-                     DBSCAN_params[[1]]))
+        print(paste0("Initializing DBSCAN for MinPts = ", DBSCAN_params[[2]], 
+                     " and eps = ", DBSCAN_params[[1]]))
     }
     
     res <- dbscan::dbscan(as.matrix(seqDataTest[which(predictions >= threshold)]), 
@@ -381,7 +386,6 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
     } else {
         k = length(unique(res$cluster))
     }
-    
     
     if (verbose == TRUE) {
         print(paste0("preciseTAD identified ", k, " PTBRs"))
@@ -494,20 +498,23 @@ preciseTAD = function(genomicElements.GR, featureType = "distance", CHR,
                                                                              iqr=IQR(distbtwsubreg),
                                                                              mean=mean(distbtwsubreg),
                                                                              sd=sd(distbtwsubreg)),
-                                          NormilizedEnrichment = unlist(
-                                              lapply(genomicElements.GR,
-                                                     function(x){length(unique(subjectHits(findOverlaps(flank(predBound_gr,
-                                                                                                              width = flank,
-                                                                                                              both = TRUE),
-                                                                                                        x))))/length(predBound_gr)
-                                                     }
-                                              )),
+                                          NormilizedEnrichment = length(unique(subjectHits(GenomicRanges::findOverlaps(GenomicRanges::flank(predBound_gr, width = slope,  both = TRUE), unlist(genomicElements.GR))))) / length(predBound_gr),
                                           BaseProbs = predictions))
         
     } else { # If no clusters found
         print("No clusters found. Check your data and parameters.")
         bp_results <- NULL
     }
-        
+    
+    # Save the data, if savetobed is set
+    if (savetobed & !is.null(bp_results)) {
+        # Save PTBRs
+        fileNameOut <- paste0("PTBRs_", threshold, "_", DBSCAN_params[[2]], "_", DBSCAN_params[[1]], ".bed")
+        write.table(as.data.frame(grlist), fileNameOut, sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+        # Save PTBPs
+        fileNameOut <- paste0("PTBPs_", threshold, "_", DBSCAN_params[[2]], "_", DBSCAN_params[[1]], ".bed")
+        write.table(as.data.frame(predBound_gr), fileNameOut, sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+    }
+    
     return(bp_results)
 }

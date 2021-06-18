@@ -14,10 +14,11 @@ preciseTAD(
   threshold = 1,
   verbose = TRUE,
   parallel = NULL,
-  DBSCAN_params,
-  flank,
+  DBSCAN_params = list(30000, 3),
+  slope = 5000,
   genome = "hg19",
-  BaseProbs = FALSE
+  BaseProbs = FALSE,
+  savetobed = FALSE
 )
 }
 \arguments{
@@ -27,10 +28,10 @@ obtained using the \code{\link{bedToGRangesList}}). Required.}
 
 \item{featureType}{Controls how the feature space is constructed (one of
 either "binary", "oc", "op", "signal, or "distance" (log2- transformed).
-Default is "distance".}
+Default and recommended: "distance".}
 
 \item{CHR}{Controls which chromosome to predict boundaries on at base-level
-resolution. Required.}
+resolution, e.g., CHR22. Required.}
 
 \item{chromCoords}{List containing the starting bp coordinate and ending bp
 coordinate that defines the region of the linear genome to make predictions
@@ -60,27 +61,34 @@ parallel. Default is NULL.}
 containing 1) eps and 2) MinPts. If a vector of different values is passed to
 either or both eps and MinPts, then each combination of these parameters is
 evaluated to maximize normalized enrichment (NE) is the provided genomic 
-annotations. Normalized Enrichment is calculated as the number of peak 
-regions that overlap with flanked predicted boundaries (see flank parameter) 
-divided by the total number of predicted boundaries, averaged for all 
-genomic annotations. Parameters yielding  maximum NE score are automatically 
-selected for the final prediction. However, it is advisable to explore results 
+annotations. Normalized Enrichment is calculated as the number of genomic 
+annotations that overlap with flanked predicted boundary points (see the slope 
+parameter) divided by the total number of predicted boundaries, averaged for 
+all genomic annotations. Parameters yielding  maximum NE score are automatically 
+selected for the final prediction. It is advisable to explore results 
 of the NE test, available in the `preciseTADparams` slot of the returned 
 object (NEmean - mean normalized enrichment, larger the better; k - number 
 of PTBRs), to, potentially, find eps and MinPts parameters providing 
-the number of PTBRs and mean NE score better agreeing with the number
-of boundaries used for training. Required.}
+the number of PTBRs and the NE score better agreeing with the number
+of boundaries used for training. Default: list(30000, 3). Required.}
 
-\item{flank}{Controls how much to flank the predicted TAD boundaries for
-calculating normalized enrichment. Required.}
+\item{slope}{Controls how much to flank the predicted TAD boundary points for
+calculating normalized enrichment. Default: 5000 bases. Required.}
 
 \item{genome}{version of the human genome assembly. Used to filter out
 bases overlapping centromeric regions. Accepted values - hg19 (default) or 
-hg38.}
+hg38. Default: hg19}
 
 \item{BaseProbs}{Option to include the vector of probabilities for each 
 base-level coordinate. Recommended to be used only when chromCoords is 
-specified.}
+specified. Default: FALSE}
+
+\item{savetobed}{If true, preciseTAD regions (PTBRs) and preciseTAD points
+(PTBPs) will be saved as BED-like files into the current folder 
+(as.data.frame(GRanges)). File name convention: 
+<PTBRs/PTBPs>_<threshold>_<MinPts>_<eps>.bed, e.g., PTBR_1_3_30000.bed. 
+If multiple DBSCAN_params are specified, each result will
+be saved in its own file. Default: FALSE}
 }
 \value{
 A list containing 4 elements including:
@@ -166,7 +174,8 @@ pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                  verbose = TRUE,
                  parallel = NULL,
                  DBSCAN_params = list(c(1000, 5000, 10000), c(100, 1000, 2000, 3000)),
-                 flank = 5000,
+                 slope = 5000,
                  genome = "hg19",
-                 BaseProbs = FALSE)
+                 BaseProbs = FALSE,
+                 savetobed = FALSE)
 }

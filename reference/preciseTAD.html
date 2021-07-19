@@ -75,7 +75,7 @@ spatial clustering and partitioning techniques" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">preciseTAD</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.1.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.2.0</span>
       </span>
     </div>
 
@@ -134,9 +134,11 @@ spatial clustering and partitioning techniques</p>
   threshold <span class='op'>=</span> <span class='fl'>1</span>,
   verbose <span class='op'>=</span> <span class='cn'>TRUE</span>,
   parallel <span class='op'>=</span> <span class='cn'>NULL</span>,
-  <span class='va'>DBSCAN_params</span>,
-  <span class='va'>flank</span>,
-  BaseProbs <span class='op'>=</span> <span class='cn'>FALSE</span>
+  DBSCAN_params <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='fl'>30000</span>, <span class='fl'>3</span><span class='op'>)</span>,
+  slope <span class='op'>=</span> <span class='fl'>5000</span>,
+  genome <span class='op'>=</span> <span class='st'>"hg19"</span>,
+  BaseProbs <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  savetobed <span class='op'>=</span> <span class='cn'>FALSE</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -152,12 +154,12 @@ obtained using the <code><a href='bedToGRangesList.html'>bedToGRangesList</a></c
       <th>featureType</th>
       <td><p>Controls how the feature space is constructed (one of
 either "binary", "oc", "op", "signal, or "distance" (log2- transformed).
-Default is "distance".</p></td>
+Default and recommended: "distance".</p></td>
     </tr>
     <tr>
       <th>CHR</th>
       <td><p>Controls which chromosome to predict boundaries on at base-level
-resolution. Required.</p></td>
+resolution, e.g., CHR22. Required.</p></td>
     </tr>
     <tr>
       <th>chromCoords</th>
@@ -177,13 +179,11 @@ using <code>preciseTAD::randomForest</code>). Required.</p></td>
       <th>threshold</th>
       <td><p>Bases with predicted probabilities that are greater
 than or equal to this value are labeled as potential TAD boundaries. Values
-in the range of .95-1.0 are suggested. Default is 1. If a vector of different
-values is passed to the threshold paramenter then a grid is provided with eps
-(see DBSCAN_params parameter) threshold values and the optimal combination is
-chose as the combination that maximizes normalized enrichment -- calculated 
-as the number of peak regions that overlap with flanked predicted boundaries 
-divided by the total number of predicted boundaries, averaged over all 
-predictors (genomic elements).</p></td>
+in the range of .95-1.0 are suggested. Default is 1. To explore how
+selection of the `threshold` parameter affects the results, it is recommended
+to rerun the function with a different threshold, e.g., 0.99, and compare the
+results of Normalized Enrichment test (see `DBSCAN_params` and the 
+`preciseTADparams` slot).</p></td>
     </tr>
     <tr>
       <th>verbose</th>
@@ -199,23 +199,44 @@ parallel. Default is NULL.</p></td>
       <th>DBSCAN_params</th>
       <td><p>Parameters passed to <code>dbscan</code> in list form
 containing 1) eps and 2) MinPts. If a vector of different values is passed to
-eps then a grid is provided with the probability threshold (see threshold 
-parameter) values and the optimal combination is chose as the combination 
-that maximizes normalized enrichment -- calculated as the number of peak 
-regions that overlap with flanked predicted boundaries divided by the total 
-number of predicted boundaries, averaged over all predictors (genomic 
-elements). Required.</p></td>
+either or both eps and MinPts, then each combination of these parameters is
+evaluated to maximize normalized enrichment (NE) is the provided genomic 
+annotations. Normalized Enrichment is calculated as the number of genomic 
+annotations that overlap with flanked predicted boundary points (see the slope 
+parameter) divided by the total number of predicted boundaries, averaged for 
+all genomic annotations. Parameters yielding  maximum NE score are automatically 
+selected for the final prediction. It is advisable to explore results 
+of the NE test, available in the `preciseTADparams` slot of the returned 
+object (NEmean - mean normalized enrichment, larger the better; k - number 
+of PTBRs), to, potentially, find eps and MinPts parameters providing 
+the number of PTBRs and the NE score better agreeing with the number
+of boundaries used for training. Default: list(30000, 3). Required.</p></td>
     </tr>
     <tr>
-      <th>flank</th>
-      <td><p>Controls how much to flank the predicted TAD boundaries for
-calculating normalized enrichment. Required.</p></td>
+      <th>slope</th>
+      <td><p>Controls how much to flank the predicted TAD boundary points for
+calculating normalized enrichment. Default: 5000 bases. Required.</p></td>
+    </tr>
+    <tr>
+      <th>genome</th>
+      <td><p>version of the human genome assembly. Used to filter out
+bases overlapping centromeric regions. Accepted values - hg19 (default) or 
+hg38. Default: hg19</p></td>
     </tr>
     <tr>
       <th>BaseProbs</th>
       <td><p>Option to include the vector of probabilities for each 
 base-level coordinate. Recommended to be used only when chromCoords is 
-specified.</p></td>
+specified. Default: FALSE</p></td>
+    </tr>
+    <tr>
+      <th>savetobed</th>
+      <td><p>If true, preciseTAD regions (PTBRs) and preciseTAD points
+(PTBPs) will be saved as BED-like files into the current folder 
+(as.data.frame(GRanges)). File name convention: 
+&lt;PTBRs/PTBPs&gt;_&lt;threshold&gt;_&lt;MinPts&gt;_&lt;eps&gt;.bed, e.g., PTBR_1_3_30000.bed. 
+If multiple DBSCAN_params are specified, each result will
+be saved in its own file. Default: FALSE</p></td>
     </tr>
     </table>
 
@@ -303,38 +324,45 @@ each corresponding base coordinate.</p>
                  CHR <span class='op'>=</span> <span class='st'>"CHR22"</span>,
                  chromCoords <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='fl'>17000000</span>, <span class='fl'>18000000</span><span class='op'>)</span>,
                  tadModel <span class='op'>=</span> <span class='va'>tadModel</span><span class='op'>[[</span><span class='fl'>1</span><span class='op'>]</span><span class='op'>]</span>,
-                 threshold <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.975</span>, <span class='fl'>0.99</span>, <span class='fl'>1.0</span><span class='op'>)</span>,
+                 threshold <span class='op'>=</span> <span class='fl'>1.0</span>,
                  verbose <span class='op'>=</span> <span class='cn'>TRUE</span>,
                  parallel <span class='op'>=</span> <span class='cn'>NULL</span>,
-                 DBSCAN_params <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>5000</span>, <span class='fl'>10000</span>,<span class='fl'>15000</span>,<span class='fl'>20000</span>,<span class='fl'>30000</span><span class='op'>)</span>, <span class='fl'>3</span><span class='op'>)</span>,
-                 flank <span class='op'>=</span> <span class='fl'>5000</span><span class='op'>)</span>
+                 DBSCAN_params <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>1000</span>, <span class='fl'>5000</span>, <span class='fl'>10000</span><span class='op'>)</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>100</span>, <span class='fl'>1000</span>, <span class='fl'>2000</span>, <span class='fl'>3000</span><span class='op'>)</span><span class='op'>)</span>,
+                 slope <span class='op'>=</span> <span class='fl'>5000</span>,
+                 genome <span class='op'>=</span> <span class='st'>"hg19"</span>,
+                 BaseProbs <span class='op'>=</span> <span class='cn'>FALSE</span>,
+                 savetobed <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; [1] "Establishing bp resolution test data using a distance type feature space"
 #&gt; [1] "Establishing probability vector"
-#&gt; [1] "Determining optimal combination of threshold (t) and epsilon neighborhood (eps)"
-#&gt; [1] "Initializing DBSCAN for t=0.975 and eps=5000"
-#&gt; [1] "    preciseTAD identified 8 PTBRs"
+#&gt; [1] "Determining optimal combination of epsilon neighborhood (eps) and minimum number of points (MinPts)"
+#&gt; [1] "Initializing DBSCAN for MinPts=100 and eps=1000"
+#&gt; [1] "    preciseTAD identified 12 PTBRs"
 #&gt; [1] "    Establishing PTBPs"
-#&gt; [1] "        Cluster 1 out of 8"
-#&gt; [1] "        Cluster 2 out of 8"
-#&gt; [1] "        Cluster 3 out of 8"
-#&gt; [1] "        Cluster 4 out of 8"
-#&gt; [1] "        Cluster 5 out of 8"
-#&gt; [1] "        Cluster 6 out of 8"
-#&gt; [1] "        Cluster 7 out of 8"
-#&gt; [1] "        Cluster 8 out of 8"
-#&gt; [1] "Initializing DBSCAN for t=0.99 and eps=5000"
-#&gt; [1] "    preciseTAD identified 9 PTBRs"
+#&gt; [1] "        Cluster 1 out of 12"
+#&gt; [1] "        Cluster 2 out of 12"
+#&gt; [1] "        Cluster 3 out of 12"
+#&gt; [1] "        Cluster 4 out of 12"
+#&gt; [1] "        Cluster 5 out of 12"
+#&gt; [1] "        Cluster 6 out of 12"
+#&gt; [1] "        Cluster 7 out of 12"
+#&gt; [1] "        Cluster 8 out of 12"
+#&gt; [1] "        Cluster 9 out of 12"
+#&gt; [1] "        Cluster 10 out of 12"
+#&gt; [1] "        Cluster 11 out of 12"
+#&gt; [1] "        Cluster 12 out of 12"
+#&gt; [1] "Initializing DBSCAN for MinPts=1000 and eps=1000"
+#&gt; [1] "    preciseTAD identified 3 PTBRs"
 #&gt; [1] "    Establishing PTBPs"
-#&gt; [1] "        Cluster 1 out of 9"
-#&gt; [1] "        Cluster 2 out of 9"
-#&gt; [1] "        Cluster 3 out of 9"
-#&gt; [1] "        Cluster 4 out of 9"
-#&gt; [1] "        Cluster 5 out of 9"
-#&gt; [1] "        Cluster 6 out of 9"
-#&gt; [1] "        Cluster 7 out of 9"
-#&gt; [1] "        Cluster 8 out of 9"
-#&gt; [1] "        Cluster 9 out of 9"
-#&gt; [1] "Initializing DBSCAN for t=1 and eps=5000"
+#&gt; [1] "        Cluster 1 out of 3"
+#&gt; [1] "        Cluster 2 out of 3"
+#&gt; [1] "        Cluster 3 out of 3"
+#&gt; [1] "Initializing DBSCAN for MinPts=2000 and eps=1000"
+#&gt; [1] "    preciseTAD identified 0 PTBRs"
+#&gt; [1] "    Establishing PTBPs"
+#&gt; [1] "Initializing DBSCAN for MinPts=3000 and eps=1000"
+#&gt; [1] "    preciseTAD identified 0 PTBRs"
+#&gt; [1] "    Establishing PTBPs"
+#&gt; [1] "Initializing DBSCAN for MinPts=100 and eps=5000"
 #&gt; [1] "    preciseTAD identified 5 PTBRs"
 #&gt; [1] "    Establishing PTBPs"
 #&gt; [1] "        Cluster 1 out of 5"
@@ -342,27 +370,20 @@ each corresponding base coordinate.</p>
 #&gt; [1] "        Cluster 3 out of 5"
 #&gt; [1] "        Cluster 4 out of 5"
 #&gt; [1] "        Cluster 5 out of 5"
-#&gt; [1] "Initializing DBSCAN for t=0.975 and eps=10000"
-#&gt; [1] "    preciseTAD identified 7 PTBRs"
+#&gt; [1] "Initializing DBSCAN for MinPts=1000 and eps=5000"
+#&gt; [1] "    preciseTAD identified 3 PTBRs"
 #&gt; [1] "    Establishing PTBPs"
-#&gt; [1] "        Cluster 1 out of 7"
-#&gt; [1] "        Cluster 2 out of 7"
-#&gt; [1] "        Cluster 3 out of 7"
-#&gt; [1] "        Cluster 4 out of 7"
-#&gt; [1] "        Cluster 5 out of 7"
-#&gt; [1] "        Cluster 6 out of 7"
-#&gt; [1] "        Cluster 7 out of 7"
-#&gt; [1] "Initializing DBSCAN for t=0.99 and eps=10000"
-#&gt; [1] "    preciseTAD identified 7 PTBRs"
+#&gt; [1] "        Cluster 1 out of 3"
+#&gt; [1] "        Cluster 2 out of 3"
+#&gt; [1] "        Cluster 3 out of 3"
+#&gt; [1] "Initializing DBSCAN for MinPts=2000 and eps=5000"
+#&gt; [1] "    preciseTAD identified 1 PTBRs"
 #&gt; [1] "    Establishing PTBPs"
-#&gt; [1] "        Cluster 1 out of 7"
-#&gt; [1] "        Cluster 2 out of 7"
-#&gt; [1] "        Cluster 3 out of 7"
-#&gt; [1] "        Cluster 4 out of 7"
-#&gt; [1] "        Cluster 5 out of 7"
-#&gt; [1] "        Cluster 6 out of 7"
-#&gt; [1] "        Cluster 7 out of 7"
-#&gt; [1] "Initializing DBSCAN for t=1 and eps=10000"
+#&gt; [1] "        Cluster 1 out of 1"
+#&gt; [1] "Initializing DBSCAN for MinPts=3000 and eps=5000"
+#&gt; [1] "    preciseTAD identified 0 PTBRs"
+#&gt; [1] "    Establishing PTBPs"
+#&gt; [1] "Initializing DBSCAN for MinPts=100 and eps=10000"
 #&gt; [1] "    preciseTAD identified 5 PTBRs"
 #&gt; [1] "    Establishing PTBPs"
 #&gt; [1] "        Cluster 1 out of 5"
@@ -370,90 +391,26 @@ each corresponding base coordinate.</p>
 #&gt; [1] "        Cluster 3 out of 5"
 #&gt; [1] "        Cluster 4 out of 5"
 #&gt; [1] "        Cluster 5 out of 5"
-#&gt; [1] "Initializing DBSCAN for t=0.975 and eps=15000"
-#&gt; [1] "    preciseTAD identified 6 PTBRs"
+#&gt; [1] "Initializing DBSCAN for MinPts=1000 and eps=10000"
+#&gt; [1] "    preciseTAD identified 3 PTBRs"
 #&gt; [1] "    Establishing PTBPs"
-#&gt; [1] "        Cluster 1 out of 6"
-#&gt; [1] "        Cluster 2 out of 6"
-#&gt; [1] "        Cluster 3 out of 6"
-#&gt; [1] "        Cluster 4 out of 6"
-#&gt; [1] "        Cluster 5 out of 6"
-#&gt; [1] "        Cluster 6 out of 6"
-#&gt; [1] "Initializing DBSCAN for t=0.99 and eps=15000"
-#&gt; [1] "    preciseTAD identified 6 PTBRs"
+#&gt; [1] "        Cluster 1 out of 3"
+#&gt; [1] "        Cluster 2 out of 3"
+#&gt; [1] "        Cluster 3 out of 3"
+#&gt; [1] "Initializing DBSCAN for MinPts=2000 and eps=10000"
+#&gt; [1] "    preciseTAD identified 1 PTBRs"
 #&gt; [1] "    Establishing PTBPs"
-#&gt; [1] "        Cluster 1 out of 6"
-#&gt; [1] "        Cluster 2 out of 6"
-#&gt; [1] "        Cluster 3 out of 6"
-#&gt; [1] "        Cluster 4 out of 6"
-#&gt; [1] "        Cluster 5 out of 6"
-#&gt; [1] "        Cluster 6 out of 6"
-#&gt; [1] "Initializing DBSCAN for t=1 and eps=15000"
-#&gt; [1] "    preciseTAD identified 5 PTBRs"
+#&gt; [1] "        Cluster 1 out of 1"
+#&gt; [1] "Initializing DBSCAN for MinPts=3000 and eps=10000"
+#&gt; [1] "    preciseTAD identified 1 PTBRs"
 #&gt; [1] "    Establishing PTBPs"
-#&gt; [1] "        Cluster 1 out of 5"
-#&gt; [1] "        Cluster 2 out of 5"
-#&gt; [1] "        Cluster 3 out of 5"
-#&gt; [1] "        Cluster 4 out of 5"
-#&gt; [1] "        Cluster 5 out of 5"
-#&gt; [1] "Initializing DBSCAN for t=0.975 and eps=20000"
-#&gt; [1] "    preciseTAD identified 5 PTBRs"
-#&gt; [1] "    Establishing PTBPs"
-#&gt; [1] "        Cluster 1 out of 5"
-#&gt; [1] "        Cluster 2 out of 5"
-#&gt; [1] "        Cluster 3 out of 5"
-#&gt; [1] "        Cluster 4 out of 5"
-#&gt; [1] "        Cluster 5 out of 5"
-#&gt; [1] "Initializing DBSCAN for t=0.99 and eps=20000"
-#&gt; [1] "    preciseTAD identified 5 PTBRs"
-#&gt; [1] "    Establishing PTBPs"
-#&gt; [1] "        Cluster 1 out of 5"
-#&gt; [1] "        Cluster 2 out of 5"
-#&gt; [1] "        Cluster 3 out of 5"
-#&gt; [1] "        Cluster 4 out of 5"
-#&gt; [1] "        Cluster 5 out of 5"
-#&gt; [1] "Initializing DBSCAN for t=1 and eps=20000"
-#&gt; [1] "    preciseTAD identified 5 PTBRs"
-#&gt; [1] "    Establishing PTBPs"
-#&gt; [1] "        Cluster 1 out of 5"
-#&gt; [1] "        Cluster 2 out of 5"
-#&gt; [1] "        Cluster 3 out of 5"
-#&gt; [1] "        Cluster 4 out of 5"
-#&gt; [1] "        Cluster 5 out of 5"
-#&gt; [1] "Initializing DBSCAN for t=0.975 and eps=30000"
-#&gt; [1] "    preciseTAD identified 5 PTBRs"
-#&gt; [1] "    Establishing PTBPs"
-#&gt; [1] "        Cluster 1 out of 5"
-#&gt; [1] "        Cluster 2 out of 5"
-#&gt; [1] "        Cluster 3 out of 5"
-#&gt; [1] "        Cluster 4 out of 5"
-#&gt; [1] "        Cluster 5 out of 5"
-#&gt; [1] "Initializing DBSCAN for t=0.99 and eps=30000"
-#&gt; [1] "    preciseTAD identified 5 PTBRs"
-#&gt; [1] "    Establishing PTBPs"
-#&gt; [1] "        Cluster 1 out of 5"
-#&gt; [1] "        Cluster 2 out of 5"
-#&gt; [1] "        Cluster 3 out of 5"
-#&gt; [1] "        Cluster 4 out of 5"
-#&gt; [1] "        Cluster 5 out of 5"
-#&gt; [1] "Initializing DBSCAN for t=1 and eps=30000"
-#&gt; [1] "    preciseTAD identified 4 PTBRs"
-#&gt; [1] "    Establishing PTBPs"
-#&gt; [1] "        Cluster 1 out of 4"
-#&gt; [1] "        Cluster 2 out of 4"
-#&gt; [1] "        Cluster 3 out of 4"
-#&gt; [1] "        Cluster 4 out of 4"
-#&gt; [1] "Optimal combination of threshold and eps is (t, eps) = (0.975, 15000)"
-#&gt; [1] "preciseTAD identified a total of 42362 base pairs whose predictive probability was equal to or exceeded a threshold of 0.975"
-#&gt; [1] "Initializing DBSCAN for t = 0.975 and eps = 15000"
-#&gt; [1] "preciseTAD identified 6 PTBRs"
+#&gt; [1] "        Cluster 1 out of 1"
+#&gt; [1] "Optimal combination of MinPts and eps is = (2000, 5000)"
+#&gt; [1] "preciseTAD identified a total of 7799 base pairs whose predictive probability was equal to or exceeded a threshold of 1"
+#&gt; [1] "Initializing DBSCAN for MinPts = 2000 and eps = 5000"
+#&gt; [1] "preciseTAD identified 1 PTBRs"
 #&gt; [1] "Establishing PTBPs"
-#&gt; [1] "Cluster 1 out of 6"
-#&gt; [1] "Cluster 2 out of 6"
-#&gt; [1] "Cluster 3 out of 6"
-#&gt; [1] "Cluster 4 out of 6"
-#&gt; [1] "Cluster 5 out of 6"
-#&gt; [1] "Cluster 6 out of 6"</div></pre>
+#&gt; [1] "Cluster 1 out of 1"</div><div class='output co'>#&gt; <span class='warning'>Warning: no non-missing arguments to min; returning Inf</span></div><div class='output co'>#&gt; <span class='warning'>Warning: no non-missing arguments to max; returning -Inf</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

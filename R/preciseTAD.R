@@ -87,7 +87,7 @@
 #' @importFrom stats setNames
 #' @importFrom dbscan dbscan
 #' @importFrom S4Vectors subjectHits
-#' @importFrom utils wtite.table
+#' @importFrom utils write.table
 #' @import pbapply parallel doSNOW foreach cluster IRanges GenomicRanges rCGH
 #'
 #' @examples

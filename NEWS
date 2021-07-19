@@ -1,3 +1,6 @@
+Changes in version 1.2.0 (2021-07-18)
++ Change y of x.y.z version number to comply with the release
+
 Changes in version 1.1.4 (2021-06-16)
 + preciseTAD function rewritten
   + genome version (hg19/hg38) is now supported via rCGH

@@ -23,7 +23,7 @@ status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](http
 [![Lifecycle: maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 <!-- badges: end -->
 
-Stilianoudakis, Spiro, and Mikhail G. Dozmorov. "preciseTAD: A machine learning framework for precise 3D domain boundary prediction at base-level resolution." bioRxiv (2020). https://doi.org/10.1101/2020.09.03.282186
+**preciseTAD: A transfer learning framework for 3D domain boundary prediction at base-pair resolution** Spiro C. Stilianoudakis, Maggie A. Marshall, Mikhail G. Dozmorov. bioRxiv 2020.09.03.282186; doi: https://doi.org/10.1101/2020.09.03.282186
 
 Predicted preciseTAD boundary points (PTBPs) and regions (PTBRs) for 60 cell lines are available [here](https://drive.google.com/drive/folders/15Rc6PhrrBjThwE-5dSyNX-ILELaUu6uG?usp=sharing).
 

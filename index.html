@@ -47,7 +47,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">preciseTAD</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.3</span>
       </span>
     </div>
 
@@ -92,7 +92,7 @@
 status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](https://travis-ci.com/stilianoudakis/preciseTAD) -->
 <!-- badges: start -->
 
-<p>Stilianoudakis, Spiro, and Mikhail G. Dozmorov. “preciseTAD: A machine learning framework for precise 3D domain boundary prediction at base-level resolution.” bioRxiv (2020). <a href="https://doi.org/10.1101/2020.09.03.282186" class="uri">https://doi.org/10.1101/2020.09.03.282186</a></p>
+<p><strong>preciseTAD: A transfer learning framework for 3D domain boundary prediction at base-pair resolution</strong> Spiro C. Stilianoudakis, Maggie A. Marshall, Mikhail G. Dozmorov. bioRxiv 2020.09.03.282186; doi: <a href="https://doi.org/10.1101/2020.09.03.282186" class="uri">https://doi.org/10.1101/2020.09.03.282186</a></p>
 <p>Predicted preciseTAD boundary points (PTBPs) and regions (PTBRs) for 60 cell lines are available <a href="https://drive.google.com/drive/folders/15Rc6PhrrBjThwE-5dSyNX-ILELaUu6uG?usp=sharing">here</a>.</p>
 <div id="overview" class="section level2">
 <h2 class="hasAnchor">
@@ -286,13 +286,13 @@ status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](http
                   threshold          <span class="op">=</span> <span class="fl">1.0</span>,
                   verbose            <span class="op">=</span> <span class="cn">FALSE</span>,
                   parallel           <span class="op">=</span> <span class="fl">2</span>,
-                  DBSCAN_params      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fl">30000</span>, <span class="fl">3</span><span class="op">)</span>,
+                  DBSCAN_params      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fl">30000</span>, <span class="fl">100</span><span class="op">)</span>,
                   slope              <span class="op">=</span> <span class="fl">5000</span>,
                   genome             <span class="op">=</span> <span class="st">"hg19"</span><span class="op">)</span>
 
 <span class="co"># View preciseTAD predicted boundary coordinates between CHR22:35mb-45mb</span>
 <span class="va">pt</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>
-<span class="co">#&gt; GRanges object with 64 ranges and 0 metadata columns:</span>
+<span class="co">#&gt; GRanges object with 58 ranges and 0 metadata columns:</span>
 <span class="co">#&gt;        seqnames            ranges strand</span>
 <span class="co">#&gt;           &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt;</span>
 <span class="co">#&gt;    [1]    chr22 35337875-35342203      *</span>
@@ -301,11 +301,11 @@ status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](http
 <span class="co">#&gt;    [4]    chr22 35620677-35634681      *</span>
 <span class="co">#&gt;    [5]    chr22 35740783-35747642      *</span>
 <span class="co">#&gt;    ...      ...               ...    ...</span>
-<span class="co">#&gt;   [60]    chr22 43261091-43270096      *</span>
-<span class="co">#&gt;   [61]    chr22 43425520-43490629      *</span>
-<span class="co">#&gt;   [62]    chr22 43774902-43791526      *</span>
-<span class="co">#&gt;   [63]    chr22 44272171-44283944      *</span>
-<span class="co">#&gt;   [64]    chr22 44382230-44396240      *</span>
+<span class="co">#&gt;   [54]    chr22 43261091-43270096      *</span>
+<span class="co">#&gt;   [55]    chr22 43425520-43490629      *</span>
+<span class="co">#&gt;   [56]    chr22 43774902-43791526      *</span>
+<span class="co">#&gt;   [57]    chr22 44272171-44283944      *</span>
+<span class="co">#&gt;   [58]    chr22 44382230-44396240      *</span>
 <span class="co">#&gt;   -------</span>
 <span class="co">#&gt;   seqinfo: 1 sequence from an unspecified genome; no seqlengths</span></code></pre></div>
 </div>

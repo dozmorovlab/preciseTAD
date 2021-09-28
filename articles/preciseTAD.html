@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">preciseTAD</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.3</span>
       </span>
     </div>
 
@@ -75,7 +75,7 @@
             <address class="author_afil">
       Department of Biostatistics, Virginia Commonwealth University, Richmond, VA<br><h4 class="author">Mikhail Dozmorov</h4>
             <address class="author_afil">
-      Department of Biostatistics, Virginia Commonwealth University, Richmond, VA<br><h4 class="date">September 21, 2021</h4>
+      Department of Biostatistics, Virginia Commonwealth University, Richmond, VA<br><h4 class="date">September 28, 2021</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/dozmorovlab/preciseTAD/blob/master/vignettes/preciseTAD.Rmd"><code>vignettes/preciseTAD.Rmd</code></a></small>
       <div class="hidden name"><code>preciseTAD.Rmd</code></div>
@@ -445,21 +445,21 @@
                 verbose             <span class="op">=</span> <span class="cn">TRUE</span>,
                 parallel            <span class="op">=</span> <span class="cn">NULL</span>,
                 DBSCAN_params       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>eps <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">30000</span><span class="op">)</span>, <span class="co"># c(10000, 30000, 50000)</span>
-                                           MinPts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span>, <span class="co"># c(3, 10, 100)</span>
+                                           MinPts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span>, <span class="co"># c(3, 10, 100)</span>
                 slope               <span class="op">=</span> <span class="fl">5000</span>,
                 genome              <span class="op">=</span> <span class="st">"hg19"</span>,
                 BaseProbs           <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 <pre><code>## [1] "Establishing bp resolution test data using a distance type feature space"
 ## [1] "Establishing probability vector"
 ## [1] "Determining optimal combination of epsilon neighborhood (eps) and minimum number of points (MinPts)"
-## [1] "Initializing DBSCAN for MinPts=3 and eps=30000"
+## [1] "Initializing DBSCAN for MinPts=100 and eps=30000"
 ## [1] "    preciseTAD identified 2 PTBRs"
 ## [1] "    Establishing PTBPs"
 ## [1] "        Cluster 1 out of 2"
 ## [1] "        Cluster 2 out of 2"
-## [1] "Optimal combination of MinPts and eps is = (3, 30000)"
+## [1] "Optimal combination of MinPts and eps is = (100, 30000)"
 ## [1] "preciseTAD identified a total of 1678 base pairs whose predictive probability was equal to or exceeded a threshold of 1"
-## [1] "Initializing DBSCAN for MinPts = 3 and eps = 30000"
+## [1] "Initializing DBSCAN for MinPts = 100 and eps = 30000"
 ## [1] "preciseTAD identified 2 PTBRs"
 ## [1] "Establishing PTBPs"
 ## [1] "Cluster 1 out of 2"
@@ -531,7 +531,7 @@
                 threshold           <span class="op">=</span> <span class="fl">1.0</span>,
                 verbose             <span class="op">=</span> <span class="cn">FALSE</span>,
                 parallel            <span class="op">=</span> <span class="cn">NULL</span>,
-                DBSCAN_params       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fl">30000</span>, <span class="fl">3</span><span class="op">)</span>,
+                DBSCAN_params       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fl">30000</span>, <span class="fl">100</span><span class="op">)</span>,
                 slope               <span class="op">=</span> <span class="fl">5000</span>,
                 BaseProbs           <span class="op">=</span> <span class="cn">FALSE</span>,
                 savetobed           <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>

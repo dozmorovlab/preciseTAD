@@ -14,7 +14,7 @@ preciseTAD(
   threshold = 1,
   verbose = TRUE,
   parallel = NULL,
-  DBSCAN_params = list(30000, 3),
+  DBSCAN_params = list(30000, 100),
   slope = 5000,
   genome = "hg19",
   BaseProbs = FALSE,
@@ -70,13 +70,13 @@ of the NE test, available in the `preciseTADparams` slot of the returned
 object (NEmean - mean normalized enrichment, larger the better; k - number 
 of PTBRs), to, potentially, find eps and MinPts parameters providing 
 the number of PTBRs and the NE score better agreeing with the number
-of boundaries used for training. Default: list(30000, 3). Required.}
+of boundaries used for training. Default: list(30000, 100). Required.}
 
 \item{slope}{Controls how much to flank the predicted TAD boundary points for
 calculating normalized enrichment. Default: 5000 bases. Required.}
 
 \item{genome}{version of the human genome assembly. Used to filter out
-bases overlapping centromeric regions. Accepted values - hg19 (default) or 
+bases overlapping centromeric regions. Accepted values - hg19 or 
 hg38. Default: hg19}
 
 \item{BaseProbs}{Option to include the vector of probabilities for each 
@@ -173,7 +173,7 @@ pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                  threshold = 1.0,
                  verbose = TRUE,
                  parallel = NULL,
-                 DBSCAN_params = list(c(1000, 5000, 10000), c(100, 1000, 2000, 3000)),
+                 DBSCAN_params = list(c(1000, 10000, 30000), c(10, 100, 1000)),
                  slope = 5000,
                  genome = "hg19",
                  BaseProbs = FALSE,

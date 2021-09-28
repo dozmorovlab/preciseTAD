@@ -251,7 +251,7 @@ pt <- preciseTAD(genomicElements.GR = tfbsList_filt,
                 verbose             = TRUE,
                 parallel            = NULL,
                 DBSCAN_params       = list(eps = c(30000), # c(10000, 30000, 50000)
-                                           MinPts = c(3)), # c(3, 10, 100)
+                                           MinPts = c(100)), # c(3, 10, 100)
                 slope               = 5000,
                 genome              = "hg19",
                 BaseProbs           = TRUE)
@@ -337,7 +337,7 @@ pt <- preciseTAD(genomicElements.GR = hela.GR,
                 threshold           = 1.0,
                 verbose             = FALSE,
                 parallel            = NULL,
-                DBSCAN_params       = list(30000, 3),
+                DBSCAN_params       = list(30000, 100),
                 slope               = 5000,
                 BaseProbs           = FALSE,
                 savetobed           = FALSE)

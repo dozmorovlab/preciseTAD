@@ -11,9 +11,9 @@ status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](http
 maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 <!-- badges: end -->
 
-Stilianoudakis, Spiro, and Mikhail G. Dozmorov. “preciseTAD: A machine
-learning framework for precise 3D domain boundary prediction at
-base-level resolution.” bioRxiv (2020).
+**preciseTAD: A transfer learning framework for 3D domain boundary
+prediction at base-pair resolution** Spiro C. Stilianoudakis, Maggie A.
+Marshall, Mikhail G. Dozmorov. bioRxiv 2020.09.03.282186; doi:
 <https://doi.org/10.1101/2020.09.03.282186>
 
 Predicted preciseTAD boundary points (PTBPs) and regions (PTBRs) for 60
@@ -286,13 +286,13 @@ pt <- preciseTAD( genomicElements.GR = tfbsList_filt,
                   threshold          = 1.0,
                   verbose            = FALSE,
                   parallel           = 2,
-                  DBSCAN_params      = list(30000, 3),
+                  DBSCAN_params      = list(30000, 100),
                   slope              = 5000,
                   genome             = "hg19")
 
 # View preciseTAD predicted boundary coordinates between CHR22:35mb-45mb
 pt[[2]]
-#> GRanges object with 64 ranges and 0 metadata columns:
+#> GRanges object with 58 ranges and 0 metadata columns:
 #>        seqnames            ranges strand
 #>           <Rle>         <IRanges>  <Rle>
 #>    [1]    chr22 35337875-35342203      *
@@ -301,11 +301,11 @@ pt[[2]]
 #>    [4]    chr22 35620677-35634681      *
 #>    [5]    chr22 35740783-35747642      *
 #>    ...      ...               ...    ...
-#>   [60]    chr22 43261091-43270096      *
-#>   [61]    chr22 43425520-43490629      *
-#>   [62]    chr22 43774902-43791526      *
-#>   [63]    chr22 44272171-44283944      *
-#>   [64]    chr22 44382230-44396240      *
+#>   [54]    chr22 43261091-43270096      *
+#>   [55]    chr22 43425520-43490629      *
+#>   [56]    chr22 43774902-43791526      *
+#>   [57]    chr22 44272171-44283944      *
+#>   [58]    chr22 44382230-44396240      *
 #>   -------
 #>   seqinfo: 1 sequence from an unspecified genome; no seqlengths
 ```

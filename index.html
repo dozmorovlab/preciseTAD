@@ -35,6 +35,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-home">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -47,18 +49,12 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">preciseTAD</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.5.0</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-<li>
-  <a href="index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
 <li>
   <a href="articles/preciseTAD.html">Get started</a>
 </li>
@@ -68,7 +64,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://github.com/dozmorovlab/preciseTAD/">
+  <a href="https://github.com/dozmorovlab/preciseTAD/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -85,18 +81,18 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-<div id="precisetad-a-transfer-learning-framework-for-3d-domain-boundary-prediction-at-base-pair-resolution" class="section level1">
-<div class="page-header"><h1 class="hasAnchor">
-<a href="#precisetad-a-transfer-learning-framework-for-3d-domain-boundary-prediction-at-base-pair-resolution" class="anchor"></a>preciseTAD: A transfer learning framework for 3D domain boundary prediction at base-pair resolution</h1></div>
+<div class="section level1">
+<div class="page-header"><h1 id="precisetad-a-transfer-learning-framework-for-3d-domain-boundary-prediction-at-base-pair-resolution">preciseTAD: A transfer learning framework for 3D domain boundary prediction at base-pair resolution<a class="anchor" aria-label="anchor" href="#precisetad-a-transfer-learning-framework-for-3d-domain-boundary-prediction-at-base-pair-resolution"></a>
+</h1></div>
 <!-- [![Travis build
 status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](https://travis-ci.com/stilianoudakis/preciseTAD) -->
 <!-- badges: start -->
 
-<p><strong>preciseTAD: A transfer learning framework for 3D domain boundary prediction at base-pair resolution</strong> Spiro C. Stilianoudakis, Maggie A. Marshall, Mikhail G. Dozmorov. bioRxiv 2020.09.03.282186; doi: <a href="https://doi.org/10.1101/2020.09.03.282186" class="uri">https://doi.org/10.1101/2020.09.03.282186</a></p>
-<p>Predicted preciseTAD boundary points (PTBPs) and regions (PTBRs) for 60 cell lines are available <a href="https://drive.google.com/drive/folders/15Rc6PhrrBjThwE-5dSyNX-ILELaUu6uG?usp=sharing">here</a>.</p>
-<div id="overview" class="section level2">
-<h2 class="hasAnchor">
-<a href="#overview" class="anchor"></a>Overview</h2>
+<p><strong>preciseTAD: A transfer learning framework for 3D domain boundary prediction at base-pair resolution</strong> Spiro C. Stilianoudakis, Maggie A. Marshall, Mikhail G. Dozmorov. bioRxiv 2020.09.03.282186; doi: <a href="https://doi.org/10.1101/2020.09.03.282186" class="external-link uri">https://doi.org/10.1101/2020.09.03.282186</a></p>
+<p>Predicted preciseTAD boundary points (PTBPs) and regions (PTBRs) for 60 cell lines are available <a href="https://drive.google.com/drive/folders/15Rc6PhrrBjThwE-5dSyNX-ILELaUu6uG?usp=sharing" class="external-link">here</a>.</p>
+<div class="section level2">
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h2>
 <p>preciseTAD provides functions to predict the location of boundaries of topologically associated domains (TADs) and chromatin loops at base-level resolution. As an input, it takes BED-formatted genomic coordinates of domain boundaries detected from low-resolution Hi-C data, and coordinates of high-resolution genomic annotations from ENCODE or other consortia. preciseTAD employs several feature engineering strategies and resampling techniques to address class imbalance, and trains an optimized random forest model for predicting low-resolution domain boundaries. Translated on a base-level, preciseTAD predicts the probability for each base to be a boundary. Density-based clustering and scalable partitioning techniques are used to detect precise boundary regions and summit points. Compared with low-resolution boundaries, preciseTAD boundaries are highly enriched for CTCF, RAD21, SMC3, and ZNF143 signal and more conserved across cell lines. The pre-trained model can accurately predict boundaries in another cell line using CTCF, RAD21, SMC3, and ZNF143 annotation data for this cell line.</p>
 <p>The main functions (in order of implementation) are:</p>
 <ul>
@@ -112,29 +108,29 @@ status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](http
 <code><a href="reference/preciseTAD.html">preciseTAD()</a></code> which leverages a domain boundary prediction model (i.e., random forest) and density-based clustering to predict TAD boundary coordinates at a base-level resolution</li>
 </ul>
 </div>
-<div id="installation" class="section level2">
-<h2 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h2>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
 <p><code>preciseTAD</code> can be installed from Bioconductor:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># if (!requireNamespace("BiocManager", quietly=TRUE))</span>
 <span class="co">#     install.packages("BiocManager")</span>
 <span class="co"># BiocManager::install("preciseTAD")</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dozmorovlab/preciseTAD">preciseTAD</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dozmorovlab/preciseTAD" class="external-link">preciseTAD</a></span><span class="op">)</span>
 <span class="co">#&gt; </span></code></pre></div>
 <p>The latest version of <code>preciseTAD</code> can be directly installed from Github:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"dozmorovlab/preciseTAD"</span>, build_vignettes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dozmorovlab/preciseTAD">preciseTAD</a></span><span class="op">)</span></code></pre></div>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dozmorovlab/preciseTAD" class="external-link">preciseTAD</a></span><span class="op">)</span></code></pre></div>
 </div>
-<div id="usage" class="section level2">
-<h2 class="hasAnchor">
-<a href="#usage" class="anchor"></a>Usage</h2>
+<div class="section level2">
+<h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
+</h2>
 <p>Below is a brief workflow of how to implement <code>preciseTAD</code> on binned data from CHR1 to get precise base pair coordinates of TAD boundaries for a 10mb section of CHR 22. For more details, including the example how to use the pre-trained model, see <code><a href="articles/preciseTAD.html">vignette("preciseTAD")</a></code></p>
-<p>First, you need to obtain called TAD boundaries using an established TAD-caller. As an example, consider the <a href="https://github.com/aidenlab/juicer/wiki/Arrowhead">Arrowhead</a> TAD-caller, a part of the juicer suite of tools developed by the Aiden Lab. Arrowhead outputs a .txt file with the chromosomal start and end coordinates of their called TADs. As an example, we have provided Arrowhead TADs for GM12878 at 5kb resolution.</p>
+<p>First, you need to obtain called TAD boundaries using an established TAD-caller. As an example, consider the <a href="https://github.com/aidenlab/juicer/wiki/Arrowhead" class="external-link">Arrowhead</a> TAD-caller, a part of the juicer suite of tools developed by the Aiden Lab. Arrowhead outputs a .txt file with the chromosomal start and end coordinates of their called TADs. As an example, we have provided Arrowhead TADs for GM12878 at 5kb resolution.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"arrowhead_gm12878_5kb"</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">arrowhead_gm12878_5kb</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"arrowhead_gm12878_5kb"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">arrowhead_gm12878_5kb</span><span class="op">)</span>
 <span class="co">#&gt;   V1        V2        V3</span>
 <span class="co">#&gt; 1  1  49375000  50805000</span>
 <span class="co">#&gt; 2  1  16830000  17230000</span>
@@ -144,7 +140,7 @@ status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](http
 <span class="co">#&gt; 6  1   3995000   5505000</span></code></pre></div>
 <p>The unique boundaries for CHR1 and CHR22 can be extracted as:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">bounds</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/extractBoundaries.html">extractBoundaries</a></span><span class="op">(</span>domains.mat <span class="op">=</span> <span class="va">arrowhead_gm12878_5kb</span>, filter <span class="op">=</span> <span class="cn">FALSE</span>, CHR <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"CHR1"</span>, <span class="st">"CHR22"</span><span class="op">)</span>, resolution <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">bounds</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/extractBoundaries.html">extractBoundaries</a></span><span class="op">(</span>domains.mat <span class="op">=</span> <span class="va">arrowhead_gm12878_5kb</span>, filter <span class="op">=</span> <span class="cn">FALSE</span>, CHR <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CHR1"</span>, <span class="st">"CHR22"</span><span class="op">)</span>, resolution <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span>
 <span class="va">bounds</span>
 <span class="co">#&gt; GRanges object with 1901 ranges and 0 metadata columns:</span>
 <span class="co">#&gt;         seqnames            ranges strand</span>
@@ -162,14 +158,14 @@ status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](http
 <span class="co">#&gt;   16670    chr22 51235000-51235001      *</span>
 <span class="co">#&gt;   -------</span>
 <span class="co">#&gt;   seqinfo: 22 sequences from an unspecified genome; no seqlengths</span></code></pre></div>
-<p>Next, you will need to download cell line-specific ChIP-seq data in the form of BED files from <a href="https://www.encodeproject.org/chip-seq-matrix/?type=Experiment&amp;replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&amp;assay_title=TF%20ChIP-seq&amp;status=released">ENCODE</a>. Once, you have downloaded your preferred list of functional genomic annotations, store them in a specific file location. These files can then be converted into a GRangesList object and used for downstream modeling using the following command:</p>
+<p>Next, you will need to download cell line-specific ChIP-seq data in the form of BED files from <a href="https://www.encodeproject.org/chip-seq-matrix/?type=Experiment&amp;replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&amp;assay_title=TF%20ChIP-seq&amp;status=released" class="external-link">ENCODE</a>. Once, you have downloaded your preferred list of functional genomic annotations, store them in a specific file location. These files can then be converted into a GRangesList object and used for downstream modeling using the following command:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">path</span> <span class="op">&lt;-</span> <span class="st">"pathToBEDfiles"</span>
 <span class="va">tfbsList</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/bedToGRangesList.html">bedToGRangesList</a></span><span class="op">(</span>filepath <span class="op">=</span> <span class="va">path</span>, bedList <span class="op">=</span> <span class="cn">NULL</span>, bedNames <span class="op">=</span> <span class="cn">NULL</span>, pattern <span class="op">=</span> <span class="st">"*.bed"</span>, signal <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></code></pre></div>
 <p>As an example, we have already provided a GRangesList object with a variety of transcription factor binding sites specific to the GM12878 cell line. Once you load it in, you can see the list of transcription factors using the following:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"tfbsList"</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">tfbsList</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"tfbsList"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">tfbsList</span><span class="op">)</span>
 <span class="co">#&gt;  [1] "Gm12878-Atf3-Haib"       "Gm12878-Cfos-Sydh"      </span>
 <span class="co">#&gt;  [3] "Gm12878-Cmyc-Uta"        "Gm12878-Ctcf-Broad"     </span>
 <span class="co">#&gt;  [5] "Gm12878-Egr1-Haib"       "Gm12878-Ets1-Haib"      </span>
@@ -185,10 +181,10 @@ status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](http
 <span class="co">#&gt; [25] "Gm12878-Yy1-Sydh"        "Gm12878-Znf143-Sydh"</span></code></pre></div>
 <p>For the purposes of this example, let’s focus only on CTCF, RAD21, SMC3, and ZNF143 transcription factors.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">tfbsList_filt</span> <span class="op">&lt;-</span> <span class="va">tfbsList</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">tfbsList</span><span class="op">)</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Gm12878-Ctcf-Broad"</span>, <span class="st">"Gm12878-Rad21-Haib"</span>, <span class="st">"Gm12878-Smc3-Sydh"</span>, <span class="st">"Gm12878-Znf143-Sydh"</span><span class="op">)</span><span class="op">]</span></code></pre></div>
+<code class="sourceCode R"><span class="va">tfbsList_filt</span> <span class="op">&lt;-</span> <span class="va">tfbsList</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">tfbsList</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Gm12878-Ctcf-Broad"</span>, <span class="st">"Gm12878-Rad21-Haib"</span>, <span class="st">"Gm12878-Smc3-Sydh"</span>, <span class="st">"Gm12878-Znf143-Sydh"</span><span class="op">)</span><span class="op">]</span></code></pre></div>
 <p>Now, using the “ground-truth” boundaries and the following TFBS, we can build the data matrix that will be used for predictive modeling. The following command creates the training data from CHR1 and reserves the testing data from CHR22. We specify 5kb sized genomic bins (to match the resolution used to call the original TADs), a distance-type feature space, and apply random under-sampling (RUS) on the training data only.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
 <span class="va">tadData</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/createTADdata.html">createTADdata</a></span><span class="op">(</span>bounds.GR          <span class="op">=</span> <span class="va">bounds</span>,
                          resolution         <span class="op">=</span> <span class="fl">5000</span>,
                          genomicElements.GR <span class="op">=</span> <span class="va">tfbsList_filt</span>,
@@ -199,10 +195,10 @@ status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](http
 <span class="op">)</span></code></pre></div>
 <p>We can now implement our machine learning algorithm of choice to predict TAD-boundary regions. Here, we opt for the random forest algorithm.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
 <span class="va">tadModel</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/TADrandomForest.html">TADrandomForest</a></span><span class="op">(</span>trainData    <span class="op">=</span> <span class="va">tadData</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,
                             testData     <span class="op">=</span> <span class="va">tadData</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>,
-                            tuneParams   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>mtry <span class="op">=</span> <span class="fl">2</span>, ntree <span class="op">=</span> <span class="fl">500</span>, nodesize <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,
+                            tuneParams   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mtry <span class="op">=</span> <span class="fl">2</span>, ntree <span class="op">=</span> <span class="fl">500</span>, nodesize <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,
                             cvFolds      <span class="op">=</span> <span class="fl">3</span>,
                             cvMetric     <span class="op">=</span> <span class="st">"Accuracy"</span>,
                             verbose      <span class="op">=</span> <span class="cn">TRUE</span>,
@@ -277,16 +273,16 @@ status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](http
 <p>Lastly, we take our TAD-boundary region predictive model and use it to make predictions on a 10mb section of CHR22:35,000,000-45,000,000.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Run preciseTAD</span>
-<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
 <span class="va">pt</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/preciseTAD.html">preciseTAD</a></span><span class="op">(</span> genomicElements.GR <span class="op">=</span> <span class="va">tfbsList_filt</span>,
                   featureType        <span class="op">=</span> <span class="st">"distance"</span>,
                   CHR                <span class="op">=</span> <span class="st">"CHR22"</span>,
-                  chromCoords        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fl">35000000</span>, <span class="fl">45000000</span><span class="op">)</span>,
+                  chromCoords        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">35000000</span>, <span class="fl">45000000</span><span class="op">)</span>,
                   tadModel           <span class="op">=</span> <span class="va">tadModel</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,
                   threshold          <span class="op">=</span> <span class="fl">1.0</span>,
                   verbose            <span class="op">=</span> <span class="cn">FALSE</span>,
                   parallel           <span class="op">=</span> <span class="fl">2</span>,
-                  DBSCAN_params      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fl">30000</span>, <span class="fl">100</span><span class="op">)</span>,
+                  DBSCAN_params      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">30000</span>, <span class="fl">100</span><span class="op">)</span>,
                   slope              <span class="op">=</span> <span class="fl">5000</span>,
                   genome             <span class="op">=</span> <span class="st">"hg19"</span><span class="op">)</span>
 
@@ -314,48 +310,58 @@ status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](http
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <div class="links">
-<h2>Links</h2>
+<h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li>Download from BIOC at <br><a href="https://www.bioconductor.org/packages/preciseTAD">https://​www.bioconductor.org/​packages/​preciseTAD</a>
-</li>
-<li>Browse source code at <br><a href="https://github.com/dozmorovlab/preciseTAD/">https://​github.com/​dozmorovlab/​preciseTAD/​</a>
-</li>
-<li>Report a bug at <br><a href="https://github.com/dozmorovlab/preciseTAD/issues">https://​github.com/​dozmorovlab/​preciseTAD/​issues</a>
-</li>
+<li><a href="https://www.bioconductor.org/packages/preciseTAD" class="external-link">View on Bioconductor</a></li>
+<li><a href="https://github.com/dozmorovlab/preciseTAD/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/dozmorovlab/preciseTAD/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
+
 <div class="license">
-<h2>License</h2>
+<h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li>
-<a href="https://opensource.org/licenses/mit-license.php">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a>
+<a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a>
 </li>
 </ul>
 </div>
+
+
+<div class="citation">
+<h2 data-toc-skip>Citation</h2>
+<ul class="list-unstyled">
+<li><a href="authors.html#citation">Citing preciseTAD</a></li>
+</ul>
+</div>
+
 <div class="developers">
-<h2>Developers</h2>
+<h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Spiro Stilianoudakis <br><small class="roles"> Author </small>  </li>
 <li>Mikhail Dozmorov <br><small class="roles"> Author, maintainer </small>  </li>
 </ul>
 </div>
 
-  <div class="dev-status">
-<h2>Dev status</h2>
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://www.tidyverse.org/lifecycle/#maturing"><img src="https://img.shields.io/badge/lifecycle-maturing-blue.svg" alt="Lifecycle: maturing"></a></li>
+<li><a href="https://www.tidyverse.org/lifecycle/#maturing" class="external-link"><img src="https://img.shields.io/badge/lifecycle-maturing-blue.svg" alt="Lifecycle: maturing"></a></li>
 </ul>
 </div>
-</div>
+
+  </div>
 </div>
 
 
       <footer><div class="copyright">
-  <p>Developed by Spiro Stilianoudakis, Mikhail Dozmorov.</p>
+  <p></p>
+<p>Developed by Spiro Stilianoudakis, Mikhail Dozmorov.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
 </div>
 
       </footer>
@@ -363,6 +369,8 @@ status](https://travis-ci.com/stilianoudakis/preciseTAD.svg?branch=master)](http
 
   
 
+
+  
 
   </body>
 </html>

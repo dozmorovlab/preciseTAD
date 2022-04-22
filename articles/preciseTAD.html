@@ -19,6 +19,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -31,18 +33,12 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">preciseTAD</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.5.0</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-<li>
-  <a href="../index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
 <li>
   <a href="../articles/preciseTAD.html">Get started</a>
 </li>
@@ -52,7 +48,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://github.com/dozmorovlab/preciseTAD/">
+  <a href="https://github.com/dozmorovlab/preciseTAD/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -71,13 +67,13 @@
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>preciseTAD Vignette</h1>
-                        <h4 class="author">Spiro Stilianoudakis</h4>
+                        <h4 data-toc-skip class="author">Spiro Stilianoudakis</h4>
             <address class="author_afil">
-      Department of Biostatistics, Virginia Commonwealth University, Richmond, VA<br><h4 class="author">Mikhail Dozmorov</h4>
+      Department of Biostatistics, Virginia Commonwealth University, Richmond, VA<br><h4 data-toc-skip class="author">Mikhail Dozmorov</h4>
             <address class="author_afil">
-      Department of Biostatistics, Virginia Commonwealth University, Richmond, VA<br><h4 class="date">September 28, 2021</h4>
+      Department of Biostatistics, Virginia Commonwealth University, Richmond, VA<br><h4 data-toc-skip class="date">April 22, 2022</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/dozmorovlab/preciseTAD/blob/master/vignettes/preciseTAD.Rmd"><code>vignettes/preciseTAD.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/dozmorovlab/preciseTAD/blob/HEAD/vignettes/preciseTAD.Rmd" class="external-link"><code>vignettes/preciseTAD.Rmd</code></a></small>
       <div class="hidden name"><code>preciseTAD.Rmd</code></div>
 
     </address>
@@ -90,127 +86,127 @@
       <p>Chromosome conformation capture technologies combined with high-throughput sequencing (Hi-C) have revealed that chromatin undergoes layers of compaction through DNA looping and folding, forming dynamic 3D structures. Among these are Topologically Associating Domains (TADs) and chromatin loops, which are known to play critical roles in cell dynamics like gene regulation and cell differentiation. Precise identification of TAD/loop (domain) boundaries remains difficult, as it is strongly reliant on Hi-C data resolution. Obtaining genome-wide chromatin interactions at high-resolution is costly resulting in low resolution of Hi-C matrices and high uncertainty in the location of domain boundaries. We developed a machine learning framework that leverages the spatial relationship of high-resolution genome annotation data (e.g., ChIP-seq-defined transcription factor binding sites) to maximally accurately predict low-resolution domain boundaries. Translated on a base level, the model predicts the probability of each base being a boundary. These probabilities, coupled with density-based clustering and scalable partitioning techniques, allow the precise (base-level) identification of domain boundary regions and points. We show that known molecular drivers of 3D chromatin structures including CTCF, RAD21, and SMC3 are more enriched at our predicted boundaries, as compared with the boundaries identified by the popular Arrowhead TAD caller. The model trained in one cell type can leverage genomic annotations and predict boundaries in another cell type.</p>
     </div>
     
-<div id="introduction" class="section level1">
-<h1 class="hasAnchor">
-<a href="#introduction" class="anchor"></a>Introduction</h1>
+<div class="section level2">
+<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+</h2>
 <p><code>preciseTAD</code> is an R package designed to transform domain boundary calling into a supervised machine learning framework. <code>preciseTAD</code> offers full functionality in building the predictor-response data and selecting the best model for precise prediction of boundary regions. This functionality can be broken into 2 primary usages:</p>
 <ul>
 <li>Model building, and</li>
 <li>Precise domain boundary prediction</li>
 </ul>
-<div id="input-data" class="section level2">
-<h2 class="hasAnchor">
-<a href="#input-data" class="anchor"></a>Input data</h2>
+<div class="section level3">
+<h3 id="input-data">Input data<a class="anchor" aria-label="anchor" href="#input-data"></a>
+</h3>
 <p>The training/testing data used for modeling is represented as a matrix with rows being genomic regions, columns being genomic annotations, and cells containing measures of association between them. Users have the option to concatenate genomic regions from multiple chromosomes.</p>
 <p>To create the row-wise dimension of the data, <code>preciseTAD</code> uses <em>shifted binning</em>, a strategy for making the dimensions of the data matrix used for modeling by segmenting the linear genome into nonoverlapping regions. This step is transparent for the user. To create shifted bins, chromosome-specific bins start at half of the resolution <em>r</em>, and continue in congruent intervals of length <em>r</em> until the end of the chromosome (<em>mod r</em> + <em>r/2</em>), using hg19 genomic coordinates. The shifted genomic bins, are then defined as boundary regions (<em>Y = 1</em>) if they contain a called boundary, and non-boundary regions (<em>Y = 0</em>) otherwise, thus establishing the binary response vector (<strong>Y</strong>) used for classification. Intuitively, shifted bins are centered on borders between the original bins, thus capturing potential boundaries. We found the shifted binning strategy improves model performance.</p>
 <p>The column-wise dimension is formed by genomic annotations, such as transcription factor binding sites (TFBSs), histone modification marks, chromatin states. The <em>(<span class="math inline">\(log_{2}\)</span>) distances</em>, which enumerate the genomic distance from the center of each genomic bin to the center of the nearest ChIP-seq peak region of interest, form the feature space. Other feature type options include <em>binary overlaps</em> - an indicator for whether a ChIP-seq region overlaps with genomic bin, <em>count overlaps</em> - the number of overlaps in each bin, and <em>percent overlaps</em> - the percentage of overlap between any bin and the total width of all ChIP-seq regions overlapping it. The customized training/testing data formation offered by <code>preciseTAD</code> allows users to implement any binary classification machine learning algorithm.</p>
 </div>
-<div id="precisetad-functionality-and-output" class="section level2">
-<h2 class="hasAnchor">
-<a href="#precisetad-functionality-and-output" class="anchor"></a>preciseTAD functionality and output</h2>
+<div class="section level3">
+<h3 id="precisetad-functionality-and-output">preciseTAD functionality and output<a class="anchor" aria-label="anchor" href="#precisetad-functionality-and-output"></a>
+</h3>
 <p><code>preciseTAD</code> implements a random forest (RF) model, allowing tuning hyperparameters and applying feature reduction. The primary inputs are the training and testing data, a list of hyperparameter values, the number of cross-validation folds to use (if a grid of hyperparameter values is provided), and the metric used for optimization. The output includes the model object (necessary for downstream prediction of boundaries), the variable importance values, and a list of performance metrics when validating the model on the testing data (see Table 1). This model is then used to predict base-level precise boundary locations.</p>
 <p>To predict the base-level location of domain boundaries, the <code>preciseTAD</code> model is applied for each base annotated with the aforementioned genomic annotations. The base-level probabilities are clustered using density-based clustering and scalable data partitioning techniques, to narrow boundary regions and points. First, the probability vector, <span class="math inline">\(p_{n_{i}}\)</span>, is extracted (<span class="math inline">\(n_{i}\)</span> representing the length of chromosome <span class="math inline">\(i\)</span>). Next, <em>DBSCAN</em> (Density-based Spatial Clustering of Applications with Noise) <span class="citation">(Ester et al. 1996; Hahsler, Piekenbrock, and Doran 2019)</span> is applied to the matrix of pairwise genomic distances between bases with <span class="math inline">\(p_{n_{i}} \ge t\)</span>, where <span class="math inline">\(t\)</span> is a threshold determined by the user. The resulting clusters of highly predictive bases identified by DBSCAN are termed <em>preciseTAD boundary regions</em> (PTBR). To precisely identify a single base among each PTBR, <em>preciseTAD</em> implements partitioning around medoids (PAM) within each cluster. The corresponding cluster medoid is defined as a <em>preciseTAD boundary point</em> (PTBP), making it the most representative and biologically meaningful base within each clustered PTBR. The output includes a list of genomic coordinates of PTBPs and PTBSs.</p>
 <p><code>preciseTAD</code> allows us to use the pre-trained model to predict the precise location of domain boundaries in cell types without Hi-C data but with genome annotation data. Specifically, only cell-type-specific ChIP-seq data (BED format) for CTCF, RAD21, SMC3, and ZNF143 transcription factor binding sites is required. We provide models pre-trained using GM12878 and K562 genome annotation data, and Arrowhead- and Peakachu-predicted boundaries for chromosome-specific prediction of precise domain boundaries in other cell types.</p>
 </div>
 </div>
-<div id="getting-started" class="section level1">
-<h1 class="hasAnchor">
-<a href="#getting-started" class="anchor"></a>Getting Started</h1>
-<div id="installation" class="section level2">
-<h2 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h2>
+<div class="section level2">
+<h2 id="getting-started">Getting Started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
+</h2>
+<div class="section level3">
+<h3 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h3>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># if (!requireNamespace("BiocManager", quietly=TRUE))</span>
 <span class="co">#     install.packages("BiocManager")</span>
-<span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocManager/man/install.html">install</a></span><span class="op">(</span><span class="st">"preciseTAD"</span><span class="op">)</span>
+<span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocManager/man/install.html" class="external-link">install</a></span><span class="op">(</span><span class="st">"preciseTAD"</span><span class="op">)</span>
 <span class="co"># For the latest version install from GitHub</span>
 <span class="co"># BiocManager::install("dozmorovlab/preciseTAD")</span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yihui.org/knitr/">knitr</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">e1071</span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dozmorovlab/preciseTAD">preciseTAD</a></span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://yihui.org/knitr/" class="external-link">knitr</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">e1071</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dozmorovlab/preciseTAD" class="external-link">preciseTAD</a></span><span class="op">)</span></code></pre></div>
 </div>
 </div>
-<div id="implementation" class="section level1">
-<h1 class="hasAnchor">
-<a href="#implementation" class="anchor"></a>Implementation</h1>
-<div id="model-building" class="section level2">
-<h2 class="hasAnchor">
-<a href="#model-building" class="anchor"></a>Model building</h2>
-<div id="construction-of-the-data-matrix" class="section level3">
-<h3 class="hasAnchor">
-<a href="#construction-of-the-data-matrix" class="anchor"></a>Construction of the data matrix</h3>
-<p><code>preciseTAD</code> requires users to supply genomic coordinates of the “ground-truth” domain boundaries to establish the response vector (<strong>Y</strong>). As an example, we consider TAD boundaries derived from the popular <em>Arrowhead</em> TAD caller, a part of the Juicebox suite of tools developed by Aiden Lab <span class="citation">(Durand et al. 2016)</span>. To get boundaries, <em>Arrowhead</em> was applied on the autosomal chromosomes using 5 kb GM12878 Hi-C data <span class="citation">(Rao et al. 2014)</span> (<a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE63525">GSE63525</a>). An example of the command line script used to called TADs with <em>Arrowhead</em> is provided below, as well as the first three columns of the resulting TAD coordinates. A more detailed tutorial for implementing <em>Arrowhead</em> can be found <a href="http://github.com/aidenlab/juicer/wiki/Arrowhead">here</a>.</p>
+<div class="section level2">
+<h2 id="implementation">Implementation<a class="anchor" aria-label="anchor" href="#implementation"></a>
+</h2>
+<div class="section level3">
+<h3 id="model-building">Model building<a class="anchor" aria-label="anchor" href="#model-building"></a>
+</h3>
+<div class="section level4">
+<h4 id="construction-of-the-data-matrix">Construction of the data matrix<a class="anchor" aria-label="anchor" href="#construction-of-the-data-matrix"></a>
+</h4>
+<p><code>preciseTAD</code> requires users to supply genomic coordinates of the “ground-truth” domain boundaries to establish the response vector (<strong>Y</strong>). As an example, we consider TAD boundaries derived from the popular <em>Arrowhead</em> TAD caller, a part of the Juicebox suite of tools developed by Aiden Lab <span class="citation">(Durand et al. 2016)</span>. To get boundaries, <em>Arrowhead</em> was applied on the autosomal chromosomes using 5 kb GM12878 Hi-C data <span class="citation">(Rao et al. 2014)</span> (<a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE63525" class="external-link">GSE63525</a>). An example of the command line script used to called TADs with <em>Arrowhead</em> is provided below, as well as the first three columns of the resulting TAD coordinates. A more detailed tutorial for implementing <em>Arrowhead</em> can be found <a href="http://github.com/aidenlab/juicer/wiki/Arrowhead" class="external-link">here</a>.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>arrowhead <span class="op">-</span>c <span class="dv">1</span> \ <span class="co">#chromosome to call TADs on</span></span>
 <span id="cb3-2"><a href="#cb3-2"></a>  <span class="op">-</span>r <span class="dv">5000</span> \ <span class="co">#HiC data resolution</span></span>
 <span id="cb3-3"><a href="#cb3-3"></a>  <span class="op">~</span><span class="er">/</span>GSE63525_GM12878_insitu_primary.hic \ <span class="co">#location of the .HIC file</span></span>
 <span id="cb3-4"><a href="#cb3-4"></a>  <span class="op">~</span><span class="er">/</span>arrowhead_output <span class="co">#location to store the output</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"arrowhead_gm12878_5kb"</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">arrowhead_gm12878_5kb</span><span class="op">)</span></code></pre></div>
-<pre><code>##   V1        V2        V3
-## 1  1  49375000  50805000
-## 2  1  16830000  17230000
-## 3  1 163355000 164860000
-## 4  1 231935000 233400000
-## 5  1 149035000 149430000
-## 6  1   3995000   5505000</code></pre>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"arrowhead_gm12878_5kb"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">arrowhead_gm12878_5kb</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##   V1        V2        V3</span>
+<span class="co">## 1  1  49375000  50805000</span>
+<span class="co">## 2  1  16830000  17230000</span>
+<span class="co">## 3  1 163355000 164860000</span>
+<span class="co">## 4  1 231935000 233400000</span>
+<span class="co">## 5  1 149035000 149430000</span>
+<span class="co">## 6  1   3995000   5505000</span></code></pre>
 <p>Users will then need to transform this TAD coordinate data into a GRanges object of unique boundary coordinates using the <code><a href="../reference/extractBoundaries.html">preciseTAD::extractBoundaries()</a></code> function. Note that the input for this function is a BED-like data frame where the second and third columns are genomic coordinates of domain anchor’s midpoints. Here we only extract boundaries for CHR1 and CHR22 (<code>CHR = c("CHR1", "CHR22")</code> parameter). We specify <code>preprocess=FALSE</code> because we are only interested in all boundaries and not filtering TADs by length. Lastly, we specify <code>resolution=5000</code> to match the resolution used by <em>Arrowhead</em> (although this argument is ignored given that <code>preprocess=FALSE</code>). As shown below, there were a total of 1901 unique TAD boundaries reported by <em>Arrowhead</em> for chromosomes 1 and 22.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">bounds</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extractBoundaries.html">extractBoundaries</a></span><span class="op">(</span>domains.mat <span class="op">=</span> <span class="va">arrowhead_gm12878_5kb</span>, filter <span class="op">=</span> <span class="cn">FALSE</span>, CHR <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"CHR1"</span>, <span class="st">"CHR22"</span><span class="op">)</span>, resolution <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">bounds</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extractBoundaries.html">extractBoundaries</a></span><span class="op">(</span>domains.mat <span class="op">=</span> <span class="va">arrowhead_gm12878_5kb</span>, filter <span class="op">=</span> <span class="cn">FALSE</span>, CHR <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CHR1"</span>, <span class="st">"CHR22"</span><span class="op">)</span>, resolution <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span>
 <span class="co"># View unique boundaries</span>
 <span class="va">bounds</span></code></pre></div>
-<pre><code>## GRanges object with 1901 ranges and 0 metadata columns:
-##         seqnames            ranges strand
-##            &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt;
-##     787     chr1     815000-815001      *
-##    9196     chr1     890000-890001      *
-##      37     chr1     915000-915001      *
-##    8923     chr1   1005000-1005001      *
-##     275     chr1   1015000-1015001      *
-##     ...      ...               ...    ...
-##    8379    chr22 50815000-50815001      *
-##   16788    chr22 50935000-50935001      *
-##    8382    chr22 50945000-50945001      *
-##   16791    chr22 51060000-51060001      *
-##   16670    chr22 51235000-51235001      *
-##   -------
-##   seqinfo: 22 sequences from an unspecified genome; no seqlengths</code></pre>
-<p>To identify genomic features best predictive of TAD boundaries, <code>preciseTAD</code> requires functional genomic annotation data. They are used to establish the feature space (<span class="math inline">\(\textbf{X}=\{X_{1}, X_{2}, \cdots, X_{p} \}\)</span>). Cell type-specific genomic annotation data can be downloaded from the <a href="http://www.encodeproject.org/chip-seq-matrix/?type=Experiment&amp;replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&amp;assay_title=TF%20ChIP-seq&amp;status=released">ENCODE</a> data portal as BED files. Once you have downloaded your preferred list of functional genomic annotations, store them in a specific file location (i.e., “./path/to/BEDfiles”). These files can then be converted into a GRangesList object and used to create the feature space using the <code><a href="../reference/bedToGRangesList.html">preciseTAD::bedToGRangesList()</a></code> function. The <code>signal</code> argument refers to the column in the BED files containing peak signal strength values and is used to assign metadata to the corresponding GRanges (only necessary for downstream plotting). We have already provided a GRangesList object with 26 transcription factor binding sites (TFBS) specific to the GM12878 cell type. Once you load it in, you can see the list of transcription factors using the following commands.</p>
+<pre><code><span class="co">## GRanges object with 1901 ranges and 0 metadata columns:</span>
+<span class="co">##         seqnames            ranges strand</span>
+<span class="co">##            &lt;Rle&gt;         &lt;IRanges&gt;  &lt;Rle&gt;</span>
+<span class="co">##     787     chr1     815000-815001      *</span>
+<span class="co">##    9196     chr1     890000-890001      *</span>
+<span class="co">##      37     chr1     915000-915001      *</span>
+<span class="co">##    8923     chr1   1005000-1005001      *</span>
+<span class="co">##     275     chr1   1015000-1015001      *</span>
+<span class="co">##     ...      ...               ...    ...</span>
+<span class="co">##    8379    chr22 50815000-50815001      *</span>
+<span class="co">##   16788    chr22 50935000-50935001      *</span>
+<span class="co">##    8382    chr22 50945000-50945001      *</span>
+<span class="co">##   16791    chr22 51060000-51060001      *</span>
+<span class="co">##   16670    chr22 51235000-51235001      *</span>
+<span class="co">##   -------</span>
+<span class="co">##   seqinfo: 22 sequences from an unspecified genome; no seqlengths</span></code></pre>
+<p>To identify genomic features best predictive of TAD boundaries, <code>preciseTAD</code> requires functional genomic annotation data. They are used to establish the feature space (<span class="math inline">\(\textbf{X}=\{X_{1}, X_{2}, \cdots, X_{p} \}\)</span>). Cell type-specific genomic annotation data can be downloaded from the <a href="http://www.encodeproject.org/chip-seq-matrix/?type=Experiment&amp;replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&amp;assay_title=TF%20ChIP-seq&amp;status=released" class="external-link">ENCODE</a> data portal as BED files. Once you have downloaded your preferred list of functional genomic annotations, store them in a specific file location (i.e., “./path/to/BEDfiles”). These files can then be converted into a GRangesList object and used to create the feature space using the <code><a href="../reference/bedToGRangesList.html">preciseTAD::bedToGRangesList()</a></code> function. The <code>signal</code> argument refers to the column in the BED files containing peak signal strength values and is used to assign metadata to the corresponding GRanges (only necessary for downstream plotting). We have already provided a GRangesList object with 26 transcription factor binding sites (TFBS) specific to the GM12878 cell type. Once you load it in, you can see the list of transcription factors using the following commands.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># path &lt;- "./path/to/BEDfiles"</span>
 <span class="co"># tfbsList &lt;- bedToGRangesList(filepath=path, bedList=NULL, bedNames=NULL, pattern = "*.bed", signal=4)</span>
 
-<span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"tfbsList"</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">tfbsList</span><span class="op">)</span></code></pre></div>
-<pre><code>##  [1] "Gm12878-Atf3-Haib"       "Gm12878-Cfos-Sydh"       "Gm12878-Cmyc-Uta"        "Gm12878-Ctcf-Broad"      "Gm12878-Egr1-Haib"       "Gm12878-Ets1-Haib"       "Gm12878-Gabp-Haib"       "Gm12878-Jund-Sydh"       "Gm12878-Max-Sydh"        "Gm12878-Mazab85725-Sydh" "Gm12878-Mef2a-Haib"      "Gm12878-Mxi1-Sydh"       "Gm12878-P300-Sydh"       "Gm12878-Pol2-Haib"       "Gm12878-Pu1-Haib"       
-## [16] "Gm12878-Rad21-Haib"      "Gm12878-Rfx5-Sydh"       "Gm12878-Sin3a-Sydh"      "Gm12878-Six5-Haib"       "Gm12878-Smc3-Sydh"       "Gm12878-Sp1-Haib"        "Gm12878-Srf-Haib"        "Gm12878-Taf1-Haib"       "Gm12878-Tr4-Sydh"        "Gm12878-Yy1-Sydh"        "Gm12878-Znf143-Sydh"</code></pre>
+<span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"tfbsList"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">tfbsList</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##  [1] "Gm12878-Atf3-Haib"       "Gm12878-Cfos-Sydh"       "Gm12878-Cmyc-Uta"        "Gm12878-Ctcf-Broad"      "Gm12878-Egr1-Haib"       "Gm12878-Ets1-Haib"       "Gm12878-Gabp-Haib"       "Gm12878-Jund-Sydh"       "Gm12878-Max-Sydh"        "Gm12878-Mazab85725-Sydh" "Gm12878-Mef2a-Haib"      "Gm12878-Mxi1-Sydh"       "Gm12878-P300-Sydh"       "Gm12878-Pol2-Haib"       "Gm12878-Pu1-Haib"       </span>
+<span class="co">## [16] "Gm12878-Rad21-Haib"      "Gm12878-Rfx5-Sydh"       "Gm12878-Sin3a-Sydh"      "Gm12878-Six5-Haib"       "Gm12878-Smc3-Sydh"       "Gm12878-Sp1-Haib"        "Gm12878-Srf-Haib"        "Gm12878-Taf1-Haib"       "Gm12878-Tr4-Sydh"        "Gm12878-Yy1-Sydh"        "Gm12878-Znf143-Sydh"</span></code></pre>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">tfbsList</span></code></pre></div>
-<pre><code>## GRangesList object of length 26:
-## $`Gm12878-Atf3-Haib`
-## GRanges object with 1677 ranges and 1 metadata column:
-##          seqnames              ranges strand |  coverage
-##             &lt;Rle&gt;           &lt;IRanges&gt;  &lt;Rle&gt; | &lt;numeric&gt;
-##      [1]     chr1     1167429-1167599      * |   28.5019
-##      [2]     chr1     1510215-1510385      * |   64.7440
-##      [3]     chr1     1655730-1655900      * |   25.1686
-##      [4]     chr1     1709843-1710013      * |   15.5525
-##      [5]     chr1     2343938-2344108      * |   19.6961
-##      ...      ...                 ...    ... .       ...
-##   [1673]     chrX 118699292-118699462      * |   17.6970
-##   [1674]     chrX 119947928-119948098      * |   13.8884
-##   [1675]     chrX 128481457-128481627      * |   26.1075
-##   [1676]     chrX 132399481-132399651      * |   20.7070
-##   [1677]     chrX 136520393-136520563      * |   24.4197
-##   -------
-##   seqinfo: 24 sequences from an unspecified genome; no seqlengths
-## 
-## ...
-## &lt;25 more elements&gt;</code></pre>
+<pre><code><span class="co">## GRangesList object of length 26:</span>
+<span class="co">## $`Gm12878-Atf3-Haib`</span>
+<span class="co">## GRanges object with 1677 ranges and 1 metadata column:</span>
+<span class="co">##          seqnames              ranges strand |  coverage</span>
+<span class="co">##             &lt;Rle&gt;           &lt;IRanges&gt;  &lt;Rle&gt; | &lt;numeric&gt;</span>
+<span class="co">##      [1]     chr1     1167429-1167599      * |   28.5019</span>
+<span class="co">##      [2]     chr1     1510215-1510385      * |   64.7440</span>
+<span class="co">##      [3]     chr1     1655730-1655900      * |   25.1686</span>
+<span class="co">##      [4]     chr1     1709843-1710013      * |   15.5525</span>
+<span class="co">##      [5]     chr1     2343938-2344108      * |   19.6961</span>
+<span class="co">##      ...      ...                 ...    ... .       ...</span>
+<span class="co">##   [1673]     chrX 118699292-118699462      * |   17.6970</span>
+<span class="co">##   [1674]     chrX 119947928-119948098      * |   13.8884</span>
+<span class="co">##   [1675]     chrX 128481457-128481627      * |   26.1075</span>
+<span class="co">##   [1676]     chrX 132399481-132399651      * |   20.7070</span>
+<span class="co">##   [1677]     chrX 136520393-136520563      * |   24.4197</span>
+<span class="co">##   -------</span>
+<span class="co">##   seqinfo: 24 sequences from an unspecified genome; no seqlengths</span>
+<span class="co">## </span>
+<span class="co">## ...</span>
+<span class="co">## &lt;25 more elements&gt;</span></code></pre>
 <p>Using the “ground-truth” boundaries and the following TFBS, we can build the data matrix that will be used for predictive modeling. The <code><a href="../reference/createTADdata.html">preciseTAD::createTADdata()</a></code> function can create the training and testing data. Here, we specify to train on chromosome 1 and test on chromosome 22. Additionally, we specify <code>resolution = 5000</code> to construct 5kb shifted genomic bins (to match the Hi-C data resolution), <code>featureType = "distance"</code> for a <span class="math inline">\(log_2(distance + 1)\)</span>-type feature space, and <code>resampling = "rus"</code> to apply random under-sampling (RUS) on the training data to balance classes of boundary vs. non-boundary regions. We also specify a seed to ensure reproducibility when performing the resampling. The result is a list containing two data frames: (1) the resampled (if specified) training data, and (2) the testing data.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
 <span class="va">tadData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createTADdata.html">createTADdata</a></span><span class="op">(</span>bounds.GR <span class="op">=</span> <span class="va">bounds</span>,
                          resolution <span class="op">=</span> <span class="fl">5000</span>,
                          genomicElements.GR <span class="op">=</span> <span class="va">tfbsList</span>,
@@ -221,75 +217,75 @@
 
 <span class="co"># View subset of training data</span>
 <span class="va">tadData</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span></code></pre></div>
-<pre><code>##         y Gm12878-Atf3-Haib Gm12878-Cfos-Sydh Gm12878-Cmyc-Uta
-## 5799   No          18.73205          17.73674         14.60901
-## 32930  No          21.23327          15.32696         15.03635
-## 5767  Yes          18.07127          17.99360         13.22415
-## 8504  Yes          19.24515          19.26026         18.31016
-## 39486  No          21.23396          17.28550         19.09578</code></pre>
+<pre><code><span class="co">##         y Gm12878-Atf3-Haib Gm12878-Cfos-Sydh Gm12878-Cmyc-Uta</span>
+<span class="co">## 5799   No          18.73205          17.73674         14.60901</span>
+<span class="co">## 32930  No          21.23327          15.32696         15.03635</span>
+<span class="co">## 5767  Yes          18.07127          17.99360         13.22415</span>
+<span class="co">## 8504  Yes          19.24515          19.26026         18.31016</span>
+<span class="co">## 39486  No          21.23396          17.28550         19.09578</span></code></pre>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Check it is balanced</span>
-<span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">tadData</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">y</span><span class="op">)</span></code></pre></div>
-<pre><code>## 
-##   No  Yes 
-## 1595 1595</code></pre>
+<span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">tadData</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">y</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## </span>
+<span class="co">##   No  Yes </span>
+<span class="co">## 1595 1595</span></code></pre>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># View subset of testing data</span>
 <span class="va">tadData</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span></code></pre></div>
-<pre><code>##    y Gm12878-Atf3-Haib Gm12878-Cfos-Sydh Gm12878-Cmyc-Uta
-## 1 No          24.08978           24.1100         24.12327
-## 2 No          24.08937           24.1096         24.12287
-## 3 No          24.08897           24.1092         24.12248
-## 4 No          24.08857           24.1088         24.12208
-## 5 No          24.08816           24.1084         24.12169</code></pre>
+<pre><code><span class="co">##    y Gm12878-Atf3-Haib Gm12878-Cfos-Sydh Gm12878-Cmyc-Uta</span>
+<span class="co">## 1 No          24.08978           24.1100         24.12327</span>
+<span class="co">## 2 No          24.08937           24.1096         24.12287</span>
+<span class="co">## 3 No          24.08897           24.1092         24.12248</span>
+<span class="co">## 4 No          24.08857           24.1088         24.12208</span>
+<span class="co">## 5 No          24.08816           24.1084         24.12169</span></code></pre>
 </div>
-<div id="feature-selection-using-recursive-feature-elimination" class="section level3">
-<h3 class="hasAnchor">
-<a href="#feature-selection-using-recursive-feature-elimination" class="anchor"></a>Feature selection using recursive feature elimination</h3>
+<div class="section level4">
+<h4 id="feature-selection-using-recursive-feature-elimination">Feature selection using recursive feature elimination<a class="anchor" aria-label="anchor" href="#feature-selection-using-recursive-feature-elimination"></a>
+</h4>
 <p>We can now implement our machine learning algorithm of choice to predict boundary regions. Here, we opt for the random forest algorithm for binary classification. <code>preciseTAD</code> offers functionality for performing recursive feature elimination (RFE) as a form of feature reduction through the use of the <code><a href="../reference/TADrfe.html">preciseTAD::TADrfe()</a></code> function, which is a wrapper for the <code>rfe</code> function in the <code>caret</code> package <span class="citation">(Kuhn 2012)</span>. <code><a href="../reference/TADrfe.html">preciseTAD::TADrfe()</a></code> implements a random forest model on the best subset of features from 2 to the maximum number of features in the data by powers of 2, using 5-fold cross-validation. We specify accuracy as the performance metric. An example is shown below.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
 <span class="va">rfe_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/TADrfe.html">TADrfe</a></span><span class="op">(</span>trainData <span class="op">=</span> <span class="va">tadData</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,
-                 tuneParams <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>ntree <span class="op">=</span> <span class="fl">500</span>, nodesize <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,
+                 tuneParams <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>ntree <span class="op">=</span> <span class="fl">500</span>, nodesize <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,
                  cvFolds <span class="op">=</span> <span class="fl">5</span>,
                  cvMetric <span class="op">=</span> <span class="st">"Accuracy"</span>,
                  verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># View RFE performances</span>
 <span class="va">rfe_res</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></code></pre></div>
-<pre><code>##   Variables       MCC       ROC      Sens      Spec Pos Pred Value Neg Pred Value  Accuracy     Kappa      MCCSD       ROCSD      SensSD     SpecSD Pos Pred ValueSD Neg Pred ValueSD  AccuracySD    KappaSD
-## 1         2 0.3491082 0.7420849 0.6526646 0.6952978      0.6822854      0.6667258 0.6739812 0.3479624 0.02627631 0.010098192 0.009508308 0.02993689      0.019873426      0.008273672 0.013160545 0.02632109
-## 2         4 0.4613042 0.8026680 0.6984326 0.7611285      0.7455349      0.7163087 0.7297806 0.4595611 0.01904174 0.009974699 0.015099178 0.02275698      0.015584018      0.007949199 0.008769029 0.01753806
-## 3         8 0.5076806 0.8229440 0.7122257 0.7931034      0.7749194      0.7340188 0.7526646 0.5053292 0.01922275 0.010486133 0.022648767 0.01063061      0.008681254      0.014664805 0.010711191 0.02142238
-## 4        16 0.5150537 0.8263765 0.7197492 0.7943574      0.7779659      0.7394767 0.7570533 0.5141066 0.01881406 0.014157078 0.022886160 0.01696849      0.012896280      0.014149142 0.010802546 0.02160509
-## 5        26 0.5307963 0.8294258 0.7210031 0.8075235      0.7894162      0.7439457 0.7642633 0.5285266 0.02605025 0.015234024 0.036287890 0.01480341      0.009062094      0.022029556 0.013957766 0.02791553</code></pre>
+<pre><code><span class="co">##   Variables       MCC       ROC      Sens      Spec Pos Pred Value Neg Pred Value  Accuracy     Kappa      MCCSD       ROCSD      SensSD     SpecSD Pos Pred ValueSD Neg Pred ValueSD  AccuracySD    KappaSD</span>
+<span class="co">## 1         2 0.3491082 0.7420849 0.6526646 0.6952978      0.6822854      0.6667258 0.6739812 0.3479624 0.02627631 0.010098192 0.009508308 0.02993689      0.019873426      0.008273672 0.013160545 0.02632109</span>
+<span class="co">## 2         4 0.4613042 0.8026680 0.6984326 0.7611285      0.7455349      0.7163087 0.7297806 0.4595611 0.01904174 0.009974699 0.015099178 0.02275698      0.015584018      0.007949199 0.008769029 0.01753806</span>
+<span class="co">## 3         8 0.5076806 0.8229440 0.7122257 0.7931034      0.7749194      0.7340188 0.7526646 0.5053292 0.01922275 0.010486133 0.022648767 0.01063061      0.008681254      0.014664805 0.010711191 0.02142238</span>
+<span class="co">## 4        16 0.5150537 0.8263765 0.7197492 0.7943574      0.7779659      0.7394767 0.7570533 0.5141066 0.01881406 0.014157078 0.022886160 0.01696849      0.012896280      0.014149142 0.010802546 0.02160509</span>
+<span class="co">## 5        26 0.5307963 0.8294258 0.7210031 0.8075235      0.7894162      0.7439457 0.7642633 0.5285266 0.02605025 0.015234024 0.036287890 0.01480341      0.009062094      0.022029556 0.013957766 0.02791553</span></code></pre>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># View the variable importance among top n features across each CV fold</span>
-<span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">rfe_res</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<pre><code>##    Overall                 var Variables Resample
-## 1 26.76923   Gm12878-Smc3-Sydh        26    Fold1
-## 2 23.70939  Gm12878-Rad21-Haib        26    Fold1
-## 3 20.08605  Gm12878-Ctcf-Broad        26    Fold1
-## 4 17.65042 Gm12878-Znf143-Sydh        26    Fold1
-## 5 14.17874   Gm12878-Pol2-Haib        26    Fold1
-## 6 13.25481   Gm12878-Gabp-Haib        26    Fold1</code></pre>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">rfe_res</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##    Overall                 var Variables Resample</span>
+<span class="co">## 1 26.76923   Gm12878-Smc3-Sydh        26    Fold1</span>
+<span class="co">## 2 23.70939  Gm12878-Rad21-Haib        26    Fold1</span>
+<span class="co">## 3 20.08605  Gm12878-Ctcf-Broad        26    Fold1</span>
+<span class="co">## 4 17.65042 Gm12878-Znf143-Sydh        26    Fold1</span>
+<span class="co">## 5 14.17874   Gm12878-Pol2-Haib        26    Fold1</span>
+<span class="co">## 6 13.25481   Gm12878-Gabp-Haib        26    Fold1</span></code></pre>
 <p>Recursive feature elimination results indicate that model accuracy begins to stabilize when only considering the top four transcription factors for building random forest predictive models (Figure 1A). After aggregating the variable importance values of the top four TFBS across each cross-fold, we see that the top four most important TFBS in each of the five folds are the SMC3, RAD21, CTCF, and ZNF143 (Figure 1B). These are known components of the loop-extrusion model that has been proposed as a mechanism for the 3D architecture of the human genome <span class="citation">(Sanborn et al. 2015; Fudenberg et al. 2016; Hansen et al. 2018)</span>.</p>
 <div class="figure">
 <img src="figures/fig1_vignette.png" alt=""><p class="caption"><strong>Figure 1</strong>. (A) Recursive feature elimination (RFE) indicates that performance stabilizes when only considering the top 4 most predictive transcription factor binding sites (TFBS). (B) Aggregate mean variable importance (using mean decrease in accuracy) for the top 4 TFBS across each of the 5 cross-folds.</p>
 </div>
 </div>
-<div id="implementing-a-random-forest-for-boundary-prediction" class="section level3">
-<h3 class="hasAnchor">
-<a href="#implementing-a-random-forest-for-boundary-prediction" class="anchor"></a>Implementing a random forest for boundary prediction</h3>
+<div class="section level4">
+<h4 id="implementing-a-random-forest-for-boundary-prediction">Implementing a random forest for boundary prediction<a class="anchor" aria-label="anchor" href="#implementing-a-random-forest-for-boundary-prediction"></a>
+</h4>
 <p>Now that we have suitably reduced our feature space, we can implement a random forest algorithm built simply on the TFBS mentioned above (SMC3, RAD21, CTCF, and ZNF143). We can take advantage of the <code><a href="../reference/TADrandomForest.html">preciseTAD::TADrandomForest()</a></code> function, which is a wrapper of the <code>randomForest</code> package <span class="citation">(Breiman 2001; Liaw, Wiener, and others 2002)</span>. We specify the training and testing data, the hyperparameter values, the number of cross-validation folds, the performance metric to consider (here, accuracy), the seed to initialize for reproducibility, an indicator for retaining the model object, an indicator for retaining variable importances, the variable importance measure to consider (here, mean decrease in accuracy (MDA)), and an indicator for retaining model performances based on the test data. The function returns a list containing: 1) a trained model from caret with model information (<code>tadModel[[1]]</code>), 2) a <code>data.frame</code> of variable importance for each feature included in the model (<code>tadModel[[2]]</code>), and 3) a <code>data.frame</code> of various model performance metrics.</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Restrict the data matrix to include only SMC3, RAD21, CTCF, and ZNF143</span>
-<span class="va">tfbsList_filt</span> <span class="op">&lt;-</span> <span class="va">tfbsList</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">tfbsList</span><span class="op">)</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Gm12878-Ctcf-Broad"</span>, 
+<span class="va">tfbsList_filt</span> <span class="op">&lt;-</span> <span class="va">tfbsList</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">tfbsList</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Gm12878-Ctcf-Broad"</span>, 
                                             <span class="st">"Gm12878-Rad21-Haib"</span>,
                                             <span class="st">"Gm12878-Smc3-Sydh"</span>,
                                             <span class="st">"Gm12878-Znf143-Sydh"</span><span class="op">)</span><span class="op">]</span>
 
-<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
 <span class="va">tadData</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createTADdata.html">createTADdata</a></span><span class="op">(</span>bounds.GR   <span class="op">=</span> <span class="va">bounds</span>,
                          resolution  <span class="op">=</span> <span class="fl">5000</span>,
                          genomicElements.GR <span class="op">=</span> <span class="va">tfbsList_filt</span>,
@@ -299,10 +295,10 @@
                          predictCHR  <span class="op">=</span> <span class="st">"CHR22"</span><span class="op">)</span>
 
 <span class="co"># Run RF</span>
-<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
 <span class="va">tadModel</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/TADrandomForest.html">TADrandomForest</a></span><span class="op">(</span>trainData  <span class="op">=</span> <span class="va">tadData</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,
                             testData   <span class="op">=</span> <span class="va">tadData</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>,
-                            tuneParams <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>mtry     <span class="op">=</span> <span class="fl">2</span>,
+                            tuneParams <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mtry     <span class="op">=</span> <span class="fl">2</span>,
                                               ntree    <span class="op">=</span> <span class="fl">500</span>,
                                               nodesize <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,
                             cvFolds      <span class="op">=</span> <span class="fl">3</span>,
@@ -315,10 +311,10 @@
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># View model performances</span>
 <span class="va">performances</span> <span class="op">&lt;-</span> <span class="va">tadModel</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span>
-<span class="va">performances</span><span class="op">$</span><span class="va">Performance</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">performances</span><span class="op">$</span><span class="va">Performance</span>, digits <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">performances</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">performances</span><span class="op">$</span><span class="va">Metric</span>
-<span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html">t</a></span><span class="op">(</span><span class="va">performances</span><span class="op">)</span>, caption <span class="op">=</span> <span class="st">"List of model performances when validating an RF built on CHR1 on CHR22 test data."</span><span class="op">)</span></code></pre></div>
-<table class="table">
+<span class="va">performances</span><span class="op">$</span><span class="va">Performance</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">performances</span><span class="op">$</span><span class="va">Performance</span>, digits <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">performances</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">performances</span><span class="op">$</span><span class="va">Metric</span>
+<span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">performances</span><span class="op">)</span>, caption <span class="op">=</span> <span class="st">"List of model performances when validating an RF built on CHR1 on CHR22 test data."</span><span class="op">)</span></code></pre></div>
+<table style="width:100%;" class="table">
 <caption>List of model performances when validating an RF built on CHR1 on CHR22 test data.</caption>
 <colgroup>
 <col width="7%">
@@ -413,61 +409,61 @@
 </table>
 <p>As you may know, there exist other machine learning binary classifiers that can be used in this setting. For example, suppose we opt to implement a support vector machine (SVM). This is easy enough to accomplish given that <code><a href="../reference/createTADdata.html">preciseTAD::createTADdata()</a></code> conveniently sets up the training and testing data sets. We use the <code>e1071</code> package to run the SVM with a radial kernel, cost = 1, and gamma = 0.5 using the example command below. We see that the SVM model’s accuracy is only 0.67, whereas the accuracy from our random forest was 0.69 (Table 1).</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">svmModel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/e1071/man/svm.html">svm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">tadData</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, kernel <span class="op">=</span> <span class="st">"radial"</span>, cost <span class="op">=</span> <span class="fl">1</span>, gamma <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">svmModel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/e1071/man/svm.html" class="external-link">svm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">tadData</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, kernel <span class="op">=</span> <span class="st">"radial"</span>, cost <span class="op">=</span> <span class="fl">1</span>, gamma <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>
 
-<span class="va">svmPreds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">svmModel</span>, <span class="va">tadData</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span>, positive <span class="op">=</span> <span class="st">"Yes"</span><span class="op">)</span>
+<span class="va">svmPreds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">svmModel</span>, <span class="va">tadData</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span>, positive <span class="op">=</span> <span class="st">"Yes"</span><span class="op">)</span>
 
 <span class="co"># View confusion matrix</span>
-<span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">svmPreds</span>, <span class="va">tadData</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span></code></pre></div>
-<pre><code>##         
-## svmPreds   No  Yes
-##      No  6278   49
-##      Yes 3076  257</code></pre>
+<span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">svmPreds</span>, <span class="va">tadData</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">##         </span>
+<span class="co">## svmPreds   No  Yes</span>
+<span class="co">##      No  6278   49</span>
+<span class="co">##      Yes 3076  257</span></code></pre>
 </div>
 </div>
-<div id="precise-boundary-prediction" class="section level2">
-<h2 class="hasAnchor">
-<a href="#precise-boundary-prediction" class="anchor"></a>Precise boundary prediction</h2>
+<div class="section level3">
+<h3 id="precise-boundary-prediction">Precise boundary prediction<a class="anchor" aria-label="anchor" href="#precise-boundary-prediction"></a>
+</h3>
 <p>Recall that our model classifies boundary <strong>regions</strong>, in that each prediction refers to a genomic bin of width 5000 bases. To predict boundary coordinates at the base resolution more precisely, we can leverage our model through the use of the <code><a href="../reference/preciseTAD.html">preciseTAD::preciseTAD()</a></code> function. Conceptually, instead of genomic bins, we annotate each base with the selected genomic annotations and featureType. We then apply our model on this annotation matrix to predict the probability of each base is a boundary given the associated genomic annotations. To minimize computational costs, the base-level prediction should be performed in selected regions.</p>
-<div id="running-precisetad" class="section level3">
-<h3 class="hasAnchor">
-<a href="#running-precisetad" class="anchor"></a>Running preciseTAD</h3>
+<div class="section level4">
+<h4 id="running-precisetad">Running preciseTAD<a class="anchor" aria-label="anchor" href="#running-precisetad"></a>
+</h4>
 <p>Suppose we want to precisely predict the domain boundary coordinates for the 2Mb section of CHR22:25,500,000-27,500,000. To do so, we specify <code>chromCoords = list(25500000, 27500000)</code>. Additionally, we set a range of probability threshold values including 0.975, 0.99, and 1.0 used for constructing PTBRs. For DBSCAN, we assign a range of <span class="math inline">\(\epsilon\)</span>-neighborhood values including 5000, 10000, 15000, 20000, and 30000 and maintain 3 as the <em>MinPts</em> value. We specify <code>verbose=TRUE</code> so that the function will print out some minor results for each combination of <span class="math inline">\((t, \epsilon)\)</span> as well as the overall best combination</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Run preciseTAD</span>
-<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
 <span class="va">pt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/preciseTAD.html">preciseTAD</a></span><span class="op">(</span>genomicElements.GR <span class="op">=</span> <span class="va">tfbsList_filt</span>,
                 featureType         <span class="op">=</span> <span class="st">"distance"</span>,
                 CHR                 <span class="op">=</span> <span class="st">"CHR22"</span>,
-                chromCoords         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fl">17000000</span>, <span class="fl">18000000</span><span class="op">)</span>,
+                chromCoords         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">17000000</span>, <span class="fl">18000000</span><span class="op">)</span>,
                 tadModel            <span class="op">=</span> <span class="va">tadModel</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,
                 threshold           <span class="op">=</span> <span class="fl">1</span>,
                 verbose             <span class="op">=</span> <span class="cn">TRUE</span>,
                 parallel            <span class="op">=</span> <span class="cn">NULL</span>,
-                DBSCAN_params       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>eps <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">30000</span><span class="op">)</span>, <span class="co"># c(10000, 30000, 50000)</span>
-                                           MinPts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span>, <span class="co"># c(3, 10, 100)</span>
+                DBSCAN_params       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>eps <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30000</span><span class="op">)</span>, <span class="co"># c(10000, 30000, 50000)</span>
+                                           MinPts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span>, <span class="co"># c(3, 10, 100)</span>
                 slope               <span class="op">=</span> <span class="fl">5000</span>,
                 genome              <span class="op">=</span> <span class="st">"hg19"</span>,
                 BaseProbs           <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
-<pre><code>## [1] "Establishing bp resolution test data using a distance type feature space"
-## [1] "Establishing probability vector"
-## [1] "Determining optimal combination of epsilon neighborhood (eps) and minimum number of points (MinPts)"
-## [1] "Initializing DBSCAN for MinPts=100 and eps=30000"
-## [1] "    preciseTAD identified 2 PTBRs"
-## [1] "    Establishing PTBPs"
-## [1] "        Cluster 1 out of 2"
-## [1] "        Cluster 2 out of 2"
-## [1] "Optimal combination of MinPts and eps is = (100, 30000)"
-## [1] "preciseTAD identified a total of 1678 base pairs whose predictive probability was equal to or exceeded a threshold of 1"
-## [1] "Initializing DBSCAN for MinPts = 100 and eps = 30000"
-## [1] "preciseTAD identified 2 PTBRs"
-## [1] "Establishing PTBPs"
-## [1] "Cluster 1 out of 2"
-## [1] "Cluster 2 out of 2"</code></pre>
+<pre><code><span class="co">## [1] "Establishing bp resolution test data using a distance type feature space"</span>
+<span class="co">## [1] "Establishing probability vector"</span>
+<span class="co">## [1] "Determining optimal combination of epsilon neighborhood (eps) and minimum number of points (MinPts)"</span>
+<span class="co">## [1] "Initializing DBSCAN for MinPts=100 and eps=30000"</span>
+<span class="co">## [1] "    preciseTAD identified 2 PTBRs"</span>
+<span class="co">## [1] "    Establishing PTBPs"</span>
+<span class="co">## [1] "        Cluster 1 out of 2"</span>
+<span class="co">## [1] "        Cluster 2 out of 2"</span>
+<span class="co">## [1] "Optimal combination of MinPts and eps is = (100, 30000)"</span>
+<span class="co">## [1] "preciseTAD identified a total of 1678 base pairs whose predictive probability was equal to or exceeded a threshold of 1"</span>
+<span class="co">## [1] "Initializing DBSCAN for MinPts = 100 and eps = 30000"</span>
+<span class="co">## [1] "preciseTAD identified 2 PTBRs"</span>
+<span class="co">## [1] "Establishing PTBPs"</span>
+<span class="co">## [1] "Cluster 1 out of 2"</span>
+<span class="co">## [1] "Cluster 2 out of 2"</span></code></pre>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># What is getting returned? PTBRs - precide TAD boundary regions, and PTBPs - boundary points</span>
-<span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">pt</span><span class="op">)</span></code></pre></div>
-<pre><code>## [1] "preciseTADparams" "PTBR"             "PTBP"             "Summaries"</code></pre>
+<span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">pt</span><span class="op">)</span></code></pre></div>
+<pre><code><span class="co">## [1] "preciseTADparams" "PTBR"             "PTBP"             "Summaries"</span></code></pre>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># View the results</span>
 <span class="co"># pt</span></code></pre></div>
@@ -478,13 +474,13 @@
 </div>
 <p>The vector of base-specific probabilities of being a boundary (<code>BaseProbs</code>) may be large, depending on the <code>chromCoords</code> settings. In our example, it has 2 million entries. Be careful when setting <code>BaseProbs = TRUE</code> to avoid memory issues. To see how the probabilities for the first five hundred bases look like, we do:</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">pt</span><span class="op">$</span><span class="va">Summaries</span><span class="op">$</span><span class="va">BaseProbs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">100000</span><span class="op">]</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pt</span><span class="op">$</span><span class="va">Summaries</span><span class="op">$</span><span class="va">BaseProbs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">100000</span><span class="op">]</span><span class="op">)</span></code></pre></div>
 <p><img src="preciseTAD_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 <p>We can see that the probability of being a boundary seems to peak around 200 and 400 bases. It is well below 1, but may be worth further investigation.</p>
 </div>
-<div id="using-precisetad-with-juicebox" class="section level3">
-<h3 class="hasAnchor">
-<a href="#using-precisetad-with-juicebox" class="anchor"></a>Using preciseTAD with Juicebox</h3>
+<div class="section level4">
+<h4 id="using-precisetad-with-juicebox">Using preciseTAD with Juicebox<a class="anchor" aria-label="anchor" href="#using-precisetad-with-juicebox"></a>
+</h4>
 <p>Juicebox is an interface provided by Aiden Lab that allows for superimposing boundary coordinates onto Hi-C contact maps. To visualize domains flanked by the predicted boundaries, you must first select a Hi-C map. As an example, you can import the contact matrix for GM12878 derived by Rao et al. 2014 by choosing <code>File -&gt; Open... -&gt; Rao and Huntley et al. -&gt; GM12878 -&gt; in situ Mbol -&gt; primary</code>. To format <code>preciseTAD</code> results to use in Juicebox, users can take advantage of <code><a href="../reference/juicer_func.html">preciseTAD::juicer_func()</a></code>, which is a function available in the <code>preciseTAD</code> R package that transforms a GRanges object into a data frame as shown below.</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Transform</span>
@@ -492,55 +488,55 @@
 <p>You will then need to save the PTBPs as a BED file using <code>write.table</code> as shown below. Once saved, import them into Juicebox using <code>Show Annotation Panel -&gt; 2D Annotations -&gt; Add Local -&gt; pt_juice.bed</code>.</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">filepath</span> <span class="op">=</span> <span class="st">"~/path/to/store/ptbps"</span>
-<span class="fu"><a href="https://rdrr.io/r/utils/write.table.html">write.table</a></span><span class="op">(</span><span class="va">pt_juice</span>, 
-            <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">filepath</span>, <span class="st">"pt_juice.bed"</span><span class="op">)</span>,
+<span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.table</a></span><span class="op">(</span><span class="va">pt_juice</span>, 
+            <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">filepath</span>, <span class="st">"pt_juice.bed"</span><span class="op">)</span>,
             quote <span class="op">=</span> <span class="cn">FALSE</span>,
             col.names <span class="op">=</span> <span class="cn">FALSE</span>,
             row.names <span class="op">=</span> <span class="cn">FALSE</span>,
             sep <span class="op">=</span> <span class="st">"\t"</span><span class="op">)</span></code></pre></div>
 </div>
-<div id="cross-cell-type-prediction" class="section level3">
-<h3 class="hasAnchor">
-<a href="#cross-cell-type-prediction" class="anchor"></a>Cross-cell-type prediction</h3>
+<div class="section level4">
+<h4 id="cross-cell-type-prediction">Cross-cell-type prediction<a class="anchor" aria-label="anchor" href="#cross-cell-type-prediction"></a>
+</h4>
 <p><code>preciseTAD</code> allows us to use the pre-trained model to predict the precise location of domain boundaries in cell types without Hi-C data but with genome annotation data. Specifically, only the cell type-specific ChIP-seq data (BED format) for CTCF, RAD21, SMC3, and ZNF143 transcription factor binding sites is required. These data need to be assembled in a GRanges object using the aforementioned <code><a href="../reference/bedToGRangesList.html">bedToGRangesList()</a></code> function (i.e., creating another cell-type-specific <code>tfbsList_filt</code> object).</p>
-<p>The pre-trained model <code>tadModel</code> can be obtained by using <code><a href="../reference/bedToGRangesList.html">bedToGRangesList()</a></code>, <code><a href="../reference/extractBoundaries.html">extractBoundaries()</a></code>, <code><a href="../reference/createTADdata.html">createTADdata()</a></code>, and <code><a href="../reference/TADrandomForest.html">TADrandomForest()</a></code> functions, as described. Alternatively, chromosome-specific pre-trained models can be downloaded from the <a href="https://1drv.ms/u/s!AhmbAyu-bORbgutlR0_b-DJP9jTNKw?e=zZhASJ">OneDrive storage</a><!--[Google Drive folder](http://1drv.ms/u/s!AhmbAyu-bORbgutlR0_b-DJP9jTNKw?e=zZhASJ)-->. We recommend models pre-trained using GM12878 genome annotation data and Peakachu peaks. Note that each model is annotated with “CHRi_holdout”, representing the chromosome held out of training, and thus to be used to predict boundaries. It should be noted that the pretrained <em>preciseTAD</em> models were trained on cancer cell lines (GM12878 and K562). Although we expect that the fundamental rules of domain boundary formation (CTCF etc. binding) will be preserved in cancer cells, use caution when applying the pretrained models to predict boindaries in normal cell lines.</p>
-<p>As an example, we consider the Hela-S3 cell line. We will download and use the <a href="https://1drv.ms/u/s!AhmbAyu-bORbguwDMgw2fA6Z84sYsQ?e=UrMUky">CHR22_GM12878_5kb_Peakachu</a> model to predict boundaries for chr22 in the Hela-S3 cell line.</p>
+<p>The pre-trained model <code>tadModel</code> can be obtained by using <code><a href="../reference/bedToGRangesList.html">bedToGRangesList()</a></code>, <code><a href="../reference/extractBoundaries.html">extractBoundaries()</a></code>, <code><a href="../reference/createTADdata.html">createTADdata()</a></code>, and <code><a href="../reference/TADrandomForest.html">TADrandomForest()</a></code> functions, as described. Alternatively, chromosome-specific pre-trained models can be downloaded from the <a href="https://1drv.ms/u/s!AhmbAyu-bORbgutlR0_b-DJP9jTNKw?e=zZhASJ" class="external-link">OneDrive storage</a><!--[Google Drive folder](http://1drv.ms/u/s!AhmbAyu-bORbgutlR0_b-DJP9jTNKw?e=zZhASJ)-->. We recommend models pre-trained using GM12878 genome annotation data and Peakachu peaks. Note that each model is annotated with “CHRi_holdout”, representing the chromosome held out of training, and thus to be used to predict boundaries. It should be noted that the pretrained <em>preciseTAD</em> models were trained on cancer cell lines (GM12878 and K562). Although we expect that the fundamental rules of domain boundary formation (CTCF etc. binding) will be preserved in cancer cells, use caution when applying the pretrained models to predict boindaries in normal cell lines.</p>
+<p>As an example, we consider the Hela-S3 cell line. We will download and use the <a href="https://1drv.ms/u/s!AhmbAyu-bORbguwDMgw2fA6Z84sYsQ?e=UrMUky" class="external-link">CHR22_GM12878_5kb_Peakachu</a> model to predict boundaries for chr22 in the Hela-S3 cell line.</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Read in RF model built on chr1-chr21</span>
-<span class="va">tadModel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="st">"~/Downloads/CHR22_GM12878_5kb_Peakachu.rds"</span><span class="op">)</span></code></pre></div>
-<p>The Hela-S3-specific BED-formatted TFBS data can be downloaded at <a href="http://www.encodeproject.org/chip-seq-matrix/?type=Experiment&amp;replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&amp;assay_title=TF%20ChIP-seq&amp;status=released">ENCODE</a>. The selected TFBS data can be downloaded from the <a href="http://github.com/stilianoudakis/preciseTAD_supplementary/tree/master/data/bed/hela">supplementary repository</a>. They can be converted into a GRangesList.</p>
+<span class="va">tadModel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"~/Downloads/CHR22_GM12878_5kb_Peakachu.rds"</span><span class="op">)</span></code></pre></div>
+<p>The Hela-S3-specific BED-formatted TFBS data can be downloaded at <a href="http://www.encodeproject.org/chip-seq-matrix/?type=Experiment&amp;replicates.library.biosample.donor.organism.scientific_name=Homo%20sapiens&amp;assay_title=TF%20ChIP-seq&amp;status=released" class="external-link">ENCODE</a>. The selected TFBS data can be downloaded from the <a href="http://github.com/stilianoudakis/preciseTAD_supplementary/tree/master/data/bed/hela" class="external-link">supplementary repository</a>. They can be converted into a GRangesList.</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Establishing Hela-specific genomic annotations</span>
 <span class="co"># Reading in CTCF, RAD21, SMC3, and ZNF143 from repository and storing as list</span>
-<span class="va">ctcf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.delim</a></span><span class="op">(</span><span class="st">"http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/ctcf.bed"</span>, sep <span class="op">=</span> <span class="st">"\t"</span>, header <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>
-<span class="va">rad21</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.delim</a></span><span class="op">(</span><span class="st">"http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/rad21.bed"</span>, sep <span class="op">=</span> <span class="st">"\t"</span>, header <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>
-<span class="va">smc3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.delim</a></span><span class="op">(</span><span class="st">"http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/smc3.bed"</span>, sep <span class="op">=</span> <span class="st">"\t"</span>, header <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>
-<span class="va">znf143</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.delim</a></span><span class="op">(</span><span class="st">"http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/znf143.bed"</span>, sep <span class="op">=</span> <span class="st">"\t"</span>, header <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>
-<span class="va">helaList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">ctcf</span>, <span class="va">rad21</span>, <span class="va">smc3</span>, <span class="va">znf143</span><span class="op">)</span>
+<span class="va">ctcf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.delim</a></span><span class="op">(</span><span class="st">"http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/ctcf.bed"</span>, sep <span class="op">=</span> <span class="st">"\t"</span>, header <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>
+<span class="va">rad21</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.delim</a></span><span class="op">(</span><span class="st">"http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/rad21.bed"</span>, sep <span class="op">=</span> <span class="st">"\t"</span>, header <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>
+<span class="va">smc3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.delim</a></span><span class="op">(</span><span class="st">"http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/smc3.bed"</span>, sep <span class="op">=</span> <span class="st">"\t"</span>, header <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>
+<span class="va">znf143</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.delim</a></span><span class="op">(</span><span class="st">"http://raw.githubusercontent.com/stilianoudakis/preciseTAD_supplementary/master/data/bed/hela/znf143.bed"</span>, sep <span class="op">=</span> <span class="st">"\t"</span>, header <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span>
+<span class="va">helaList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ctcf</span>, <span class="va">rad21</span>, <span class="va">smc3</span>, <span class="va">znf143</span><span class="op">)</span>
 
-<span class="va">hela.GR</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bedToGRangesList.html">bedToGRangesList</a></span><span class="op">(</span>bedList<span class="op">=</span><span class="va">helaList</span>, bedNames<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Ctcf"</span>, <span class="st">"Rad21"</span>, <span class="st">"Smc3"</span>, <span class="st">"Znf143"</span><span class="op">)</span>, signal<span class="op">=</span><span class="fl">5</span><span class="op">)</span></code></pre></div>
+<span class="va">hela.GR</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bedToGRangesList.html">bedToGRangesList</a></span><span class="op">(</span>bedList<span class="op">=</span><span class="va">helaList</span>, bedNames<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Ctcf"</span>, <span class="st">"Rad21"</span>, <span class="st">"Smc3"</span>, <span class="st">"Znf143"</span><span class="op">)</span>, signal<span class="op">=</span><span class="fl">5</span><span class="op">)</span></code></pre></div>
 <p>Now we are ready to predict boundaries on chr22 for Hela-S3.</p>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Run preciseTAD</span>
-<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>
 <span class="va">pt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/preciseTAD.html">preciseTAD</a></span><span class="op">(</span>genomicElements.GR <span class="op">=</span> <span class="va">hela.GR</span>,
                 featureType         <span class="op">=</span> <span class="st">"distance"</span>,
                 CHR                 <span class="op">=</span> <span class="st">"CHR22"</span>,
-                chromCoords         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fl">25500000</span>, <span class="fl">27500000</span><span class="op">)</span>,
+                chromCoords         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">25500000</span>, <span class="fl">27500000</span><span class="op">)</span>,
                 tadModel            <span class="op">=</span> <span class="va">tadModel</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,
                 threshold           <span class="op">=</span> <span class="fl">1.0</span>,
                 verbose             <span class="op">=</span> <span class="cn">FALSE</span>,
                 parallel            <span class="op">=</span> <span class="cn">NULL</span>,
-                DBSCAN_params       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fl">30000</span>, <span class="fl">100</span><span class="op">)</span>,
+                DBSCAN_params       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">30000</span>, <span class="fl">100</span><span class="op">)</span>,
                 slope               <span class="op">=</span> <span class="fl">5000</span>,
                 BaseProbs           <span class="op">=</span> <span class="cn">FALSE</span>,
                 savetobed           <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
 </div>
 </div>
 </div>
-<div id="references" class="section level1 unnumbered">
-<h1 class="hasAnchor">
-<a href="#references" class="anchor"></a>References</h1>
+<div class="section level2">
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
 <div id="refs" class="references">
 <div id="ref-breiman2001random">
 <p>Breiman, Leo. 2001. “Random Forests.” <em>Machine Learning</em> 45 (1): 5–32.</p>
@@ -587,11 +583,13 @@
 
 
       <footer><div class="copyright">
-  <p>Developed by Spiro Stilianoudakis, Mikhail Dozmorov.</p>
+  <p></p>
+<p>Developed by Spiro Stilianoudakis, Mikhail Dozmorov.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
 </div>
 
       </footer>
@@ -599,6 +597,8 @@
 
   
 
+
+  
 
   </body>
 </html>
